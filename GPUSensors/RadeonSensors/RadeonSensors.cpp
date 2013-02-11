@@ -73,6 +73,7 @@ bool RadeonMonitor::start(IOService * provider)
     card.family = CHIP_FAMILY_UNKNOW;
     card.int_thermal_type = THERMAL_TYPE_NONE;
     
+    lockStorageProvider();
     card.card_index = getVacantGPUIndex();
 	
 	RADEONCardInfo *devices = RADEONCards;
@@ -96,6 +97,7 @@ bool RadeonMonitor::start(IOService * provider)
     
     if (card.family == CHIP_FAMILY_UNKNOW) {
         radeon_fatal(&card, "unknown card 0x%04x\n", card.chip_id & 0xffff);
+        //unlockStorageProvider();
         //return false;
     }
     
@@ -240,6 +242,7 @@ bool RadeonMonitor::start(IOService * provider)
                 
                 //             default:
                 //                 radeon_fatal(&card, "card 0x%04x is unsupported\n", card.chip_id & 0xffff);
+                //                  unlockStorageProvider();
                 //                 return false;
         }
     }
@@ -270,6 +273,7 @@ bool RadeonMonitor::start(IOService * provider)
                 break;
             default:
                 radeon_fatal(&card, "card 0x%04x is unsupported\n", card.chip_id & 0xffff);
+                unlockStorageProvider();
                 return false;
         }
     }
@@ -279,6 +283,7 @@ bool RadeonMonitor::start(IOService * provider)
     
     //Take up card number
     card.card_index = takeVacantGPUIndex();
+    unlockStorageProvider();
     
     if (card.card_index < 0) {
         radeon_fatal(&card, "failed to obtain vacant GPU index\n");

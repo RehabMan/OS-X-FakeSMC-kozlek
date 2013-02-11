@@ -58,7 +58,7 @@ bool PTIDSensors::updateTachometers()
         
         tachometers = OSDynamicCast(OSArray, object);
         
-        //setProperty("temperatures", temperatures);
+        //setProperty("tachometers", tachometers);
         
         return true;
     }
@@ -141,7 +141,7 @@ float PTIDSensors::getSensorValue(FakeSMCSensor *sensor)
 void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)
 {
     if (name && readTemperature(index)) {
-        char key[5];
+        char key[5]; key[0] = 0;
         char str[64];
         
         if (name->isEqualTo("CPU Core Package DTS") || name->isEqualTo("CPU Package Temperature"))
@@ -154,7 +154,7 @@ void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)
             snprintf(key, 5, KEY_MCH_DIODE_TEMPERATURE);
         else if (name->isEqualTo("Ambient Temperature"))
             snprintf(key, 5, KEY_AMBIENT_TEMPERATURE);
-        else if (!strlen(key)) {
+        else {
             for (UInt8 i = 0; i < 4; i++) {
                 snprintf(str, 64, "TS-on-DIMM%x Temperature", i);
                 
@@ -183,26 +183,20 @@ void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)
             }
         }
         
-        if (strlen(key))
+        if (strlen(key)) {
             addSensor(key, TYPE_SP78, TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, index);
+        }
     }
-    
 }
 
 void PTIDSensors::parseTachometerName(OSString *name, UInt32 index)
 {
     if (name) {
-        if (name->isEqualTo("RPM"))
-            switch (version) {
-                case 0x30000:
-                    if (readTachometer(index))
-                        this->addTachometer(index);
-                    break;
-                case 0x20001:
-                    if (readTachometer(index - 1))
-                        this->addTachometer(index - 1);
-                    break;
+        if (name->isEqualTo("RPM")) {
+            if (readTachometer(index)) {
+                this->addTachometer(index);
             }
+        }
     }
 }
 
@@ -217,6 +211,13 @@ bool PTIDSensors::start(IOService * provider)
         HWSensorsFatalLog("ACPI device not ready");
         return false;
     }
+    
+    // On some computers (eg. RehabMan's ProBook 4530s), the system will hang on startup
+    // if kernel cache is used, because of the early call to updateTemperatures and/or
+    // updateTachometers.  At least that is the case with an SSD and a valid pre-linked
+    // kernel, along with kernel cache enabled.  This 1000ms sleep seems to fix the problem,
+    // enabling a clean boot with PTIDSensors enabled.
+    IOSleep(1000);
     
     // Update timers
     clock_get_system_nanotime((clock_sec_t*)&temperatureNextUpdate.tv_sec, (clock_nsec_t*)&temperatureNextUpdate.tv_nsec);
@@ -241,18 +242,12 @@ bool PTIDSensors::start(IOService * provider)
             
             // Temperatures
             if(kIOReturnSuccess == acpiDevice->evaluateObject("TSDL", &object) && object) {
-                
-                OSArray *description = OSDynamicCast(OSArray, object);
-                
-                if (OSIterator *iterator = OSCollectionIterator::withCollection(description)) {
-                    
+                if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing temperatures...");
                     
-                    UInt32 count = 0;
-                    
-                    while (OSObject *item = iterator->getNextObject()) {
-                        parseTemperatureName(OSDynamicCast(OSString, item), count / 2);
-                        count += 2;
+                    UInt32 count = description->getCount();
+                    for (int i = 1; i < count; i += 2) {
+                        parseTemperatureName(OSDynamicCast(OSString, description->getObject(i)), i/2);
                     }
                 }
             }
@@ -261,22 +256,16 @@ bool PTIDSensors::start(IOService * provider)
             // Tachometers
             if(kIOReturnSuccess == acpiDevice->evaluateObject("OSDL", &object) && object) {
                 
-                OSArray *description = OSDynamicCast(OSArray, object);
-                
-                if (OSIterator *iterator = OSCollectionIterator::withCollection(description)) {
-                    
+                if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing tachometers...");
                     
-                    UInt32 count = 0;
-                    
-                    while (OSObject *item = iterator->getNextObject()) {
-                        parseTachometerName(OSDynamicCast(OSString, item), count / 3);
-                        count += 3;
+                    UInt32 count = description->getCount();
+                    for (int i = 2; i < count; i += 3) {
+                        parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), i/3);
                     }
                 }
             }
             else HWSensorsErrorLog("failed to evaluate OSDL table");
-            
             break;
         }
             
@@ -284,43 +273,30 @@ bool PTIDSensors::start(IOService * provider)
             OSObject *object = NULL;
             
             // Temperatures
-            if(kIOReturnSuccess == acpiDevice->evaluateObject("TMPV", &object) && object) {
-                
-                OSArray *description = OSDynamicCast(OSArray, object);
-                
-                if (OSIterator *iterator = OSCollectionIterator::withCollection(description)) {
-                    
+            if (kIOReturnSuccess == acpiDevice->evaluateObject("TMPV", &object) && object) {
+                if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing temperatures...");
                     
-                    UInt32 count = 0;
-                    
-                    while (OSObject *item = iterator->getNextObject()) {
-                        parseTemperatureName(OSDynamicCast(OSString, item), count + 1);
-                        count += 3;
+                    UInt32 count = description->getCount();
+                    for (int i = 1; i < count; i += 3) {
+                        parseTemperatureName(OSDynamicCast(OSString, description->getObject(i)), i+1);
                     }
                 }
             }
             else HWSensorsErrorLog("failed to evaluate TMPV table");
             
             // Tachometers
-            if(kIOReturnSuccess == acpiDevice->evaluateObject("OSDV", &object) && object) {
-                
-                OSArray *description = OSDynamicCast(OSArray, object);
-                
-                if (OSIterator *iterator = OSCollectionIterator::withCollection(description)) {
-                    
+            if (kIOReturnSuccess == acpiDevice->evaluateObject("OSDV", &object) && object) {
+                if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing tachometers...");
                     
-                    UInt32 count = 0;
-                    
-                    while (OSObject *item = iterator->getNextObject()) {
-                        parseTachometerName(OSDynamicCast(OSString, item), count + 2);
-                        count++;
+                    UInt32 count = description->getCount();
+                    for (int i = 2; i < count; i += 4) {
+                        parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), i+1);
                     }
                 }
             }
             else HWSensorsErrorLog("failed to evaluate OSDV table");
-            
             break;
         }
             
@@ -335,3 +311,4 @@ bool PTIDSensors::start(IOService * provider)
     
 	return true;
 }
+

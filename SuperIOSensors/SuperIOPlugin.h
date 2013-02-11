@@ -29,6 +29,7 @@
 #include <IOKit/IOService.h>
 #include <IOKit/IOTimerEventSource.h>
 
+#define DEFINE_FAKESMC_SENSOR_PARAMS
 #include "FakeSMCPlugin.h"
 
 class FakeSMCPlugin;
