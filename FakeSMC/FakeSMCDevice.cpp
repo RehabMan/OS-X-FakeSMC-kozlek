@@ -819,6 +819,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                         if (key->getHandler() == handler) {
                             key->setHandler(NULL);
                             result = kIOReturnSuccess;
+                            break;
                         }
                     OSSafeRelease(iterator);
                 }
