@@ -19,3 +19,5 @@
 #define LPCSENSORS_COMPATIBLE               224
 
 #define GPUSENSORS_BUNDLE                   org.hwsensors.driver.GPUSensors
+
+#define SOURCE_CODE_LINK                    "https://github.com/RehabMan/OS-X-FakeSMC-kozlek.git"
