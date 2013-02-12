@@ -178,8 +178,6 @@
 #define kFakeSMCTakeFanIndex                    "kFakeSMCTakeFanIndex"
 #define kFakeSMCGetValueCallback                "kFakeSMCGetValueCallback"
 #define kFakeSMCSetValueCallback                "kFakeSMCSetValueCallback"
-#define kFakeSMCLock                            "kFakeSMCLock"
-#define kFakeSMCUnlock                          "kFakeSMCUnlock"
 
 #define kHWSensorsDebug FALSE
 

@@ -183,9 +183,6 @@ protected:
     
     virtual float           getSensorValue(FakeSMCSensor *sensor);
     
-    void                    lockStorageProvider(void);
-    void                    unlockStorageProvider(void);
-    
 public:    
 	virtual bool			init(OSDictionary *properties=0);
 	virtual IOService       *probe(IOService *provider, SInt32 *score);

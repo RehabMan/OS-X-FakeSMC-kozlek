@@ -270,7 +270,6 @@ FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char* name, UInt
 	void * data = 0;
     FakeSMCSensor* sensor = 0;
     
-    lockStorageProvider();
 	if (kIOReturnSuccess == storageProvider->callPlatformFunction(kFakeSMCGetKeyValue, true, (void *)KEY_FAN_NUMBER, (void *)&length, (void *)&data, 0)) {
 		length = 0;
 		
@@ -498,16 +497,4 @@ IOReturn FakeSMCPlugin::callPlatformFunction(const OSSymbol *functionName, bool 
 	}
     
 	return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
-}
-
-void FakeSMCPlugin::lockStorageProvider()
-{
-    assert(storageProvider);
-    storageProvider->callPlatformFunction(kFakeSMCLock, true, 0, 0, 0, 0);
-}
-
-void FakeSMCPlugin::unlockStorageProvider()
-{
-    assert(storageProvider);
-    storageProvider->callPlatformFunction(kFakeSMCUnlock, true, 0, 0, 0, 0);
 }

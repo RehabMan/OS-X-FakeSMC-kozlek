@@ -712,17 +712,6 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
-    // special case for locks
-    if (functionName->isEqualTo(kFakeSMCLock)) {
-        IORecursiveLockLock(device_lock);
-        return kIOReturnSuccess;
-    }
-    else if (functionName->isEqualTo(kFakeSMCUnlock)) {
-        IORecursiveLockUnlock(device_lock);
-        return kIOReturnSuccess;
-    }
-	
-    // normal case: lock going in, unlock going out
     IORecursiveLockLock(device_lock);
     IOReturn result = kIOReturnUnsupported;
     
