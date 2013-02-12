@@ -88,15 +88,6 @@ bool GeforceSensors::start(IOService * provider)
         
     struct nouveau_device *device = &card;
     
-    //Check if we have available card number, and use it in initialization process without taking it up
-    lockStorageProvider();
-    card.card_index = getVacantGPUIndex();
-    
-    if (card.card_index < 0) {
-        unlockStorageProvider();
-        return false;
-    }
-    
     // map device memory
     if ((device->pcidev = (IOPCIDevice*)provider)) {
         
@@ -107,19 +98,22 @@ bool GeforceSensors::start(IOService * provider)
         }
         else {
             nv_error(device, "failed to map memory\n");
-            unlockStorageProvider();
             return false;
         }
     }
     else {
         nv_error(device, "failed to assign PCI device\n");
-        unlockStorageProvider();
         return false;
     }
+
+    card.card_index = takeVacantGPUIndex();
+    
+    if (card.card_index < 0)
+        return false;
     
     // identify chipset
     if (!nouveau_identify(device)) {
-        unlockStorageProvider();
+        releaseGPUIndex(card.card_index);
         return false;
     }
     
@@ -141,7 +135,7 @@ bool GeforceSensors::start(IOService * provider)
             }
             
             nv_error(device, "unable to shadow VBIOS\n");
-            unlockStorageProvider();
+            releaseGPUIndex(card.card_index);
             return false;
         }
     
@@ -151,7 +145,7 @@ bool GeforceSensors::start(IOService * provider)
     // initialize funcs and variables
     if (!nouveau_init(device)) {
         nv_error(device, "unable to initialize monitoring driver\n");
-        unlockStorageProvider();
+        releaseGPUIndex(card.card_index);
         return false;
     }
     
@@ -167,14 +161,6 @@ bool GeforceSensors::start(IOService * provider)
     
     // Register sensors
     char key[5];
-    
-    // Try to take up available GPU index
-    card.card_index = takeVacantGPUIndex();
-    unlockStorageProvider();
-    
-    if (card.card_index < 0)
-        return false;
-    
     if (card.core_temp_get || card.board_temp_get) {
         nv_debug(device, "registering i2c temperature sensors...\n");
         

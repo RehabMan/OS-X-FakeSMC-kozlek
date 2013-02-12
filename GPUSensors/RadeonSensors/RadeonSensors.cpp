@@ -73,9 +73,13 @@ bool RadeonMonitor::start(IOService * provider)
     card.family = CHIP_FAMILY_UNKNOW;
     card.int_thermal_type = THERMAL_TYPE_NONE;
     
-    lockStorageProvider();
-    card.card_index = getVacantGPUIndex();
+    card.card_index = takeVacantGPUIndex();
 	
+    if (card.card_index < 0) {
+        radeon_fatal(&card, "failed to obtain vacant GPU index\n");
+        return false;
+    }
+    
 	RADEONCardInfo *devices = RADEONCards;
     
 	while (devices->device_id != NULL) {
@@ -97,7 +101,6 @@ bool RadeonMonitor::start(IOService * provider)
     
     if (card.family == CHIP_FAMILY_UNKNOW) {
         radeon_fatal(&card, "unknown card 0x%04x\n", card.chip_id & 0xffff);
-        //unlockStorageProvider();
         //return false;
     }
     
@@ -242,7 +245,6 @@ bool RadeonMonitor::start(IOService * provider)
                 
                 //             default:
                 //                 radeon_fatal(&card, "card 0x%04x is unsupported\n", card.chip_id & 0xffff);
-                //                  unlockStorageProvider();
                 //                 return false;
         }
     }
@@ -273,27 +275,21 @@ bool RadeonMonitor::start(IOService * provider)
                 break;
             default:
                 radeon_fatal(&card, "card 0x%04x is unsupported\n", card.chip_id & 0xffff);
-                unlockStorageProvider();
+                releaseGPUIndex(card.card_index);
                 return false;
         }
     }
     
-    
-    char key[5];
-    
-    //Take up card number
-    card.card_index = takeVacantGPUIndex();
-    unlockStorageProvider();
-    
-    if (card.card_index < 0) {
-        radeon_fatal(&card, "failed to obtain vacant GPU index\n");
-        return false;
-    }
-    
+   
     if (card.get_core_temp) {
+        char key[5];
         snprintf(key, 5, KEY_FORMAT_GPU_DIODE_TEMPERATURE, card.card_index);
-        if (!addSensor(key, TYPE_SP78, 2, kFakeSMCTemperatureSensor, 0))
-            radeon_error(&card, "failed to register temperature sensor for key %s\n", key);
+        if (!addSensor(key, TYPE_SP78, 2, kFakeSMCTemperatureSensor, 0)) {
+            //radeon_error(&card, "failed to register temperature sensor for key %s\n", key);
+            radeon_fatal(&card, "failed to register temperature sensor for key %s\n", key);
+            releaseGPUIndex(card.card_index);
+            return false;
+        }
     }
     
     registerService();
