@@ -10,6 +10,8 @@
 #include "FakeSMCDevice.h"
 #include "FakeSMCDefinitions.h"
 
+#include "FakeSMCPlugin.h"
+
 #define FakeSMCTraceLog(string, args...) do { if (trace) { IOLog ("%s: [Trace] " string "\n",getName() , ## args); } } while(0)
 #define FakeSMCDebugLog(string, args...) do { if (debug) { IOLog ("%s: [Debug] " string "\n",getName() , ## args); } } while(0)
 
@@ -340,8 +342,11 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 	keys = OSArray::withCapacity(16);
     
     // Add fist key - counter key
-    counterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
-	keys->setObject(counterKey);
+    keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
+	keys->setObject(keyCounterKey);
+    
+    fanCounterKey = FakeSMCKey::withValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, "\0");
+    keys->setObject(fanCounterKey);
     
     FakeSMCDebugLog("loading keys...");
     
@@ -525,13 +530,26 @@ IOReturn FakeSMCDevice::setProperties(OSObject * properties)
 
 UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
 
-void FakeSMCDevice::updateCounterKey()
+void FakeSMCDevice::updateKeyCounterKey()
 {
 	UInt32 count = OSSwapHostToBigInt32(keys->getCount());
     
 	//char value[] = { static_cast<char>(count << 24), static_cast<char>(count << 16), static_cast<char>(count << 8), static_cast<char>(count) };
     
-	counterKey->setValueFromBuffer(&count, 4);
+	keyCounterKey->setValueFromBuffer(&count, 4);
+}
+
+void FakeSMCDevice::updateFanCounterKey()
+{
+	UInt8 count = 0;
+    
+    for (UInt8 i = 0; i <= 0xf; i++) {
+        if (bit_get(vacantFanIndex, BIT(i)) > 0) {
+            count = i + 1;
+        }
+    }
+    
+	fanCounterKey->setValueFromBuffer(&count, 1);
 }
 
 FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value)
@@ -600,7 +618,7 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
         
         if ((key = FakeSMCKey::withValue(name, type, size, value))) {
             keys->setObject(key);
-            updateCounterKey();
+            updateKeyCounterKey();
         }
 	}
     IORecursiveLockUnlock(device_lock);
@@ -626,7 +644,7 @@ FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type,
         
         if ((key = FakeSMCKey::withHandler(name, type, size, handler))) {
             keys->setObject(key);
-            updateCounterKey();
+            updateKeyCounterKey();
         }
 	}
     IORecursiveLockUnlock(device_lock);
@@ -757,7 +775,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
             const char *name = (const char *)param1;
             const char *type = (const char *)param2;
             UInt8 size = (UInt64)param3;
-            IOService *handler = (IOService *)param4;
+            IOService *handler = (IOService*)param4;
             
             result = kIOReturnError;
             if (addKeyWithHandler(name, type, size, handler))
@@ -839,22 +857,42 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         result = kIOReturnBadArgument;
         if (param1) {
             SInt8 *index = (SInt8*)param1;
+            
+            result = kIOReturnError;
             if (*index >=0 && *index <= 0xf) {
                 bit_clear(vacantGPUIndex, BIT(*index));
                 result = kIOReturnSuccess;
             }
         }
     }
-    else if (functionName->isEqualTo(kFakeSMCTakeFanIndex)) {
+    else if (functionName->isEqualTo(kFakeSMCTakeVacantFanIndex)) {
         
         result = kIOReturnBadArgument;
         if (param1) {
             SInt8 *index = (SInt8*)param1;
+            
             result = kIOReturnError;
-            if (vacantFanIndex <= 0xf) {
-                *index = vacantFanIndex;
-                vacantFanIndex++;
-                addKeyWithValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, &vacantFanIndex);
+            for (UInt8 i = 0; i <= 0xf; i++) {
+                if (!bit_get(vacantFanIndex, BIT(i))) {
+                    bit_set(vacantFanIndex, BIT(i));
+                    *index = i;
+                    updateFanCounterKey();
+                    result = kIOReturnSuccess;
+                    break;
+                }
+            }
+        }
+    }
+    else if (functionName->isEqualTo(kFakeSMCReleaseFanIndex)) {
+        
+        result = kIOReturnBadArgument;
+        if (param1) {
+            SInt8 *index = (SInt8*)param1;
+            
+            result = kIOReturnError;
+            if (*index >=0 && *index <= 0xf) {
+                bit_clear(vacantFanIndex, BIT(*index));
+                updateFanCounterKey();
                 result = kIOReturnSuccess;
             }
         }
