@@ -141,7 +141,7 @@ float PTIDSensors::getSensorValue(FakeSMCSensor *sensor)
 void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)
 {
     if (name && readTemperature(index)) {
-        char key[5]; key[0] = 0;
+        char key[5];
         char str[64];
         
         key[0] = '\0';
