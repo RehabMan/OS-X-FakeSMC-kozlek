@@ -363,9 +363,8 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 						OSString *type = OSDynamicCast(OSString, aiterator->getNextObject());
 						OSData *value = OSDynamicCast(OSData, aiterator->getNextObject());
                         
-						if (type && value) {
-							this->addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy());
-                        }
+						if (type && value)
+							addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy());
                         
                         OSSafeRelease(aiterator);
 					}
@@ -382,44 +381,44 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 		HWSensorsWarningLog("no preconfigured keys found");
 	}
     
-    // Load wellknown types list
+    // Load wellknown type names
     types = OSDictionary::withCapacity(16);
     
     FakeSMCDebugLog("loading types...");
     
     if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Types"))) {
         if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-			while (const OSSymbol *key = (const OSSymbol *)iterator->getNextObject()) {
+			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
                 if (OSString *value = OSDynamicCast(OSString, dictionary->getObject(key))) {
                     types->setObject(key, value);
                 }
             }
+            OSSafeRelease(iterator);
         }
     }
     
     // Set Clover platform keys
-    if (IORegistryEntry* cloverPlatformNode = fromPath("/efi/platform", gIODTPlane)) {
-        if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty("RPlt")))
-            addKeyWithValue("RPlt", TYPE_CH8, data->getLength(), data->getBytesNoCopy());
-        
-        if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty("RBr")))
-            addKeyWithValue("RBr", TYPE_CH8, data->getLength(), data->getBytesNoCopy());
-
-        if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty("REV")))
-            if (data->getLength() >= 6)
-                addKeyWithValue("REV", "{rev", 6, data->getBytesNoCopy(0, 6));
-        
-        if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty("EPCI")))
-            if (data->getLength() >= TYPE_UI32_SIZE) {
-                UInt32 epci = OSSwapHostToBigInt32(*(UInt32*)data->getBytesNoCopy(0, TYPE_UI32_SIZE));
-                addKeyWithValue("EPCI", TYPE_UI32, TYPE_UI32_SIZE, &epci);
+    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Clover"))) {
+        UInt32 count = 0;
+        if (IORegistryEntry* cloverPlatformNode = fromPath("/efi/platform", gIODTPlane)) {
+            if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
+                while (OSString *name = OSDynamicCast(OSString, iterator->getNextObject())) {
+                    if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty(name))) {
+                        if (OSArray *items = OSDynamicCast(OSArray, dictionary->getObject(name))) {
+                            OSString *key = OSDynamicCast(OSString, items->getObject(0));
+                            OSString *type = OSDynamicCast(OSString, items->getObject(1));
+                            
+                            if (addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), data->getLength(), data->getBytesNoCopy()))
+                                count++;
+                        }
+                    }
+                }
+                OSSafeRelease(iterator);
             }
+        }
         
-        if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty("BEMB")))
-            if (data->getLength() >= TYPE_FLAG_SIZE)
-                addKeyWithValue("BEMB", TYPE_FLAG, TYPE_FLAG_SIZE, data->getBytesNoCopy(0, TYPE_FLAG_SIZE));
+        HWSensorsInfoLog("%d key(s) exported from Clover EFI", count);
     }
-    
     
     // Init SMC device
     
@@ -575,7 +574,7 @@ void FakeSMCDevice::updateFanCounterKey()
 	UInt8 count = 0;
     
     for (UInt8 i = 0; i <= 0xf; i++) {
-        if (bit_get(vacantFanIndex, BIT(i)) > 0) {
+        if (bit_get(vacantFanIndex, BIT(i))) {
             count = i + 1;
         }
     }
@@ -591,8 +590,11 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
     FakeSMCKey* key;
 	if ((key = getKey(name))) {
         
-        if (value)
+        if (value) {
+            key->setType(type);
+            key->setSize(size);
             key->setValueFromBuffer(value, size);
+        }
         
         if (debug) {
             if (strncmp("NATJ", key->getKey(), 5) == 0) {
@@ -668,7 +670,17 @@ FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type,
     FakeSMCKey* key;
 	if ((key = getKey(name))) {
 		HWSensorsErrorLog("key %s already handled", name);
-        key = 0;
+        if (key->getHandler() != NULL) {
+            // TODO: check priority?
+            HWSensorsErrorLog("key %s already handled", name);
+            key = 0;
+        }
+        else {
+            key->setType(type);
+            key->setSize(size);
+            key->setHandler(handler);
+        }
+        
 	}
     else {
     
@@ -763,79 +775,117 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
     IORecursiveLockLock(device_lock);
+    
     IOReturn result = kIOReturnUnsupported;
     
-    if (functionName->isEqualTo(kFakeSMCSetKeyValue)) {
+    if (functionName->isEqualTo(kFakeSMCAddKeyHandler)) {
         
         result = kIOReturnBadArgument;
-        if (param1 && param2 && param3) {
-            
-            const char *name = (const char *)param1;
-            UInt8 size = (UInt64)param2;
-            const void *data = (const void *)param3;
-            
-            result = kIOReturnError;
-            if (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, getKey(name))) {
-                if (key->setValueFromBuffer(data, size)) {
-                    result = kIOReturnSuccess;
-                }
-            }
-        }
-	}
-    else if (functionName->isEqualTo(kFakeSMCGetKeyHandler)) {
         
-        result = kIOReturnBadArgument;
-        if (param1) {
-            const char *name = (const char *)param1;
-            
-            result = kIOReturnError;
-            if (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, getKey(name))) {
-                if (key->getHandler()) {
-                    if (param2) {
-                        IOService *handler = (IOService *)param2;
-                        bcopy(key->getHandler(), handler, sizeof(handler));
-                    }
-                    result = kIOReturnSuccess;
-                }
-            }
-        }
-    }
-	else if (functionName->isEqualTo(kFakeSMCAddKeyHandler)) {
-        
-        result = kIOReturnBadArgument;
         if (param1 && param2 && param3 && param4) {
             const char *name = (const char *)param1;
             const char *type = (const char *)param2;
             UInt8 size = (UInt64)param3;
             IOService *handler = (IOService*)param4;
             
-            result = kIOReturnError;
-            if (addKeyWithHandler(name, type, size, handler))
-                result = kIOReturnSuccess;
+            if (name && type && size > 0 && handler) {
+                if (addKeyWithHandler(name, type, size, handler))
+                    result = kIOReturnSuccess;
+                else
+                    result = kIOReturnError;
+            }
         }
-	}
+    }
+    else if (functionName->isEqualTo(kFakeSMCGetKeyHandler)) {
+        
+        result = kIOReturnBadArgument;
+        
+        if (const char *name = (const char *)param1) {
+            
+            result = kIOReturnError;
+            
+            if (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, getKey(name))) {
+                if (key->getHandler()) {
+                    
+                    result = kIOReturnBadArgument;
+                    
+                    if (param2) {
+                        IOService *handler = (IOService *)param2;
+                        bcopy(key->getHandler(), handler, sizeof(handler));
+                        result = kIOReturnSuccess;
+                    }
+                }
+            }
+        }
+    }
+    else if (functionName->isEqualTo(kFakeSMCRemoveKeyHandler)) {
+        
+        result = kIOReturnBadArgument;
+        
+        if (param1) {
+            result = kIOReturnError;
+            
+            if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keys)) {
+                IOService *handler = (IOService *)param1;
+                while (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, iterator->getNextObject())) {
+                    if (key->getHandler() == handler)
+                        key->setHandler(NULL);
+                }
+                result = kIOReturnSuccess;
+                OSSafeRelease(iterator);
+            }
+        }
+    }
     else if (functionName->isEqualTo(kFakeSMCAddKeyValue)) {
         
         result = kIOReturnBadArgument;
+        
         if (param1 && param2 && param3) {
             const char *name = (const char *)param1;
             const char *type = (const char *)param2;
             UInt8 size = (UInt64)param3;
             const void *value = (const void *)param4;
             
-            result = kIOReturnError;
-            if (addKeyWithValue(name, type, size, value))
-                result = kIOReturnSuccess;
+            if (name && type && size > 0) {
+                if (addKeyWithValue(name, type, size, value))
+                    result = kIOReturnSuccess;
+                else
+                    result = kIOReturnError;
+            }
         }
-	}
+    }
+    else if (functionName->isEqualTo(kFakeSMCSetKeyValue)) {
+        
+        result = kIOReturnBadArgument;
+        
+        if (param1 && param2 && param3) {
+            const char *name = (const char *)param1;
+            UInt8 size = (UInt64)param2;
+            const void *data = (const void *)param3;
+            
+            result = kIOReturnError;
+            
+            if (name && data && size > 0) {
+                if (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, getKey(name))) {
+                    if (key->setValueFromBuffer(data, size)) {
+                        result = kIOReturnSuccess;
+                    }
+                }
+            }
+        }
+    }
     else if (functionName->isEqualTo(kFakeSMCGetKeyValue)) {
         
         result = kIOReturnBadArgument;
-        if (param1) {
-            const char *name = (const char *)param1;
+        
+        if (const char *name = (const char *)param1) {
             
             result = kIOReturnError;
+            
             if (FakeSMCKey *key = getKey(name)) {
+                
+                result = kIOReturnBadArgument;
+                
                 if (param2 && param3) {
                     UInt8 *size = (UInt8*)param2;
                     const void **value = (const void **)param3;
@@ -847,34 +897,12 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                 }
             }
         }
-	}
-    else if (functionName->isEqualTo(kFakeSMCRemoveKeyHandler)) {
-        
-        result = kIOReturnBadArgument;
-        if (param1) {
-            result = kIOReturnError;
-            
-            if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keys)) {
-                
-                IOService *handler = (IOService *)param1;
-                
-                while (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, iterator->getNextObject())) {
-                    if (key->getHandler() == handler) {
-                        key->setHandler(NULL);
-                    }
-                }
-                result = kIOReturnSuccess;
-                OSSafeRelease(iterator);
-            }
-        }
     }
     else if (functionName->isEqualTo(kFakeSMCTakeVacantGPUIndex)) {
         
         result = kIOReturnBadArgument;
-        if (param1) {
-            SInt8 *index = (SInt8*)param1;
-            
-            result = kIOReturnError;
+        
+        if (SInt8 *index = (SInt8*)param1) {
             for (UInt8 i = 0; i <= 0xf; i++) {
                 if (!bit_get(vacantGPUIndex, BIT(i))) {
                     bit_set(vacantGPUIndex, BIT(i));
@@ -883,16 +911,17 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                     break;
                 }
             }
+            
+            if (result != kIOReturnSuccess)
+                result = kIOReturnError;
         }
     }
     else if (functionName->isEqualTo(kFakeSMCReleaseGPUIndex)) {
         
         result = kIOReturnBadArgument;
-        if (param1) {
-            SInt8 *index = (SInt8*)param1;
-            
-            result = kIOReturnError;
-            if (*index >=0 && *index <= 0xf) {
+        
+        if (UInt8 *index = (UInt8*)param1) {
+            if (*index <= 0xf) {
                 bit_clear(vacantGPUIndex, BIT(*index));
                 result = kIOReturnSuccess;
             }
@@ -901,10 +930,8 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
     else if (functionName->isEqualTo(kFakeSMCTakeVacantFanIndex)) {
         
         result = kIOReturnBadArgument;
-        if (param1) {
-            SInt8 *index = (SInt8*)param1;
-            
-            result = kIOReturnError;
+        
+        if (SInt8 *index = (SInt8*)param1) {
             for (UInt8 i = 0; i <= 0xf; i++) {
                 if (!bit_get(vacantFanIndex, BIT(i))) {
                     bit_set(vacantFanIndex, BIT(i));
@@ -914,16 +941,17 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                     break;
                 }
             }
+            
+            if (result != kIOReturnSuccess)
+                result = kIOReturnError;
         }
     }
     else if (functionName->isEqualTo(kFakeSMCReleaseFanIndex)) {
         
         result = kIOReturnBadArgument;
-        if (param1) {
-            SInt8 *index = (SInt8*)param1;
-            
-            result = kIOReturnError;
-            if (*index >=0 && *index <= 0xf) {
+        
+        if (UInt8 *index = (UInt8*)param1) {
+            if (*index <= 0xf) {
                 bit_clear(vacantFanIndex, BIT(*index));
                 updateFanCounterKey();
                 result = kIOReturnSuccess;
@@ -932,6 +960,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
     }
     else {
         IORecursiveLockUnlock(device_lock);
+        
         return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
     }
     

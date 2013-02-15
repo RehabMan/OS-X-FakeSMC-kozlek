@@ -144,6 +144,8 @@ void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)
         char key[5]; key[0] = 0;
         char str[64];
         
+        key[0] = '\0';
+        
         if (name->isEqualTo("CPU Core Package DTS") || name->isEqualTo("CPU Package Temperature"))
             snprintf(key, 5, KEY_CPU_PACKAGE_TEMPERATURE);
         else if (name->isEqualTo("CPU Temperature"))

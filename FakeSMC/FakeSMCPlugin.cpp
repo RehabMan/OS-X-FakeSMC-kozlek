@@ -193,7 +193,9 @@ OSString *FakeSMCPlugin::getPlatformProduct()
 bool FakeSMCPlugin::isKeyExists(const char *key)
 {
     if (storageProvider) {
-        return kIOReturnSuccess == storageProvider->callPlatformFunction(kFakeSMCGetKeyValue, true, (void *)key, 0, 0, 0);
+        UInt8 size = 0;
+        void *value = 0;
+        return kIOReturnSuccess == storageProvider->callPlatformFunction(kFakeSMCGetKeyValue, true, (void *)key, &size, value, 0);
     }
     
     return false;
@@ -241,7 +243,7 @@ bool FakeSMCPlugin::addSensor(FakeSMCSensor *sensor)
     return result;
 }
 
-FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char* name, UInt8 *fanIndex)
+FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char* name, SInt8 *fanIndex)
 {
     SInt8 vacantFanIndex = takeVacantFanIndex();
     
@@ -264,46 +266,6 @@ FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char* name, UInt
         else HWSensorsErrorLog("failed to add tachometer sensor for key %s", key);
     }
     else HWSensorsErrorLog("failed to take vacant Fan index");
-    
-    
-    /*UInt8 length = 0;
-	void * data = 0;
-    FakeSMCSensor* sensor = 0;
-    
-	if (kIOReturnSuccess == storageProvider->callPlatformFunction(kFakeSMCGetKeyValue, true, (void *)KEY_FAN_NUMBER, (void *)&length, (void *)&data, 0)) {
-		length = 0;
-		
-		bcopy(data, &length, 1);
-		
-        for (int i = 0; i <= 0xf; i++) {
-            char key[5];
-            
-            snprintf(key, 5, KEY_FORMAT_FAN_SPEED, i); 
-            
-            if (!isKeyHandled(key)) {
-                if ((sensor = addSensor(key, TYPE_FPE2, 2, kFakeSMCTachometerSensor, index))) {
-                    if (name) {
-                        snprintf(key, 5, KEY_FORMAT_FAN_ID, i); 
-                        
-                        if (!setKeyValue(key, TYPE_CH8, strlen(name), name))
-                            HWSensorsWarningLog("failed to add tachometer name for key %s", key);
-                    }
-                    
-                    if (i + 1 > length) {
-                        length++;
-                        
-                        if (kIOReturnSuccess != storageProvider->callPlatformFunction(kFakeSMCSetKeyValue, true, (void *)KEY_FAN_NUMBER, (void *)(UInt8)1, (void *)&length, 0))
-                            HWSensorsWarningLog("failed to update FNum value");
-                    }
-                    
-                    if (fanIndex) *fanIndex = i;
-                    break;
-                }
-                else HWSensorsWarningLog("failed to add tachometer sensor for key %s", key);
-            }
-        }
-	}
-	else HWSensorsWarningLog("failed to read FNum value");*/
 	
 	return 0;
 }
@@ -357,34 +319,6 @@ bool FakeSMCPlugin::releaseFanIndex(UInt8 index)
     
     return true;
 }
-
-/*SInt8 FakeSMCPlugin::getVacantGPUIndex()
-{
-    //Find card number
-    char key[5];
-    
-    for (UInt8 i = 0; i <= 0xf; i++) {
-        
-        snprintf(key, 5, KEY_FORMAT_GPU_DIODE_TEMPERATURE, i); 
-        if (isKeyExists(key)) continue;
-            
-        snprintf(key, 5, KEY_FORMAT_GPU_HEATSINK_TEMPERATURE, i);             
-        if (isKeyExists(key)) continue;
-            
-        snprintf(key, 5, KEY_FORMAT_GPU_PROXIMITY_TEMPERATURE, i);             
-        if (isKeyExists(key)) continue;
-
-        snprintf(key, 5, KEY_FORMAT_GPU_VOLTAGE, i); 
-        if (isKeyExists(key)) continue;
-                    
-        snprintf(key, 5, KEY_FAKESMC_FORMAT_GPU_FREQUENCY, i); 
-        if (isKeyExists(key)) continue;
-                    
-        return i;
-    }
-    
-    return -1;
-}*/
 
 OSDictionary *FakeSMCPlugin::getConfigurationNode(OSDictionary *root, OSString *name)
 {
@@ -479,21 +413,27 @@ inline UInt8 index_of_hex_char(char c)
 
 void FakeSMCPlugin::stop(IOService* provider)
 {
+    HWSensorsDebugLog("[stop] removing handler");
     if (kIOReturnSuccess != storageProvider->callPlatformFunction(kFakeSMCRemoveKeyHandler, true, this, NULL, NULL, NULL))
         HWSensorsFatalLog("failed to remove handler from storage provider");
     
+    HWSensorsDebugLog("[stop] releasing tachometers");
     // Release all tachometers
     if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(sensors)) {
-        while (FakeSMCSensor *sensor = OSDynamicCast(FakeSMCSensor, iterator->getNextObject())) {
-            if (sensor->getGroup() == kFakeSMCTachometerSensor) {
-                UInt8 index = index_of_hex_char(sensor->getKey()[1]);
-                if (!releaseFanIndex(index))
-                    HWSensorsErrorLog("failed to release Fan index: %d", index);
+        while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
+            if (FakeSMCSensor *sensor = getSensor(key->getCStringNoCopy())) {
+                if (sensor->getGroup() == kFakeSMCTachometerSensor) {
+                    UInt8 index = index_of_hex_char(sensor->getKey()[1]);
+                    HWSensorsInfoLog("releasing Fan%X", index);
+                    if (!releaseFanIndex(index))
+                        HWSensorsErrorLog("failed to release Fan index: %d", index);
+                }
             }
         }
         OSSafeRelease(iterator);
     }
     
+    HWSensorsDebugLog("[stop] releasing sensors collection");
     sensors->flushCollection();
 	
 	super::stop(provider);
@@ -501,6 +441,7 @@ void FakeSMCPlugin::stop(IOService* provider)
 
 void FakeSMCPlugin::free()
 {
+    HWSensorsDebugLog("[free] freenig sensors collection");
     OSSafeRelease(sensors);
 	super::free();
 }
