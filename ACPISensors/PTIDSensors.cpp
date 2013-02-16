@@ -247,7 +247,7 @@ bool PTIDSensors::start(IOService * provider)
                 if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing temperatures...");
                     
-                    UInt32 count = description->getCount();
+                    int count = description->getCount();
                     for (int i = 1; i < count; i += 2) {
                         parseTemperatureName(OSDynamicCast(OSString, description->getObject(i)), i/2);
                     }
@@ -261,7 +261,7 @@ bool PTIDSensors::start(IOService * provider)
                 if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing tachometers...");
                     
-                    UInt32 count = description->getCount();
+                    int count = description->getCount();
                     for (int i = 2; i < count; i += 3) {
                         parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), i/3);
                     }
@@ -279,7 +279,7 @@ bool PTIDSensors::start(IOService * provider)
                 if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing temperatures...");
                     
-                    UInt32 count = description->getCount();
+                    int count = description->getCount();
                     for (int i = 1; i < count; i += 3) {
                         parseTemperatureName(OSDynamicCast(OSString, description->getObject(i)), i+1);
                     }
@@ -292,7 +292,7 @@ bool PTIDSensors::start(IOService * provider)
                 if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing tachometers...");
                     
-                    UInt32 count = description->getCount();
+                    int count = description->getCount();
                     for (int i = 2; i < count; i += 4) {
                         parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), i+1);
                     }

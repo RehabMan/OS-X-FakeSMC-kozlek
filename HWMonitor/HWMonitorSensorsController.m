@@ -241,7 +241,7 @@
         
         NSInteger index;
         
-        for (index = itemsRow + 1; index < [[self arrangedObjects] count]; index++) {
+        for (index = itemsRow + 1; index < (NSInteger)[[self arrangedObjects] count]; index++) {
             
             NSDictionary *item = [[self arrangedObjects] objectAtIndex:index];
             
@@ -251,8 +251,8 @@
                 break;
             }
         }
-        
-        if (index >= [[self arrangedObjects] count]) {
+        //REVIEW: (NSInteger) cast...
+        if (index >= (NSInteger)[[self arrangedObjects] count]) {
             [self insertObject:movingItem atArrangedObjectIndex:index];
             [self removeObjectAtArrangedObjectIndex:fromRow];
         }
