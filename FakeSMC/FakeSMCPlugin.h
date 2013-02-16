@@ -42,7 +42,7 @@ struct FakeSMCSensorParams {
     UInt8       size;
 };
 
-#define FakeSMCTemperatureCount (sizeof(FakeSMCTemperature)/sizeof(FakeSMCTemperature[0]))
+#define FakeSMCTemperatureCount ((int)(sizeof(FakeSMCTemperature)/sizeof(FakeSMCTemperature[0])))
 
 const struct FakeSMCSensorParams FakeSMCTemperature[] =
 {
@@ -68,11 +68,12 @@ const struct FakeSMCSensorParams FakeSMCTemperature[] =
     {"Ambient F", "TAFP", TYPE_SP78, TYPE_SPXX_SIZE},
 };
 
-#define FakeSMCVolatgeCount (sizeof(FakeSMCVoltage)/sizeof(FakeSMCVoltage[0]))
+#define FakeSMCVoltageCount ((int)(sizeof(FakeSMCVoltage)/sizeof(FakeSMCVoltage[0])))
 
 const struct FakeSMCSensorParams FakeSMCVoltage[] =
 {
     {"CPU", KEY_CPU_VOLTAGE, TYPE_FP2E, TYPE_FPXX_SIZE},
+    {"CPU Vcore", KEY_CPU_VCORE_VOLTAGE, TYPE_FP2E, TYPE_FPXX_SIZE},
     {"Memory", KEY_MEMORY_VOLTAGE, TYPE_FP2E, TYPE_FPXX_SIZE},
     {"Main 12V", KEY_MAIN_12V_VOLTAGE, TYPE_FP4C, TYPE_FPXX_SIZE},
     {"PCIe 12V", KEY_PCIE_12V_VOLTAGE, TYPE_FP4C, TYPE_FPXX_SIZE},

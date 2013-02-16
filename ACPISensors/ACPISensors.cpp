@@ -110,7 +110,7 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, volts->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    for (int i = 0; i < FakeSMCVolatgeCount; i++) {
+                    for (int i = 0; i < FakeSMCVoltageCount; i++) {
                         if (addSensorToList(voltages, key, method, FakeSMCVoltage[i].name, FakeSMCVoltage[i].key, FakeSMCVoltage[i].type, FakeSMCVoltage[i].size, kFakeSMCVoltageSensor, count)) {
                             count++;
                             break;

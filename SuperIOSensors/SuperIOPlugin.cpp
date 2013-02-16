@@ -136,7 +136,7 @@ bool SuperIOPlugin::addVoltageSensors(OSDictionary *configuration)
         snprintf(key, 5, "VIN%X", i);
         
         if (OSObject* node = configuration->getObject(key)) {
-            for (int j = 0; j < FakeSMCVolatgeCount; j++) {
+            for (int j = 0; j < FakeSMCVoltageCount; j++) {
                 if (addSensorFromConfigurationNode(node, FakeSMCVoltage[j].name, FakeSMCVoltage[j].key, FakeSMCVoltage[j].type, FakeSMCVoltage[j].size, kFakeSMCVoltageSensor, i))
                     break;
             }
