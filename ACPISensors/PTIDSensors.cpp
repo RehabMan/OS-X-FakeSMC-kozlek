@@ -186,17 +186,18 @@ void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)
         }
         
         if (strlen(key)) {
+            HWSensorsDebugLog("adding %s sensor", name->getCStringNoCopy());
             addSensor(key, TYPE_SP78, TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, index);
         }
     }
 }
 
-void PTIDSensors::parseTachometerName(OSString *name, UInt32 index)
+void PTIDSensors::parseTachometerName(OSString *name, OSString *title, UInt32 index)
 {
     if (name) {
         if (name->isEqualTo("RPM")) {
             if (readTachometer(index)) {
-                this->addTachometer(index);
+                this->addTachometer(index, title ? title->getCStringNoCopy() : NULL);
             }
         }
     }
@@ -227,7 +228,7 @@ bool PTIDSensors::start(IOService * provider)
     acpiDevice->evaluateInteger("IVER", &version);
     
     if (version == 0) {
-        OSString *name = OSDynamicCast(OSString, getProperty("IONameMatched"));
+        OSString *name = OSDynamicCast(OSString, provider->getProperty("name"));
         
         if (name && name->isEqualTo("INT3F0D"))
             version = 0x30000;
@@ -257,13 +258,12 @@ bool PTIDSensors::start(IOService * provider)
             
             // Tachometers
             if(kIOReturnSuccess == acpiDevice->evaluateObject("OSDL", &object) && object) {
-                
                 if (OSArray *description = OSDynamicCast(OSArray, object)) {
                     HWSensorsDebugLog("Parsing tachometers...");
                     
                     int count = description->getCount();
                     for (int i = 2; i < count; i += 3) {
-                        parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), i/3);
+                        parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), OSDynamicCast(OSString, description->getObject(i-1)), i/3);
                     }
                 }
             }
@@ -294,7 +294,7 @@ bool PTIDSensors::start(IOService * provider)
                     
                     int count = description->getCount();
                     for (int i = 2; i < count; i += 4) {
-                        parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), i+1);
+                        parseTachometerName(OSDynamicCast(OSString, description->getObject(i)), OSDynamicCast(OSString, description->getObject(i-1)), i+1);
                     }
                 }
             }
