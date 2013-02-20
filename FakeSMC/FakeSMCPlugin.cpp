@@ -217,28 +217,30 @@ bool FakeSMCPlugin::setKeyValue(const char *key, const char *type, UInt8 size, c
 }
 
 FakeSMCSensor *FakeSMCPlugin::addSensor(const char *key, const char *type, UInt8 size, UInt32 group, UInt32 index, float reference, float gain, float offset)
-{   
+{
+    FakeSMCSensor* sensor = 0;
+    
     if (getSensor(key)) {
         HWSensorsDebugLog("will not add handler for key %s, key already handled", key);
-		return NULL;
     }
-	
-    if (FakeSMCSensor *sensor = FakeSMCSensor::withOwner(this, key, type, size, group, index, reference, gain, offset)) {
-        if (addSensor(sensor))
-            return sensor;
-        else 
+    else if ((sensor = FakeSMCSensor::withOwner(this, key, type, size, group, index, reference, gain, offset))) {
+        if (!addSensor(sensor)) {
             OSSafeRelease(sensor);
+            sensor = 0;
+        }
     }
 	
-	return NULL;
+	return sensor;
 }
 
 bool FakeSMCPlugin::addSensor(FakeSMCSensor *sensor)
 {
-    if(sensor && kIOReturnSuccess == storageProvider->callPlatformFunction(kFakeSMCAddKeyHandler, true, (void *)sensor->getKey(), (void *)sensor->getType(), (void *)sensor->getSize(), (void *)this))
-        return sensors->setObject(sensor->getKey(), sensor);
+    bool result = false;
     
-    return false;
+    if(sensor && kIOReturnSuccess == storageProvider->callPlatformFunction(kFakeSMCAddKeyHandler, true, (void *)sensor->getKey(), (void *)sensor->getType(), (void *)sensor->getSize(), (void *)this))
+        result = sensors->setObject(sensor->getKey(), sensor);
+    
+    return result;
 }
 
 FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char* name, SInt8 *fanIndex)

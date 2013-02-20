@@ -139,7 +139,6 @@ bool GeforceSensors::start(IOService * provider)
             
             releaseGPUIndex(card.card_index);
             card.card_index = -1;
-            
             return false;
         }
     
@@ -166,7 +165,6 @@ bool GeforceSensors::start(IOService * provider)
     
     // Register sensors
     char key[5];
-    
     if (card.core_temp_get || card.board_temp_get) {
         nv_debug(device, "registering i2c temperature sensors...\n");
         

@@ -13,6 +13,7 @@
 #include "FakeSMCKey.h"
 
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
+#include <IOKit/IOLocks.h>
 
 #define APPLESMC_DATA_PORT				0x300
 
@@ -49,6 +50,7 @@ private:
 	IOInterruptAction	interrupt_handler;
 	void				*interrupt_refcon;
 	int					interrupt_source;
+    IORecursiveLock*    device_lock;
 	
 	struct
     ApleSMCStatus       *status;
@@ -62,8 +64,6 @@ private:
 	
     bool				trace;
 	bool				debug;
-    
-    IOLock              *platformFunctionLock;
     
     UInt16              vacantGPUIndex;
     UInt16              vacantFanIndex;

@@ -534,7 +534,7 @@ int CoreMenuExtraRemoveMenuExtra( void *menuExtra, int whoCares);
     for (NSToolbarItem *item in [_prefsToolbar items]) {
         if ([item tag] == tag)
             [item setImage:[[self getIconByName:[item itemIdentifier]] alternateImage]];
-        else if ([item tag] == _lastSelectedView)
+        else if ([item tag] == (NSInteger)_lastSelectedView) //REVIEW: (NSInteger) cast...
             [item setImage:[[self getIconByName:[item itemIdentifier]] image]];
     }
     
@@ -614,7 +614,7 @@ int CoreMenuExtraRemoveMenuExtra( void *menuExtra, int whoCares);
     if ([view isKindOfClass:[NSMatrix class]]) {
         NSMatrix *matrix = (NSMatrix*)view;
         
-        NSUInteger row, column;
+        NSInteger row, column;
         
         for (row = 0 ; row < [matrix numberOfRows]; row++) {
             for (column = 0; column < [matrix numberOfColumns] ; column++) {

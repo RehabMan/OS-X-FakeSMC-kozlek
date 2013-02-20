@@ -10,6 +10,7 @@
 #include <IOKit/IOService.h>
 #include "IOKit/acpi/IOACPIPlatformDevice.h"
 
+#define DEFINE_FAKESMC_SENSOR_PARAMS
 #include "FakeSMCPlugin.h"
 
 class ACPISensors : public FakeSMCPlugin

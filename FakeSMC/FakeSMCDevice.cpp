@@ -330,14 +330,18 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 	if (!super::init(platform, 0, 0))
 		return false;
     
-    platformFunctionLock = IOLockAlloc();
+    device_lock = IORecursiveLockAlloc();
+    if (!device_lock)
+        return false;
     
 	status = (ApleSMCStatus *) IOMalloc(sizeof(struct AppleSMCStatus));
+    if (!status)
+        return false;
 	bzero((void*)status, sizeof(struct AppleSMCStatus));
     
 	interrupt_handler = 0;
     
-	keys = OSArray::withCapacity(1);
+	keys = OSArray::withCapacity(16);
     
     // Add fist key - counter key
     keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
@@ -378,7 +382,7 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 	}
     
     // Load wellknown type names
-    types = OSDictionary::withCapacity(0);
+    types = OSDictionary::withCapacity(16);
     
     FakeSMCDebugLog("loading types...");
     
@@ -418,7 +422,7 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
     
     // Init SMC device
     
-    exposedValues = OSDictionary::withCapacity(0);
+    exposedValues = OSDictionary::withCapacity(16);
     
 	this->setName("SMC");
     
@@ -498,6 +502,10 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 
 IOReturn FakeSMCDevice::setProperties(OSObject * properties)
 {
+    IORecursiveLockLock(device_lock);
+    
+    IOReturn result = kIOReturnUnsupported;
+    
     if (OSDictionary * msg = OSDynamicCast(OSDictionary, properties)) {
         if (OSString * name = OSDynamicCast(OSString, msg->getObject(kFakeSMCDeviceUpdateKeyValue))) {
             if (FakeSMCKey * key = getKey(name->getCStringNoCopy())) {
@@ -515,7 +523,7 @@ IOReturn FakeSMCDevice::setProperties(OSObject * properties)
                 
                 OSSafeRelease(values);
                 
-                return kIOReturnSuccess;
+                result = kIOReturnSuccess;
             }
         }
         else if (OSArray* array = OSDynamicCast(OSArray, msg->getObject(kFakeSMCDevicePopulateValues))) {
@@ -530,7 +538,7 @@ IOReturn FakeSMCDevice::setProperties(OSObject * properties)
                         
                         exposedValues->setObject(key->getKey(), info);
                         
-                        IOSleep(10);
+                        IOSleep(10);    //REVIEW: what is this for?
                     }
                 
                 OSDictionary *values = OSDictionary::withDictionary(exposedValues);
@@ -540,12 +548,14 @@ IOReturn FakeSMCDevice::setProperties(OSObject * properties)
                 OSSafeRelease(values);
                 OSSafeRelease(iterator);
                 
-                return kIOReturnSuccess;
+                result = kIOReturnSuccess;
             }
         }
     }
     
-	return kIOReturnUnsupported;
+    IORecursiveLockUnlock(device_lock);
+    
+	return result;
 }
 
 UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
@@ -575,7 +585,10 @@ void FakeSMCDevice::updateFanCounterKey()
 
 FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value)
 {
-	if (FakeSMCKey *key = getKey(name)) {
+    IORecursiveLockLock(device_lock);
+    
+    FakeSMCKey* key;
+	if ((key = getKey(name))) {
         
         if (value) {
             key->setType(type);
@@ -632,82 +645,93 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
         }
         
 		FakeSMCDebugLog("updating value for key %s, type: %s, size: %d", name, type, size);
+	}
+    else {
+    
+        FakeSMCDebugLog("adding key %s with value, type: %s, size: %d", name, type, size);
         
-		return key;
+        if ((key = FakeSMCKey::withValue(name, type, size, value))) {
+            keys->setObject(key);
+            updateKeyCounterKey();
+        }
 	}
-    
-	FakeSMCDebugLog("adding key %s with value, type: %s, size: %d", name, type, size);
-    
-	if (FakeSMCKey *key = FakeSMCKey::withValue(name, type, size, value)) {
-		keys->setObject(key);
-		updateKeyCounterKey();
-		return key;
-	}
-    
-	HWSensorsErrorLog("failed to create key %s", name);
-    
-	return 0;
+    IORecursiveLockUnlock(device_lock);
+
+    if (!key)
+        HWSensorsErrorLog("failed to create key %s", name);
+        
+	return key;
 }
 
 FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type, unsigned char size, IOService *handler)
 {
-	if (FakeSMCKey *key = getKey(name)) {
-        
+    IORecursiveLockLock(device_lock);
+
+    FakeSMCKey* key;
+	if ((key = getKey(name))) {
+		HWSensorsErrorLog("key %s already handled", name);
         if (key->getHandler() != NULL) {
             // TODO: check priority?
-            
             HWSensorsErrorLog("key %s already handled", name);
-            return 0;
+            key = 0;
+        }
+        else {
+            key->setType(type);
+            key->setSize(size);
+            key->setHandler(handler);
         }
         
-        key->setType(type);
-        key->setSize(size);
-        key->setHandler(handler);
-		
-		return key;
 	}
+    else {
     
-	FakeSMCDebugLog("adding key %s with handler, type: %s, size: %d", name, type, size);
-    
-	if (FakeSMCKey *key = FakeSMCKey::withHandler(name, type, size, handler)) {
-		keys->setObject(key);
-		updateKeyCounterKey();
-		return key;
+        FakeSMCDebugLog("adding key %s with handler, type: %s, size: %d", name, type, size);
+        
+        if ((key = FakeSMCKey::withHandler(name, type, size, handler))) {
+            keys->setObject(key);
+            updateKeyCounterKey();
+        }
 	}
+    IORecursiveLockUnlock(device_lock);
     
-	HWSensorsErrorLog("failed to create key %s", name);
-    
-	return 0;
+    if (!key)
+        HWSensorsErrorLog("failed to create key %s", name);
+        
+	return key;
 }
 
 FakeSMCKey *FakeSMCDevice::getKey(const char *name)
 {
+    IORecursiveLockLock(device_lock);
+    
+    FakeSMCKey* key = 0;
     if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keys)) {
-		while (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, iterator->getNextObject())) {
+		while ((key = OSDynamicCast(FakeSMCKey, iterator->getNextObject()))) {
             UInt32 key1 = HWSensorsKeyToInt(name);
 			UInt32 key2 = HWSensorsKeyToInt(key->getKey());
 			if (key1 == key2) {
-				OSSafeRelease(iterator);
-				return key;
+				break;
 			}
 		}
         
         OSSafeRelease(iterator);
 	}
+    IORecursiveLockUnlock(device_lock);
     
- 	FakeSMCDebugLog("key %s not found", name);
+    if (!key)
+        FakeSMCDebugLog("key %s not found", name);
     
-	return 0;
+	return key;
 }
 
 FakeSMCKey *FakeSMCDevice::getKey(unsigned int index)
 {
-	if (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, keys->getObject(index)))
-		return key;
+    IORecursiveLockLock(device_lock);
+    FakeSMCKey* key = OSDynamicCast(FakeSMCKey, keys->getObject(index));
+    IORecursiveLockUnlock(device_lock);
+    if (!key)
+        FakeSMCDebugLog("key with index %d not found", index);
     
-	FakeSMCDebugLog("key with index %d not found", index);
-    
-	return 0;
+	return key;
 }
 
 IOReturn FakeSMCDevice::registerInterrupt(int source, OSObject *target, IOInterruptAction handler, void *refCon)
@@ -750,7 +774,7 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
-    IOLockLock(platformFunctionLock);
+    IORecursiveLockLock(device_lock);
     
     IOReturn result = kIOReturnUnsupported;
     
@@ -771,7 +795,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                     result = kIOReturnError;
             }
         }
-	}
+    }
     else if (functionName->isEqualTo(kFakeSMCGetKeyHandler)) {
         
         result = kIOReturnBadArgument;
@@ -793,7 +817,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                 }
             }
         }
-	}
+    }
     else if (functionName->isEqualTo(kFakeSMCRemoveKeyHandler)) {
         
         result = kIOReturnBadArgument;
@@ -829,7 +853,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                     result = kIOReturnError;
             }
         }
-	}
+    }
     else if (functionName->isEqualTo(kFakeSMCSetKeyValue)) {
         
         result = kIOReturnBadArgument;
@@ -849,7 +873,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                 }
             }
         }
-	}
+    }
     else if (functionName->isEqualTo(kFakeSMCGetKeyValue)) {
         
         result = kIOReturnBadArgument;
@@ -873,7 +897,7 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                 }
             }
         }
-	}
+    }
     else if (functionName->isEqualTo(kFakeSMCTakeVacantGPUIndex)) {
         
         result = kIOReturnBadArgument;
@@ -935,12 +959,12 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         }
     }
     else {
-        IOLockUnlock(platformFunctionLock);
+        IORecursiveLockUnlock(device_lock);
         
         return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
     }
     
-    IOLockUnlock(platformFunctionLock);
+    IORecursiveLockUnlock(device_lock);
     
 	return result;
 }

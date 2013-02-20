@@ -89,7 +89,7 @@ bool ACPISensors::start(IOService * provider)
                         else HWSensorsErrorLog("Failed to register temperature sensor \"%s\" for method \"%s\"", key->getCStringNoCopy(), method->getCStringNoCopy());
                     }
                 }
-            };
+            }
             
             if (count)
                 HWSensorsInfoLog("%d temperature sensor%s added", count, count > 1 ? "s" : "");
@@ -118,8 +118,8 @@ bool ACPISensors::start(IOService * provider)
                         else HWSensorsErrorLog("Failed to register voltage sensor \"%s\" for method \"%s\"", key->getCStringNoCopy(), method->getCStringNoCopy());
                     }
                 }
-            };
-            
+            }
+
             if (count)
                 HWSensorsInfoLog("%d voltage sensor%s added", count, count > 1 ? "s" : "");
         }
@@ -128,6 +128,7 @@ bool ACPISensors::start(IOService * provider)
         
         // Tachometers
         if (OSDictionary *fans = OSDynamicCast(OSDictionary, configuration->getObject("Tachometers"))) {
+            
             tachometers = OSDictionary::withCapacity(0);
             
             OSCollectionIterator *iterator = OSCollectionIterator::withCollection(fans);
@@ -151,8 +152,8 @@ bool ACPISensors::start(IOService * provider)
                     }
                     else HWSensorsErrorLog("Failed to register tachometer sensor for method \"%s\"", method->getCStringNoCopy());
                 }
-            };
-            
+            }
+
             if (count)
                 HWSensorsInfoLog("%d tachometer sensor%s added", count, count > 1 ? "s" : "");
         }

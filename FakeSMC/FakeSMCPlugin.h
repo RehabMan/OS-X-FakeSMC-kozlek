@@ -33,6 +33,8 @@
 #define kFakeSMCFrequencySensor     4
 #define kFakeSMCMultiplierSensor    5
 
+#ifdef DEFINE_FAKESMC_SENSOR_PARAMS
+
 struct FakeSMCSensorParams {
     const char *name;
     const char *key;
@@ -40,9 +42,9 @@ struct FakeSMCSensorParams {
     UInt8       size;
 };
 
-#define FakeSMCTemperatureCount 20
+#define FakeSMCTemperatureCount ((int)(sizeof(FakeSMCTemperature)/sizeof(FakeSMCTemperature[0])))
 
-const struct FakeSMCSensorParams FakeSMCTemperature[FakeSMCTemperatureCount] =
+const struct FakeSMCSensorParams FakeSMCTemperature[] =
 {
     {"CPU", KEY_CPU_HEATSINK_TEMPERATURE, TYPE_SP78, TYPE_SPXX_SIZE},
     {"CPU Proximity", KEY_CPU_PROXIMITY_TEMPERATURE, TYPE_SP78, TYPE_SPXX_SIZE},
@@ -66,9 +68,9 @@ const struct FakeSMCSensorParams FakeSMCTemperature[FakeSMCTemperatureCount] =
     {"Ambient F", "TAFP", TYPE_SP78, TYPE_SPXX_SIZE},
 };
 
-#define FakeSMCVoltageCount 42
+#define FakeSMCVoltageCount ((int)(sizeof(FakeSMCVoltage)/sizeof(FakeSMCVoltage[0])))
 
-const struct FakeSMCSensorParams FakeSMCVoltage[FakeSMCVoltageCount] =
+const struct FakeSMCSensorParams FakeSMCVoltage[] =
 {
     {"CPU", KEY_CPU_VOLTAGE, TYPE_FP2E, TYPE_FPXX_SIZE},
     {"CPU Vcore", KEY_CPU_VCORE_VOLTAGE, TYPE_FP2E, TYPE_FPXX_SIZE},
@@ -113,6 +115,8 @@ const struct FakeSMCSensorParams FakeSMCVoltage[FakeSMCVoltageCount] =
     {"Power Supply E", "VpEC", TYPE_FP4C, TYPE_FPXX_SIZE},
     {"Power Supply F", "VpFC", TYPE_FP4C, TYPE_FPXX_SIZE},
 };
+
+#endif // DEFINE_FAKESMC_SENSOR_PARAMS
 
 class FakeSMCPlugin;
 

@@ -1384,27 +1384,27 @@
 /* Begin PBXShellScriptBuildPhase section */
 		7E2134AD167B9EF00016CF61 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
 		7E5D8E6616C646CC00CB6720 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\n# Increment project's build number\n\nif [[ $(git status ${PROJECT_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nBUILDNUM=$(/usr/libexec/PlistBuddy -c \"Print BuildNumber\" \"${VERSION_FILE}\")\nBUILDNUM=$(($BUILDNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :BuildNumber $BUILDNUM\" \"${VERSION_FILE}\"\n";
 		};
@@ -1423,79 +1423,79 @@
 		};
 		7EB4C7AB16C666A500102138 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
 		7EE460BA167BB72F007CD680 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
 		7EE460BB167BB736007CD680 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
 		7EE460BD167BB78B007CD680 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
 		7EE460BE167BB790007CD680 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
 		7EE460BF167BB796007CD680 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nSHORTVERSION=$(/usr/libexec/PlistBuddy -c \"Print ProjectVersion\" \"${PROJECT_DIR}/${VERSION_FILE}\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $SHORTVERSION\" \"${INFOPLIST_FILE}\"\n\nif [[ $(git status ${PROJECT_DIR}/${TARGET_DIR} | grep -c modified) == \"0\" ]]; then\n    exit 0\nfi\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${INFOPLIST_FILE}\")\nVERSIONNUM=$(($VERSIONNUM + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $VERSIONNUM\" \"${INFOPLIST_FILE}\"";
 		};
@@ -1812,6 +1812,7 @@
 				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = FakeSMC;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -1831,6 +1832,7 @@
 				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = FakeSMC;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -1857,6 +1859,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = ACPISensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -1877,6 +1880,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = ACPISensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -1903,6 +1907,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = SuperIOSensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -1923,6 +1928,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = SuperIOSensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -1993,6 +1999,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 			};
 			name = Debug;
 		};
@@ -2000,6 +2007,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 			};
 			name = Release;
 		};
@@ -2024,6 +2032,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.CPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = CPUSensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -2044,6 +2053,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.CPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = CPUSensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -2084,6 +2094,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.GPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = GPUSensors;
 				WRAPPER_EXTENSION = kext;
 			};
@@ -2104,6 +2115,7 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.GPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 				TARGET_DIR = GPUSensors;
 				WRAPPER_EXTENSION = kext;
 			};
