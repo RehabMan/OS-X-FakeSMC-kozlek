@@ -706,7 +706,12 @@ FakeSMCKey *FakeSMCDevice::getKey(const char *name)
     FakeSMCKey* key = 0;
     if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keys)) {
 		while ((key = OSDynamicCast(FakeSMCKey, iterator->getNextObject()))) {
-            UInt32 key1 = HWSensorsKeyToInt(name);
+            
+            // Made the key name valid (4 char long): add trailing spaces if needed
+            char validKeyNameBuffer[5];
+            snprintf(validKeyNameBuffer, 5, "%-4s", name);
+            
+            UInt32 key1 = HWSensorsKeyToInt(&validKeyNameBuffer);
 			UInt32 key2 = HWSensorsKeyToInt(key->getKey());
 			if (key1 == key2) {
 				break;
@@ -774,7 +779,8 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
-    IORecursiveLockLock(device_lock);
+    if (waitForFunction)
+        IORecursiveLockLock(device_lock);
     
     IOReturn result = kIOReturnUnsupported;
     
@@ -959,12 +965,14 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         }
     }
     else {
-        IORecursiveLockUnlock(device_lock);
+        if (waitForFunction)
+            IORecursiveLockUnlock(device_lock);
         
         return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
     }
     
-    IORecursiveLockUnlock(device_lock);
+    if (waitForFunction)
+        IORecursiveLockUnlock(device_lock);
     
 	return result;
 }
