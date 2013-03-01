@@ -779,7 +779,7 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
-    if (waitForFunction)
+    ////if (waitForFunction)
         IORecursiveLockLock(device_lock);
     
     IOReturn result = kIOReturnUnsupported;
@@ -965,13 +965,13 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         }
     }
     else {
-        if (waitForFunction)
+        ////if (waitForFunction)
             IORecursiveLockUnlock(device_lock);
         
         return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
     }
     
-    if (waitForFunction)
+    ////if (waitForFunction)
         IORecursiveLockUnlock(device_lock);
     
 	return result;
