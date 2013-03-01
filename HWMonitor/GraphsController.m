@@ -34,6 +34,8 @@
 #import "GraphsView.h"
 #import "SensorCell.h"
 
+#import "HWMonitorDefinitions.h"
+
 #define GetLocalizedString(key) \
 [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
 
@@ -82,7 +84,7 @@
         
         NSColorList *list = [NSColorList colorListNamed:@"Crayons"];
         
-        for (NSUInteger i = 8; i < [[list allKeys] count]; i++) {
+        for (NSUInteger i = [[list allKeys] count] - 1; i != 0; i--) {
             NSString *key = [[list allKeys] objectAtIndex:i];
             NSColor *color = [list colorWithKey:key];
             double intensity = (color.redComponent + color.blueComponent + color.greenComponent) / 3.0;
@@ -91,7 +93,7 @@
             double blue = [color blueComponent];
             BOOL blackAndWhite = red == green && red == blue && green == blue;
             
-            if (intensity >= 0.330 && intensity <=0.90 && !blackAndWhite)
+            if (intensity >= 0.335 && intensity <=0.900 && !blackAndWhite)
                 [_colorsList addObject:color];
         }
     }
@@ -107,9 +109,9 @@
     else {
         [_items removeAllObjects];
     }
-    
+
     if (!_hiddenItems) {
-        _hiddenItems = [[NSMutableArray alloc] init];
+        _hiddenItems = [[NSMutableArray alloc] initWithArray:[[[NSUserDefaultsController sharedUserDefaultsController] defaults] objectForKey:kHWMonitorHiddenGraphsList]];
     }
     else {
         [_hiddenItems removeAllObjects];
@@ -146,7 +148,7 @@
 
 - (BOOL) checkItemIsHidden:(HWMonitorItem*)item
 {
-    return [_hiddenItems indexOfObject:item] != NSNotFound;
+    return [_hiddenItems indexOfObject:[[item sensor] name]] != NSNotFound;
 }
 
 // Events
@@ -165,11 +167,13 @@
         HWMonitorItem *item = [_items objectAtIndex:[sender tag]];
         
         if ([sender state] == NSOnState) {
-            [_hiddenItems removeObject:item];
+            [_hiddenItems removeObject:[[item sensor] name]];
         }
         else {
-            [_hiddenItems addObject:item];
+            [_hiddenItems addObject:[[item sensor] name]];
         }
+        
+        [[[NSUserDefaultsController sharedUserDefaultsController] defaults] setObject:_hiddenItems forKey:kHWMonitorHiddenGraphsList];
     }
     
     [_temperatureGraph calculateGraphBoundsFindExtremes:YES];
