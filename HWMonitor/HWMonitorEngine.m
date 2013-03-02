@@ -279,12 +279,14 @@
     [self addSensorWithKey:@KEY_PCH_DIE_TEMPERATURE title:GetLocalizedString(@"Platform Controller Hub") group:kHWSensorGroupTemperature];
     [self addSensorWithKey:@KEY_MCH_DIODE_TEMPERATURE title:GetLocalizedString(@"Memory Controller Hub") group:kHWSensorGroupTemperature];
     
+    [self addSensorWithKey:@KEY_MLB_PROXIMITY_TEMPERATURE title:GetLocalizedString(@"Main bord proximity") group:kHWSensorGroupTemperature];
+    
     [self addSensorWithKey:@KEY_AMBIENT_TEMPERATURE title:GetLocalizedString(@"Ambient") group:kHWSensorGroupTemperature];
     for (int i=1; i<0xf; i++)
         [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_AMBIENT_TEMPERATURE,i] title:[[NSString alloc] initWithFormat:GetLocalizedString(@"Ambient %X"),i + 1] group:kHWSensorGroupTemperature];
     
     for (int i=1; i<0x4; i++)
-        [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_DIMM_TEMPERATURE,i] title:[[NSString alloc] initWithFormat:GetLocalizedString(@"DIMM %X"),i + 1] group:kHWSensorGroupTemperature];
+        [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_DIMM_TEMPERATURE,i] title:[[NSString alloc] initWithFormat:GetLocalizedString(@"DIMM Slot %X"),i + 1] group:kHWSensorGroupTemperature];
     
     // GPU
     [self addSensorWithKey:@KEY_GPU_DIODE_TEMPERATURE title:GetLocalizedString(@"GPU Core") group:kHWSensorGroupTemperature];
@@ -354,7 +356,7 @@
             FanTypeDescStruct *fds = (FanTypeDescStruct*)[[HWMonitorEngine copyValueFromKeyInfo:[self populateInfoForKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_ID,i]]] bytes];
             
             if (fds) {
-                NSString *caption = [[NSString alloc] initWithBytes:fds->strFunction length:DIAG_FUNCTION_STR_LEN encoding:NSUTF8StringEncoding];
+                NSString *caption = [NSString stringWithCString:fds->strFunction encoding:NSASCIIStringEncoding];
                 
                 if ([caption length] == 0)
                     caption = [[NSString alloc] initWithFormat:GetLocalizedString(@"Fan %X"),i + 1];
@@ -390,7 +392,7 @@
             FanTypeDescStruct *fds = (FanTypeDescStruct*)[[HWMonitorEngine copyValueFromKeyInfo:[self populateInfoForKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_ID,i]]] bytes];
             
             if (fds) {
-                NSString *caption = [[NSString alloc] initWithBytes:fds->strFunction length:DIAG_FUNCTION_STR_LEN encoding:NSUTF8StringEncoding];
+                NSString *caption = [NSString stringWithCString:fds->strFunction encoding:NSASCIIStringEncoding];
                 
                 if ([caption hasPrefix:@"GPU "]) {
                     if (fds->ui8Zone == 0) {

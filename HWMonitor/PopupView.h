@@ -28,11 +28,9 @@
 
 #define ARROW_WIDTH         23
 #define ARROW_HEIGHT        11
-#define ARROW_OFFSET        4
-#define CORNER_RADIUS       6.0f
-#define LINE_THICKNESS      1.0f
-#define FILL_OPACITY        0.95f
-#define STROKE_OPACITY      1.0f
+#define ARROW_OFFSET        3
+#define CORNER_RADIUS       6
+#define LINE_THICKNESS      1
 
 #import "ColorTheme.h"
 
