@@ -45,11 +45,11 @@
 					<key>Fan Names</key>
 					<dict>
 						<key>FAN0</key>
-						<string>SystemFan</string>
+						<string>System Fan</string>
 						<key>FAN1</key>
-						<string>CPUFan</string>
+						<string>CPU Fan</string>
 						<key>FAN2</key>
-						<string>PowerFan</string>
+						<string>Power Fan</string>
 						<key>FAN3</key>
 						<string>Intake Fan</string>
 						<key>FAN4</key>
@@ -100,6 +100,8 @@
 						<string>TCPP</string>
 						<key>System</key>
 						<string>TSYS</string>
+						<key>Ambient</key>
+						<string>TAMB</string>
 					</dict>
 					<key>Voltages</key>
 					<dict>
