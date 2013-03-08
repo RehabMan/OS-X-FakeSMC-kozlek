@@ -341,7 +341,7 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
     
 	interrupt_handler = 0;
     
-	keys = OSArray::withCapacity(16);
+	keys = OSArray::withCapacity(64);
     
     // Add fist key - counter key
     keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
