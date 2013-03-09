@@ -14,6 +14,34 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7E86E05016CFD352001B9F52"
+               BuildableName = "Bump Project Version"
+               BlueprintName = "Bump Project Version"
+               ReferencedContainer = "container:HWSensors.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7EA8CA5D16EBB8FD00E71108"
+               BuildableName = "Bump App Version"
+               BlueprintName = "Bump App Version"
+               ReferencedContainer = "container:HWMonitor.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "7E5D8E6216C6466300CB6720"
                BuildableName = "Bump Build Number"
                BlueprintName = "Bump Build Number"
