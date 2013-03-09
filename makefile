@@ -1,12 +1,16 @@
 .PHONY: all
 all:
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Everything -configuration Debug
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Everything -configuration Release
+	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug
+	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Release
+	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Debug
+	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Release
 
 .PHONY: clean
 clean:
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Everything -configuration Debug clean
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Everything -configuration Release clean
+	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug clean
+	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Release clean
+	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Debug clean
+	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Release clean
 
 .PHONY: install
 install:
