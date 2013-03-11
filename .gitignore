@@ -3,5 +3,6 @@
 *.menu
 *.kext
 *.pkg
-xcuserdata
 Build
+*.octest
+xcuserdata
