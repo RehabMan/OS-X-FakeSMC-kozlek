@@ -107,7 +107,7 @@ const struct FakeSMCSensorParams FakeSMCVoltage[] =
 
 class FakeSMCPlugin;
 
-class FakeSMCSensor : public OSObject {
+class EXPORT FakeSMCSensor : public OSObject {
     OSDeclareDefaultStructors(FakeSMCSensor)
 	
 protected:
@@ -139,7 +139,7 @@ public:
     void                encodeValue(float value, void *outBuffer);
 };
 
-class FakeSMCPlugin : public IOService {
+class EXPORT FakeSMCPlugin : public IOService {
 	OSDeclareAbstractStructors(FakeSMCPlugin)
 
 private:

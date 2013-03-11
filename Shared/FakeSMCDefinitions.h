@@ -204,6 +204,8 @@
 #define BIT(x)	(0x01 << (x))
 #define LONGBIT(x) ((unsigned long)0x00000001 << (x))
 
+#define EXPORT __attribute__((visibility("default")))
+
 typedef enum {
     LEFT_LOWER_FRONT, CENTER_LOWER_FRONT, RIGHT_LOWER_FRONT,
     LEFT_MID_FRONT,   CENTER_MID_FRONT,   RIGHT_MID_FRONT,

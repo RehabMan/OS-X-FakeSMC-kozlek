@@ -334,7 +334,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>../Binaries/FakeSMC.kext</string>
+													<string>../Binaries/Release/FakeSMC.kext</string>
 													<key>PATH_TYPE</key>
 													<integer>1</integer>
 													<key>PERMISSIONS</key>
@@ -813,7 +813,7 @@
 																			<key>GID</key>
 																			<integer>0</integer>
 																			<key>PATH</key>
-																			<string>../Binaries/CPUSensors.kext</string>
+																			<string>../Binaries/Release/CPUSensors.kext</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
@@ -1329,7 +1329,7 @@
 																			<key>GID</key>
 																			<integer>0</integer>
 																			<key>PATH</key>
-																			<string>../Binaries/ACPISensors.kext</string>
+																			<string>../Binaries/Release/ACPISensors.kext</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
@@ -1524,7 +1524,7 @@
 									<key>GID</key>
 									<integer>80</integer>
 									<key>PATH</key>
-									<string>../Binaries/HWMonitor.app</string>
+									<string>../Binaries/Release/HWMonitor.app</string>
 									<key>PATH_TYPE</key>
 									<integer>1</integer>
 									<key>PERMISSIONS</key>
@@ -2316,7 +2316,7 @@
 																			<key>GID</key>
 																			<integer>0</integer>
 																			<key>PATH</key>
-																			<string>../Binaries/LPCSensors.kext</string>
+																			<string>../Binaries/Release/LPCSensors.kext</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
@@ -2832,7 +2832,7 @@
 																			<key>GID</key>
 																			<integer>0</integer>
 																			<key>PATH</key>
-																			<string>../Binaries/GPUSensors.kext</string>
+																			<string>../Binaries/Release/GPUSensors.kext</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
