@@ -60,7 +60,7 @@
 
 // Misc
 #define KEY_FORMAT_ACDC_TEMPERATURE             "Tp%XC" // PSMI Supply AC/DC Supply 1
-#define KEY_AMBIENT_TEMPERATURE                 "TA0p"
+#define KEY_AMBIENT_TEMPERATURE                 "TA0P"
 #define KEY_FORMAT_AMBIENT_TEMPERATURE          "TA%XP"
 #define KEY_MLB_PROXIMITY_TEMPERATURE           "Tm0p" // MLB Proximity/DC In Proximity Airflow
 #define KEY_FORMAT_AIRVENT_TEMPERATURE          "TV%XP" // Air Vent Exit
