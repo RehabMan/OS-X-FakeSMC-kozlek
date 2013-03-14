@@ -239,6 +239,7 @@
 		7EFAE90416EBC8AD00F4DA72 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		7EFAE90516EBC8AD00F4DA72 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		7EFAE90616EBC8AD00F4DA72 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		845EF61616EFBA94009FB5AC /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -283,6 +284,7 @@
 		1D05ABAD13ED0D7000EADBF6 = {
 			isa = PBXGroup;
 			children = (
+				845EF61616EFBA94009FB5AC /* makefile */,
 				6A9955BD14EFAD360052C702 /* Shared */,
 				1D05ABE913ED0DAD00EADBF6 /* FakeSMC */,
 				1D6FE3EF13FEBFF200376E64 /* ACPISensors */,

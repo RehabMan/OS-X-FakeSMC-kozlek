@@ -1,3 +1,5 @@
+DIST=RehabMan-FakeSMC
+
 .PHONY: all
 all:
 	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug
@@ -82,4 +84,4 @@ distribute:
 	/tmp/org.kozlek.rm.dsym.sh
 	rm /tmp/org.kozlek.rm.dsym.sh
 	ditto -c -k --sequesterRsrc --zlibCompressionLevel 9 ./Distribute ./Archive.zip
-	mv ./Archive.zip ./Distribute/`date +RehabMan-FakeSMC-%Y-%m%d.zip`
+	mv ./Archive.zip ./Distribute/`date +$(DIST)-%Y-%m%d.zip`
