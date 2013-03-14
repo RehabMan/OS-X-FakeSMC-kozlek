@@ -6,3 +6,6 @@
 Build
 *.octest
 xcuserdata
+Distribute
+DistributeSL
+
