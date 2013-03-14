@@ -1,4 +1,5 @@
-DIST=RehabMan-FakeSMC
+DIST1=RehabMan-FakeSMC
+DIST2=RehabMan-SL-HWMonitor
 
 .PHONY: all
 all:
@@ -77,11 +78,16 @@ distribute:
 	cp -R ./Binaries/Debug/ACPISensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
 	cp -R ./Binaries/Debug/LPCSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
 	cp -R ./Binaries/Debug/GPUSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Binaries/Debug/HWMonitor.app ./Distribute/Debug
+	#cp -R ./Binaries/Debug/HWMonitor.app ./Distribute/Debug
 	find ./Distribute -path *.DS_Store -delete
 	find ./Distribute -path *.dSYM -exec echo rm -r {} \; >/tmp/org.kozlek.rm.dsym.sh
 	chmod +x /tmp/org.kozlek.rm.dsym.sh
 	/tmp/org.kozlek.rm.dsym.sh
 	rm /tmp/org.kozlek.rm.dsym.sh
 	ditto -c -k --sequesterRsrc --zlibCompressionLevel 9 ./Distribute ./Archive.zip
-	mv ./Archive.zip ./Distribute/`date +$(DIST)-%Y-%m%d.zip`
+	mv ./Archive.zip ./Distribute/`date +$(DIST1)-%Y-%m%d.zip`
+	if [ -e ./DistributeSL ]; then rm -r ./DistributeSL; fi
+	mkdir ./DistributeSL
+	cp -R ../slice.git/HWSensors4/Binaries/HWMonitor.app ./DistributeSL
+	ditto -c -k --sequesterRsrc --zlibCompressionLevel 9 ./DistributeSL ./Archive.zip
+	mv ./Archive.zip ./DistributeSL/`date +$(DIST2)-%Y-%m%d.zip`
