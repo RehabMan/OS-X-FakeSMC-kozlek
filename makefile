@@ -81,3 +81,5 @@ distribute:
 	chmod +x /tmp/org.kozlek.rm.dsym.sh
 	/tmp/org.kozlek.rm.dsym.sh
 	rm /tmp/org.kozlek.rm.dsym.sh
+	ditto -c -k --sequesterRsrc --zlibCompressionLevel 9 ./Distribute ./Archive.zip
+	mv ./Archive.zip ./Distribute/`date +RehabMan-FakeSMC-%Y-%m%d.zip`
