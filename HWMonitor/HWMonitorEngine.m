@@ -143,27 +143,24 @@
             break;
         }
     }
-    
-    if (nil == [_keys objectForKey:key]) {
-        
-        sensor = [HWMonitorSensor sensor];
-        
-        [sensor setEngine:self];
-        [sensor setName:key];
-        [sensor setType:type];
-        [sensor setTitle:title];
-        [sensor setData:value];
-        [sensor setGroup:group];
-        
-        /*if (!smartSensor && _hideDisabledSensors && [[sensor value] isEqualToString:@"-"]) {
-            [sensor setEngine:nil];
-            sensor = nil;
-            return nil;
-        }*/
-    
-        [_sensors addObject:sensor];
-        [_keys setObject:sensor forKey:key];
-    }
+
+    sensor = [HWMonitorSensor sensor];
+
+    [sensor setEngine:self];
+    [sensor setName:key];
+    [sensor setType:type];
+    [sensor setTitle:title];
+    [sensor setData:value];
+    [sensor setGroup:group];
+
+    /*if (!smartSensor && _hideDisabledSensors && [[sensor value] isEqualToString:@"-"]) {
+     [sensor setEngine:nil];
+     sensor = nil;
+     return nil;
+     }*/
+
+    [_sensors addObject:sensor];
+    [_keys setObject:sensor forKey:key];
     
     return sensor;
 }

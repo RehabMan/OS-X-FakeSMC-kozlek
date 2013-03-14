@@ -38,9 +38,11 @@
 [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
 
 #define AddItem(item, name) \
-[_items setObject:item forKey:name]; \
-[_ordering addObject:name]; \
-[_indexes setObject:[NSNumber numberWithUnsignedInteger:[_ordering indexOfObject:name]] forKey:name];
+if (![_items objectForKey:name]) {\
+    [_items setObject:item forKey:name]; \
+    [_ordering addObject:name]; \
+    [_index setObject:[NSNumber numberWithUnsignedInteger:[_ordering indexOfObject:name]] forKey:name];\
+}
 
 #define GetItemAtIndex(index) \
 [_items objectForKey:[_ordering objectAtIndex:index]]
@@ -68,7 +70,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     _defaults = [[BundleUserDefaults alloc] initWithPersistentDomainName:@"org.hwsensors.HWMonitor"];
-    
+
     // Call undocumented function
     [[NSUserDefaultsController sharedUserDefaultsController] _setDefaults:_defaults];
     
@@ -157,26 +159,23 @@
 
 - (void)updateSmartSensors;
 {
-////    [_sensorsLock lock];
-    NSArray *updatedSensors = [_engine updateSmartSensors];
-    [self updateValuesForSensors:updatedSensors];
-////    [_sensorsLock unlock];
+    ////[_sensorsLock lock];
+    [self updateValuesForSensors:[_engine updateSmartSensors]];
+    ////[_sensorsLock unlock];
 }
 
 - (void)updateSmcSensors
 {
-////    [_sensorsLock lock];
-    NSArray *updatedSensors = [_engine updateSmcSensors];
-    [self updateValuesForSensors:updatedSensors];
-////    [_sensorsLock unlock];
+    ////[_sensorsLock lock];
+    [self updateValuesForSensors:[_engine updateSmcSensors]];
+    ////[_sensorsLock unlock];
 }
 
 - (void)updateFavoritesSensors
 {
-////    [_sensorsLock lock];
-    NSArray *updatedSensors = [_engine updateSmcSensorsList:_favorites];
-    [self updateValuesForSensors:updatedSensors];
-////    [_sensorsLock unlock];
+    ////[_sensorsLock lock];
+    [self updateValuesForSensors:[_engine updateSmcSensorsList:_favorites]];
+    ////[_sensorsLock unlock];
 }
 
 - (void)captureDataToHistory
@@ -186,19 +185,25 @@
 
 - (void)updateValuesForSensors:(NSArray*)sensors
 {
-    //[_sensorsTableView reloadData];
+    /*for (id item in  [_items allValues]) {
+        if ([item isKindOfClass:[HWMonitorItem class]] && [[item sensor] valueHasBeenChanged]) {
+            NSUInteger index = GetIndexOfItem([[item sensor] name]);
+            
+            id cell = [_sensorsTableView viewAtColumn:0 row:index makeIfNecessary:NO];
+            
+            if (cell && [cell isKindOfClass:[SensorCell class]]) {
+                [[cell valueField] setStringValue:[[item sensor] formattedValue]];
+            }
+        }
+    }*/
     
     for (HWMonitorSensor *sensor in sensors) {
-        NSUInteger index = GetIndexOfItem([sensor name]);
-        
-        ////if (index >= [_sensorsTableView numberOfRows])
-        ////    continue;
-        
-        id cell = [_sensorsTableView viewAtColumn:0 row:index makeIfNecessary:NO];
+        id cell = [_sensorsTableView viewAtColumn:0 row:GetIndexOfItem([sensor name]) makeIfNecessary:NO];
         
         if (cell && [cell isKindOfClass:[SensorCell class]]) {
             [[cell valueField] setStringValue:[sensor formattedValue]];
         }
+
     }
     
     [_popupController.statusItemView setNeedsDisplay:YES];
@@ -252,10 +257,10 @@
     else
         [_ordering removeAllObjects];
     
-    if (!_indexes)
-        _indexes = [[NSMutableDictionary alloc] init];
+    if (!_index)
+        _index = [[NSMutableDictionary alloc] init];
     else
-        [_indexes removeAllObjects];
+        [_index removeAllObjects];
     
     if (!_items)
         _items = [[NSMutableDictionary alloc] init];
@@ -652,7 +657,7 @@
     NSInteger fromRow = [rowIndexes firstIndex];
     
     NSString *movingItemName = [_ordering objectAtIndex:fromRow];
-    NSInteger movingItemIndex = [[_indexes objectForKey:movingItemName] integerValue];
+    NSInteger movingItemIndex = [[_index objectForKey:movingItemName] integerValue];
     
     if (fromRow < itemsRow && toRow > itemsRow) {
         
@@ -661,7 +666,7 @@
         for (index = itemsRow + 1; index < [_items count]; index++) {
             
             NSString *itemName = [_ordering objectAtIndex:index];
-            NSInteger itemIndex = [[_indexes objectForKey:itemName] integerValue];
+            NSInteger itemIndex = [[_index objectForKey:itemName] integerValue];
             
             if (itemIndex > movingItemIndex) {
                 [_ordering insertObject:movingItemName atIndex:index];
