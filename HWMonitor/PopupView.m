@@ -17,9 +17,9 @@
 {
     if (_colorTheme != colorTheme) {
         _colorTheme = colorTheme;
-        _headerPath = nil;
-        _headerGradient = nil;
-        _contentPath = nil;
+        _toolbarPath = nil;
+        _toolbarGradient = nil;
+        _listPath = nil;
         [self setNeedsDisplay:YES];
     }
 }
@@ -28,100 +28,113 @@
 {
     if (_arrowPosition != arrowPosition) {
         _arrowPosition = arrowPosition + LINE_THICKNESS / 2.0;
-        _headerPath = nil;
-        _headerGradient = nil;
-        _contentPath = nil;
+        _toolbarPath = nil;
+        _toolbarGradient = nil;
+        _listPath = nil;
         [self setNeedsDisplay:YES];
     }
 }
 
 - (void)drawRect:(NSRect)dirtyRect
 {
-    [NSGraphicsContext saveGraphicsState];
+    NSRect popupBounds = NSInsetRect([self bounds], LINE_THICKNESS, LINE_THICKNESS);
     
-    NSRect contentRect = NSInsetRect([self bounds], LINE_THICKNESS, LINE_THICKNESS);
-    
-    if (!_headerPath || !_headerGradient || !_contentPath || !NSEqualRects(contentRect, _contentRect)) {
+    if (!_toolbarPath || !_toolbarGradient || !_listPath || !_clipPath || !NSEqualRects(popupBounds, _popupBounds)) {
         
-        _contentRect = contentRect;
+        _popupBounds = popupBounds;
         
-        // Header
+        // Toolbar and arrow
+        NSRect toolbarRect = popupBounds;
+        toolbarRect.size.height = kHWMonitorToolbarHeight + ARROW_HEIGHT - LINE_THICKNESS * 2; // toolbar row height
+        toolbarRect.origin.y = popupBounds.size.height - toolbarRect.size.height;
         
-        NSRect headerRect = contentRect;
-        headerRect.size.height = kHWMonitorToolbarHeight + ARROW_HEIGHT - LINE_THICKNESS * 3; // toolbar row height
-        headerRect.origin.y = contentRect.size.height - headerRect.size.height;
+        _toolbarPath = [NSBezierPath bezierPath];
+                
+        [_toolbarPath setLineWidth:LINE_THICKNESS];
+        [_toolbarPath setLineJoinStyle:NSRoundLineJoinStyle];
         
-        _headerPath = [NSBezierPath bezierPath];
+        [_toolbarPath moveToPoint:NSMakePoint(NSMinX(toolbarRect), NSMinY(toolbarRect))];
+        [_toolbarPath lineToPoint:NSMakePoint(NSMinX(toolbarRect), NSMaxY(toolbarRect) - ARROW_HEIGHT - CORNER_RADIUS)];
         
-        [_headerPath setLineWidth:LINE_THICKNESS];
-        [_headerPath setLineJoinStyle:NSRoundLineJoinStyle];
+        NSPoint topLeftCorner = NSMakePoint(NSMinX(toolbarRect) + CORNER_RADIUS, NSMaxY(toolbarRect) - ARROW_HEIGHT - CORNER_RADIUS);
+        [_toolbarPath appendBezierPathWithArcWithCenter:topLeftCorner radius:CORNER_RADIUS startAngle:180 endAngle:90 clockwise:YES];
         
-        [_headerPath moveToPoint:NSMakePoint(_arrowPosition - ARROW_WIDTH / 2.0f, NSMaxY(headerRect) - ARROW_HEIGHT)];
-        [_headerPath lineToPoint:NSMakePoint(_arrowPosition, NSMaxY(headerRect))];
-        [_headerPath lineToPoint:NSMakePoint(_arrowPosition + ARROW_WIDTH / 2.0f, NSMaxY(headerRect) - ARROW_HEIGHT)];
+        [_toolbarPath lineToPoint:NSMakePoint(_arrowPosition - ARROW_WIDTH / 2.0f, NSMaxY(toolbarRect) - ARROW_HEIGHT)];
+        [_toolbarPath lineToPoint:NSMakePoint(_arrowPosition, NSMaxY(toolbarRect))];
+        [_toolbarPath lineToPoint:NSMakePoint(_arrowPosition + ARROW_WIDTH / 2.0f, NSMaxY(toolbarRect) - ARROW_HEIGHT)];
         
-        [_headerPath lineToPoint:NSMakePoint(NSMaxX(headerRect) - CORNER_RADIUS, NSMaxY(headerRect) - ARROW_HEIGHT)];
+        [_toolbarPath lineToPoint:NSMakePoint(NSMaxX(toolbarRect) - CORNER_RADIUS, NSMaxY(toolbarRect) - ARROW_HEIGHT)];
         
-        NSPoint topRightCorner = NSMakePoint(NSMaxX(headerRect) - CORNER_RADIUS, NSMaxY(headerRect) - ARROW_HEIGHT - CORNER_RADIUS);
-        [_headerPath appendBezierPathWithArcWithCenter:topRightCorner radius:CORNER_RADIUS startAngle:90 endAngle:0 clockwise:YES];
+        NSPoint topRightCorner = NSMakePoint(NSMaxX(toolbarRect) - CORNER_RADIUS, NSMaxY(toolbarRect) - ARROW_HEIGHT - CORNER_RADIUS);
+        [_toolbarPath appendBezierPathWithArcWithCenter:topRightCorner radius:CORNER_RADIUS startAngle:90 endAngle:0 clockwise:YES];
         
-        [_headerPath lineToPoint:NSMakePoint(NSMaxX(headerRect), NSMinY(headerRect) + CORNER_RADIUS)];
+        [_toolbarPath lineToPoint:NSMakePoint(NSMaxX(toolbarRect), NSMinY(toolbarRect))];
         
-        [_headerPath lineToPoint:NSMakePoint(NSMaxX(headerRect), NSMinY(headerRect))];
-        [_headerPath lineToPoint:NSMakePoint(NSMinX(headerRect), NSMinY(headerRect))];
+        // List
+        _listPath = [NSBezierPath bezierPath];
         
-        [_headerPath lineToPoint:NSMakePoint(NSMinX(headerRect), NSMaxY(headerRect) - ARROW_HEIGHT - CORNER_RADIUS)];
+        //[_listPath appendBezierPath:_toolbarPath];
+         
+        [_listPath moveToPoint:NSMakePoint(NSMaxX(toolbarRect), NSMinY(toolbarRect))];
         
-        NSPoint topLeftCorner = NSMakePoint(NSMinX(headerRect) + CORNER_RADIUS, NSMaxY(headerRect) - ARROW_HEIGHT - CORNER_RADIUS);
-        [_headerPath appendBezierPathWithArcWithCenter:topLeftCorner radius:CORNER_RADIUS startAngle:180 endAngle:90 clockwise:YES];
+        [_listPath lineToPoint:NSMakePoint(NSMaxX(popupBounds), NSMinY(popupBounds) + CORNER_RADIUS)];
         
-        [_headerPath closePath];        
+        NSPoint bottomRightCorner = NSMakePoint(NSMaxX(popupBounds) - CORNER_RADIUS, NSMinY(popupBounds) + CORNER_RADIUS);
+        [_listPath appendBezierPathWithArcWithCenter:bottomRightCorner radius:CORNER_RADIUS startAngle:0 endAngle:270 clockwise:YES];
         
-        // Content
-        _contentPath = [NSBezierPath bezierPath];
+        [_listPath lineToPoint:NSMakePoint(NSMinX(popupBounds) + CORNER_RADIUS, NSMinY(popupBounds))];
         
-        [_contentPath moveToPoint:NSMakePoint(NSMaxX(headerRect), NSMinY(headerRect))];
+        NSPoint bottomLeftCorner = NSMakePoint(NSMinX(popupBounds) + CORNER_RADIUS, NSMinY(popupBounds) + CORNER_RADIUS);
+        [_listPath appendBezierPathWithArcWithCenter:bottomLeftCorner radius:CORNER_RADIUS startAngle:270 endAngle:180 clockwise:YES];
         
-        [_contentPath lineToPoint:NSMakePoint(NSMaxX(contentRect), NSMinY(contentRect) + CORNER_RADIUS)];
+        [_listPath lineToPoint:NSMakePoint(NSMinX(toolbarRect), NSMinY(toolbarRect))];
         
-        NSPoint bottomRightCorner = NSMakePoint(NSMaxX(contentRect) - CORNER_RADIUS, NSMinY(contentRect) + CORNER_RADIUS);
-        [_contentPath appendBezierPathWithArcWithCenter:bottomRightCorner radius:CORNER_RADIUS startAngle:0 endAngle:270 clockwise:YES];
+        //[_listPath closePath];
         
-        [_contentPath lineToPoint:NSMakePoint(NSMinX(contentRect) + CORNER_RADIUS, NSMinY(contentRect))];
+        _toolbarGradient = [[NSGradient alloc] initWithStartingColor:_colorTheme.barBackgroundStartColor endingColor:_colorTheme.barBackgroundEndColor];
         
-        NSPoint bottomLeftCorner = NSMakePoint(NSMinX(contentRect) + CORNER_RADIUS, NSMinY(contentRect) + CORNER_RADIUS);
-        [_contentPath appendBezierPathWithArcWithCenter:bottomLeftCorner radius:CORNER_RADIUS startAngle:270 endAngle:180 clockwise:YES];
-        
-        [_contentPath lineToPoint:NSMakePoint(NSMinX(headerRect), NSMinY(headerRect))];
-        
-        [_contentPath closePath];
-        [_contentPath setLineWidth:LINE_THICKNESS];
-        //[_contentPath setFlatness:0.3];
-        
-        _headerGradient = [[NSGradient alloc]
-                           initWithStartingColor:   _colorTheme.barBackgroundStartColor
-                           endingColor:             _colorTheme.barBackgroundEndColor];
-        
+        _clipPath = [NSBezierPath bezierPathWithRect:[self bounds]];
+        [_clipPath appendBezierPath:_toolbarPath];
+        [_clipPath appendBezierPath:_listPath];
     }
     
-    // Draw panel
+    // Fill toolbar
+    [_toolbarGradient drawInBezierPath:_toolbarPath angle:270];
     
-    [_headerGradient drawInBezierPath:_headerPath angle:270];
-    
+    // Fill list
     [_colorTheme.listBackgroundColor setFill];
-    [_contentPath fill];
+    [_listPath fill];
     
-    NSBezierPath *clip = [NSBezierPath bezierPathWithRect:[self bounds]];
-    [clip appendBezierPath:_headerPath];
-    [clip appendBezierPath:_contentPath];
-    [clip addClip];
+    [NSGraphicsContext saveGraphicsState];
     
-    [_colorTheme.barPathColor setStroke];
-    [_headerPath stroke];
+    [_clipPath addClip];
     
+    // Stroke list
     [_colorTheme.listPathColor setStroke];
-    [_contentPath stroke];
+    [_listPath setLineWidth:LINE_THICKNESS];
+    [_listPath stroke];
     
+    // Stroke toolbar
+    [_colorTheme.barPathColor setStroke];
+    [_toolbarPath setLineWidth:LINE_THICKNESS];
+    [_toolbarPath stroke];
+    
+    [NSGraphicsContext restoreGraphicsState];
+    
+    // Draw inner shadow
+    [NSGraphicsContext saveGraphicsState];
+    
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.3] setStroke];
+    [NSBezierPath clipRect:NSMakeRect(
+                                      _toolbarPath.bounds.origin.x + CORNER_RADIUS * 0.3,
+                                      _toolbarPath.bounds.origin.y - CORNER_RADIUS * 0.3,
+                                      _toolbarPath.bounds.size.width - CORNER_RADIUS * 0.6,
+                                      _toolbarPath.bounds.size.height + CORNER_RADIUS * 0.3)];
+    
+    [_toolbarPath addClip];
+    [_toolbarPath setLineWidth:LINE_THICKNESS * 2.5];
+    [_toolbarPath stroke];
+
     [NSGraphicsContext restoreGraphicsState];
 }
 

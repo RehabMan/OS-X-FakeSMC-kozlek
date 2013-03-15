@@ -212,7 +212,7 @@ if (![_items objectForKey:name]) {\
         [_popupController updateValues];
     }
     
-    if ([_graphsController.window isVisible]) {
+    if ([_graphsController.window isVisible] || _graphsController.backgroundMonitoring) {
         [_graphsController captureDataToHistoryNow];
     }
 }
@@ -226,7 +226,7 @@ if (![_items objectForKey:name]) {\
     else {
         NSDate *now = [NSDate dateWithTimeIntervalSinceNow:0.0];
         
-        if ([self.window isVisible] || [_popupController.window isVisible] || [_graphsController.window isVisible]) {
+        if ([self.window isVisible] || [_popupController.window isVisible] || [_graphsController.window isVisible] || _graphsController.backgroundMonitoring) {
             if ([_smcSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
                 [self performSelectorInBackground:@selector(updateSmcSensors) withObject:nil];
                 _smcSensorsLastUpdated = now;
@@ -349,8 +349,6 @@ if (![_items objectForKey:name]) {\
     
     [_popupController setShowVolumeNames:[_defaults integerForKey:kHWMonitorShowVolumeNames]];
     
-    [_graphsController setUseSmoothing:[_defaults boolForKey:kHWMonitorGraphsUseDataSmoothing]];
-    
     [_engine rebuildSensorsList];
     
     if ([[_engine sensors] count] > 0) {
@@ -406,6 +404,8 @@ if (![_items objectForKey:name]) {\
     [_popupController setupWithGroups:_groups];
     [_popupController.statusItemView setFavorites:_favorites];
     [_graphsController setupWithGroups:_groups];
+    [_graphsController setUseSmoothing:[_defaults boolForKey:kHWMonitorGraphsUseDataSmoothing]];
+    [_graphsController setBackgroundMonitoring:[_defaults boolForKey:kHWMonitorGraphsBackgroundMonitor]];
     
     [self rebuildSensorsTableView];
     
