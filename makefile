@@ -25,7 +25,7 @@ install:
 	sudo cp -R Binaries/Release/LPCSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Binaries/Release/GPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo touch /System/Library/Extensions
-	sudo kextcache --system-prelinked-kernel -arch x86_64
+	sudo kextcache -update-volume /
 
 .PHONY: install_probook
 install_probook:
@@ -35,7 +35,7 @@ install_probook:
 	sudo cp -R Binaries/Release/CPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Binaries/Release/ACPISensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo touch /System/Library/Extensions
-	sudo kextcache --system-prelinked-kernel -arch x86_64
+	sudo kextcache -update-volume /
 
 .PHONY: install_debug
 install_debug:
@@ -47,7 +47,7 @@ install_debug:
 	sudo cp -R Binaries/Debug/LPCSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Binaries/Debug/GPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo touch /System/Library/Extensions
-	sudo kextcache --system-prelinked-kernel -arch x86_64
+	sudo kextcache -update-volume /
 
 .PHONY: install_probook_debug
 install_probook_debug:
@@ -57,7 +57,7 @@ install_probook_debug:
 	sudo cp -R Binaries/Debug/CPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Binaries/Debug/ACPISensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo touch /System/Library/Extensions
-	sudo kextcache --system-prelinked-kernel -arch x86_64
+	sudo kextcache -update-volume /
 
 .PHONY: distribute
 distribute:
