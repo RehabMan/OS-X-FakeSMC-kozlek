@@ -22,8 +22,7 @@
 #define kATASMARTAttributeUnusedReservedBloks       0xB4
 
 
-typedef struct ATASMARTAttribute
-{
+typedef struct {
     UInt8 			attributeId;
     UInt16			flag;  
     UInt8 			current;
@@ -32,21 +31,19 @@ typedef struct ATASMARTAttribute
     UInt8 			reserv;
 }  __attribute__ ((packed)) ATASMARTAttribute;
 
-typedef struct ATASMARTVendorSpecificData
-{
+typedef struct {
     UInt16 					revisonNumber;
     ATASMARTAttribute		vendorAttributes [kATASMARTVendorSpecificAttributesCount];
 } __attribute__ ((packed)) ATASmartVendorSpecificData;
 
 // NSATAGenericDisk
 
-@interface ATAGenericDisk : NSObject
+@interface ATAGenericDrive : NSObject
 {
 @private
-    io_service_t service;
-    struct ATASMARTVendorSpecificData data;
-    
-    NSDate      *lastUpdate;
+    io_service_t                _service;
+    ATASmartVendorSpecificData  _data;
+    NSDate                      *lastUpdated;
 }
 
 @property (readonly) NSString   *productName;
@@ -56,30 +53,14 @@ typedef struct ATASMARTVendorSpecificData
 @property (readonly) BOOL       isRotational;
 @property (readonly) BOOL       isExceeded;
 
-+(ATAGenericDisk*)genericDiskWithService:(io_service_t)ioservice productName:(NSString*)name bsdName:(NSString*)bsd volumesNames:(NSString*)volumes serialNumber:(NSString*)serial isRotational:(BOOL)rotational;
++(NSArray*)discoverDrives;
+
++(ATAGenericDrive*)genericDriveWithService:(io_service_t)ioservice productName:(NSString*)name bsdName:(NSString*)bsd volumesNames:(NSString*)volumes serialNumber:(NSString*)serial isRotational:(BOOL)rotational;
 
 -(BOOL)readSMARTData;
 -(ATASMARTAttribute*)getAttributeByIdentifier:(UInt8)identifier;
 -(NSData*)getTemperature;
 -(NSData*)getRemainingLife;
 -(NSData*)getRemainingBlocks;
-
-@end
-
-// NSATASmartReporter
-
-@interface NSATASmartReporter : NSObject
-{
-@private
-    NSArray *drives;
-    
-@public
-}
-
-@property (readonly) NSArray *drives;
-
-+(NSATASmartReporter*)smartReporterByDiscoveringDrives;
-
--(void)diskoverDrives;
 
 @end

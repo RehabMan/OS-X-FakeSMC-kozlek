@@ -9,8 +9,8 @@
 //
 
 #define LINE_THICKNESS      1.0f
-#define ARROW_WIDTH         21.0f
-#define ARROW_HEIGHT        10.0f
+#define ARROW_WIDTH         22.0f
+#define ARROW_HEIGHT        11.0f
 #define ARROW_OFFSET        3.0f
 #define CORNER_RADIUS       6.0f
 
@@ -21,10 +21,8 @@
     CGFloat         _arrowPosition;
     ColorTheme      *_colorTheme;
     NSRect          _popupBounds;
-    NSBezierPath    *_toolbarPath;
-    NSBezierPath    *_listPath;
-    NSBezierPath    *_clipPath;
-    NSGradient      *_toolbarGradient;
+
+    NSImage         *_cachedImage;
 }
 
 @property (nonatomic, setter = setArrowPosition:) CGFloat arrowPosition;

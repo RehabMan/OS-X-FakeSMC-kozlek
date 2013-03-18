@@ -9,11 +9,10 @@
 #ifndef HWSensors_HWMonitorDefinitions_h
 #define HWSensors_HWMonitorDefinitions_h
 
-#define kHWMonitorToolbarHeight             35
+#define kHWMonitorToolbarHeight             36
 #define kHWMonitorGroupHeight               19
 #define kHWMonitorSensorHeight              17
 #define kHWMonitorSubtitledHeight           27
-#define kHWMonitorBatteryHeight             22
 
 // Preferences
 #define kHWMonitorFavoritesList             @"favoritesList"
@@ -42,6 +41,7 @@
 #define kHWMonitorIconFrequencies           @"frequencies"
 #define kHWMonitorIconTachometers           @"tachometers"
 #define kHWMonitorIconVoltages              @"voltages"
+#define kHWMonitorIconBattery               @"battery"
 
 // Notifications
 #define HWMonitorBooleanYES                 @"YES"

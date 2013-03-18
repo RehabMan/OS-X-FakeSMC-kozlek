@@ -367,55 +367,60 @@
     
     // Make window height small
     NSRect panelRect = [[self window] frame];
-    panelRect.size.height = ARROW_HEIGHT + kHWMonitorToolbarHeight;
+    panelRect.size.height = ARROW_HEIGHT + kHWMonitorToolbarHeight + LINE_THICKNESS;
     [[self window] setFrame:panelRect display:NO];
     
     // Resize panel height to fit all table view content
     panelRect.size.height = [_tableView frame].size.height + ARROW_HEIGHT + CORNER_RADIUS;
     [[self window] setFrame:panelRect display:NO];
+    
+    [_statusItemView setNeedsDisplay:YES];
 }
 
-- (void)updateValues
+-(void)updateValuesForSensors:(NSArray *)sensors
 {
-    for (NSUInteger index = 0; index < [_items count]; index++) {
-        
-        id item = [_items objectAtIndex:index];
-        
-        if ([item isKindOfClass:[HWMonitorItem class]]) {
-            SensorCell *cell = [_tableView viewAtColumn:0 row:index makeIfNecessary:NO];
-            HWMonitorSensor *sensor = [item sensor];
+    if ([self.window isVisible]) {
+        for (HWMonitorSensor *sensor in sensors) {
             
-            if ([sensor valueHasBeenChanged]) {
+            HWMonitorItem *item = [sensor representedObject];
+            
+            if ([item isVisible]) {
                 
-                NSColor *valueColor;
+                SensorCell *cell = [_tableView viewAtColumn:0 row:[_items indexOfObject:item] makeIfNecessary:NO];
                 
-                switch ([sensor level]) {
-                        /*case kHWSensorLevelDisabled:
-                         break;
-                         
-                         case kHWSensorLevelNormal:
-                         break;*/
-                        
-                    case kHWSensorLevelModerate:
-                        valueColor = [NSColor colorWithCalibratedRed:0.7f green:0.3f blue:0.03f alpha:1.0f];
-                        break;
-                        
-                    case kHWSensorLevelExceeded:
-                        [cell.textField setTextColor:[NSColor redColor]];
-                    case kHWSensorLevelHigh:
-                        valueColor = [NSColor redColor];
-                        break;
-                        
-                    default:
-                        valueColor = _colorTheme.itemValueTitleColor;
-                        break;
+                if (cell && [cell isKindOfClass:[SensorCell class]]) {
+                    NSColor *valueColor;
+                    
+                    switch ([sensor level]) {
+                            /*case kHWSensorLevelDisabled:
+                             break;
+                             
+                             case kHWSensorLevelNormal:
+                             break;*/
+                            
+                        case kHWSensorLevelModerate:
+                            valueColor = [NSColor colorWithCalibratedRed:0.7f green:0.3f blue:0.03f alpha:1.0f];
+                            break;
+                            
+                        case kHWSensorLevelExceeded:
+                            [cell.textField setTextColor:[NSColor redColor]];
+                        case kHWSensorLevelHigh:
+                            valueColor = [NSColor redColor];
+                            break;
+                            
+                        default:
+                            valueColor = _colorTheme.itemValueTitleColor;
+                            break;
+                    }
+                    
+                    [cell.valueField setStringValue:[sensor formattedValue]];
+                    [cell.valueField setTextColor:valueColor];
                 }
-                
-                [cell.valueField setStringValue:[sensor formattedValue]];
-                [cell.valueField setTextColor:valueColor];
             }
         }
     }
+    
+    [_statusItemView setNeedsDisplay:YES];
 }
 
 // NSTableView delegate
@@ -434,7 +439,7 @@
     else if ([item isKindOfClass:[HWMonitorItem class]]) {
         HWMonitorSensor *sensor = [item sensor];
         
-        if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDisk class]]) {
+        if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
             return kHWMonitorSubtitledHeight;
         }
         else {
@@ -444,9 +449,7 @@
     else if ([item isKindOfClass:[NSString class]] && [item isEqualToString:@"Toolbar"]) {
         return kHWMonitorToolbarHeight;
     }
-    else if ([item isKindOfClass:[NSString class]] && [item isEqualToString:@"Battery"]) {
-        return kHWMonitorBatteryHeight;
-    }
+
 
     return  kHWMonitorSensorHeight;
 }
@@ -467,7 +470,7 @@
         
         [groupCell setColorTheme:_colorTheme];
         [groupCell.textField setStringValue:[group title]];
-        [groupCell.imageView setObjectValue:_colorTheme.useAlternateImages ? [[group icon] alternateImage] : [[group icon] image]];
+        [groupCell.imageView setObjectValue:_colorTheme.useDarkIcons ? [[group icon] image] : [[group icon] alternateImage]];
         
         return groupCell;
     }
@@ -476,17 +479,17 @@
         
         SensorCell *sensorCell = nil;
         
-        if (([sensor group] & kHWSensorGroupTemperature) || ([sensor group] & kSMARTGroupTemperature)) {
+        if ([sensor group] & (kHWSensorGroupTemperature | kSMARTGroupTemperature)) {
             sensorCell = [tableView makeViewWithIdentifier:@"Temperature" owner:self];
         }
-        else if (([sensor group] & kHWSensorGroupPWM) || ([sensor group] & kSMARTGroupRemainingLife)) {
+        else if ([sensor group] & (kHWSensorGroupPWM | kBluetoothGroupBattery)) {
             sensorCell = [tableView makeViewWithIdentifier:@"Percentage" owner:self];
         }
         else {
             sensorCell = [tableView makeViewWithIdentifier:@"Sensor" owner:self];
         }
         
-        if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDisk class]]) {
+        if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
             [sensorCell.subtitleField setTextColor:_colorTheme.itemSubTitleColor];
             [sensorCell.subtitleField setStringValue:[[sensor genericDevice] volumesNames]];
             [sensorCell.subtitleField setHidden:NO];
@@ -505,7 +508,7 @@
     else if ([item isKindOfClass:[NSString class]] && [item isEqualToString:@"Toolbar"]) {
         NSTableCellView *buttonsCell = [tableView makeViewWithIdentifier:item owner:self];
         
-        [buttonsCell.textField setTextColor:_colorTheme.barTitleColor];
+        [buttonsCell.textField setTextColor:_colorTheme.toolbarTitleColor];
         
         return buttonsCell;
     }

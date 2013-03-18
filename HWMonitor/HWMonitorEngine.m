@@ -70,15 +70,32 @@
     return nil;
 }
 
+-(void)setUseFahrenheit:(BOOL)useFahrenheit
+{
+    _useFahrenheit = useFahrenheit;
+    
+    [_sensorsLock lock];
+    
+    for (HWMonitorSensor *sensor in [self sensors]) {
+        if ([sensor group] & (kHWSensorGroupTemperature | kSMARTGroupTemperature)) {
+            [sensor setValueHasBeenChanged:YES];
+        }
+    }
+        
+    [_sensorsLock unlock];
+}
+
 -(void)setUseBSDNames:(BOOL)useBSDNames
 {
-    //if (_useBSDNames != useBSDNames) {
-        _useBSDNames = useBSDNames;
-        
-        for (HWMonitorSensor *sensor in [self sensors])
-            if ([sensor genericDevice])
-                [sensor setTitle:_useBSDNames ? [[sensor genericDevice] bsdName] : [[[sensor genericDevice] productName] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-    //}
+    _useBSDNames = useBSDNames;
+
+    [_sensorsLock lock];
+
+    for (HWMonitorSensor *sensor in [self sensors])
+        if ([sensor genericDevice])
+            [sensor setTitle:_useBSDNames ? [[sensor genericDevice] bsdName] : [[[sensor genericDevice] productName] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+    
+    [_sensorsLock unlock];
 }
 
 - (NSArray*)populateInfoForKey:(NSString*)key
@@ -165,7 +182,7 @@
     return sensor;
 }
 
-- (HWMonitorSensor*)addSMARTSensorWithGenericDisk:(ATAGenericDisk*)disk group:(NSUInteger)group
+- (HWMonitorSensor*)addSMARTSensorWithGenericDisk:(ATAGenericDrive*)disk group:(NSUInteger)group
 {
     NSData * value = nil;
     
@@ -189,9 +206,6 @@
             UInt64 life = 0;
             
             [value getBytes:&life length:[value length]];
-            
-            if (life > 100)
-                return nil;
             
             break;
             
@@ -223,16 +237,39 @@
 
 - (HWMonitorSensor*)addBluetoothSensorWithGenericDevice:(BluetoothGenericDevice*)device group:(NSUInteger)group
 {
-    NSData *level = [device getBatteryLevel];
-    
-    if (level) {
-        /*HWMonitorSensor *sensor = [self addSensorWithKey:[NSString stringWithFormat:@"%@%lx", [disk serialNumber], group] title:_useBSDNames ? [disk bsdName] : [[disk productName] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] group:group];
+    if ([device getBatteryLevel]) {
         
-        [sensor setData:value];
-        [sensor setGenericDevice:disk];
-        if ([disk isExceeded]) [sensor setLevel:kHWSensorLevelExceeded];
+        HWMonitorSensor *sensor = nil;
         
-        return sensor;*/
+        if (![device productName]) {
+            [device setProductName:[NSString stringWithFormat:@"%d", (int)device]];
+            
+            switch ([device deviceType]) {
+                case kBluetoothDeviceTypeKeyboard:
+                    [device setProductName:@"Keyboard"];
+                    break;
+                case kBluetoothDeviceTypeMouse:
+                    [device setProductName:@"Mouse"];
+                    break;
+                case kBluetoothDeviceTypeTrackpad:
+                    [device setProductName:@"Trackpad"];
+                    break;
+                default:
+                    [device setProductName:@"Unknown"];
+                    break;
+            }
+        }
+        
+        if (![device serialNumber] || [[device serialNumber] length] == 0) {
+            [device setSerialNumber:[NSString stringWithFormat:@"%X", device.service]];
+        }
+        
+        sensor = [self addSensorWithKey:[device serialNumber] title:[device productName] group:group];
+        
+        [sensor setData:[device getBatteryLevel]];
+        [sensor setGenericDevice:device];
+        
+        return sensor;
     }
     
     return nil;
@@ -242,24 +279,23 @@
 {
     self = [super init];
     
-    _smartReporter = [NSATASmartReporter smartReporterByDiscoveringDrives];
-    _sensors = [[NSMutableArray alloc] init];
-    _keys = [[NSMutableDictionary alloc] init];
-    _bundle = [NSBundle mainBundle];
-    _sensorsLock = [[NSLock alloc] init];
+    if (self) {
+        _sensors = [[NSMutableArray alloc] init];
+        _keys = [[NSMutableDictionary alloc] init];
+        _bundle = [NSBundle mainBundle];
+        _sensorsLock = [[NSLock alloc] init];
+    }
     
     return self;
 }
 
 - (id)initWithBundle:(NSBundle*)mainBundle;
 {
-    self = [super init];
+    self = [self init];
     
-    _smartReporter = [NSATASmartReporter smartReporterByDiscoveringDrives];
-    _sensors = [[NSMutableArray alloc] init];
-    _keys = [[NSMutableDictionary alloc] init];
-    _bundle = mainBundle;
-    _sensorsLock = [[NSLock alloc] init];
+    if (self) {
+        _bundle = mainBundle;
+    }
     
     return self;
 }
@@ -316,20 +352,16 @@
     
     [self addSensorsFromSMCKeyGroup:kSMCKeyGroupTemperature toHWSensorGroup:kHWSensorGroupTemperature];
     
-    if ([_smartReporter drives]) {
-        for (NSUInteger i = 0; i < [[_smartReporter drives] count]; i++) {
-            ATAGenericDisk * disk = [[_smartReporter drives] objectAtIndex:i];
+    if ((_smartDrives = [ATAGenericDrive discoverDrives])) {
+        for (ATAGenericDrive * drive in _smartDrives) {
+            // Hard Drive Temperatures
+            [self addSMARTSensorWithGenericDisk:drive group:kSMARTGroupTemperature];
             
-            if (disk) { 
-                // Hard Drive Temperatures
-                [self addSMARTSensorWithGenericDisk:disk group:kSMARTGroupTemperature];
-                
-                if (![disk isRotational]) {
-                    // SSD Remaining Life
-                    [self addSMARTSensorWithGenericDisk:disk group:kSMARTGroupRemainingLife];
-                    // SSD Remaining Blocks
-                    [self addSMARTSensorWithGenericDisk:disk group:kSMARTGroupRemainingBlocks];
-                }
+            if (![drive isRotational]) {
+                // SSD Remaining Life
+                [self addSMARTSensorWithGenericDisk:drive group:kSMARTGroupRemainingLife];
+                // SSD Remaining Blocks
+                [self addSMARTSensorWithGenericDisk:drive group:kSMARTGroupRemainingBlocks];
             }
         }
     }
@@ -421,6 +453,13 @@
     // Powers
     [self addSensorsFromSMCKeyGroup:kSMCKeyGroupPower toHWSensorGroup:kHWSensorGroupPower];
     
+    // Batteries
+    if ((_bluetoothDevices = [BluetoothGenericDevice discoverDevices])) {
+        for (BluetoothGenericDevice * device in _bluetoothDevices) {
+            [self addBluetoothSensorWithGenericDevice:device group:kBluetoothGroupBattery];
+        }
+    }
+    
     [_sensorsLock unlock];
 }
 
@@ -431,7 +470,7 @@
     NSMutableArray *list = [[NSMutableArray alloc] init];
     
     for (HWMonitorSensor *sensor in [self sensors]) {
-        if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDisk class]]) {
+        if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
             switch ([sensor group]) {
                 case kSMARTGroupTemperature:
                     [sensor setData:[[sensor genericDevice] getTemperature]];
@@ -460,7 +499,7 @@
     return list;
 }
 
-- (NSArray*)updateSmcSensors
+- (NSArray*)updateSensors
 {
     [_sensorsLock lock];
     
@@ -483,6 +522,13 @@
                     }
                 }
             }
+            else if ([[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]]) {
+                [sensor setData:[[sensor genericDevice] getBatteryLevel]];
+                
+                if ([sensor valueHasBeenChanged]) {
+                    [list addObject:sensor];
+                }
+            }
         }
     }
     else if (_connection) {
@@ -495,7 +541,7 @@
     return list;
 }
 
--(NSArray*)updateSmcSensorsList:(NSArray *)sensors
+-(NSArray*)updateSensorsList:(NSArray *)sensors
 {
     if (!sensors) return nil; // [self updateSmcSensors];
     

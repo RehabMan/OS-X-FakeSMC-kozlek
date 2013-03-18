@@ -10,80 +10,100 @@
 
 @implementation BluetoothGenericDevice
 
-+ (BluetoothGenericDevice*)bluetoothReporterByDiscoveringDeviceType:(BluetoothDeviceType)type
++ (NSArray*)discoverDevices
+{
+    NSMutableArray *devices = [[NSMutableArray alloc] init];
+    
+    for (int index = 0; index < 3; index++) {
+        
+        BluetoothDeviceType type = kBluetoothDeviceTypeNone;
+        CFDictionaryRef matching = MACH_PORT_NULL;
+        
+        switch (index) {
+            case 0:
+                matching = IOServiceMatching("BNBMouseDevice");
+                type = kBluetoothDeviceTypeMouse;
+                break;
+                
+            case 1:
+                matching = IOServiceMatching("AppleBluetoothHIDKeyboard");
+                type = kBluetoothDeviceTypeKeyboard;
+                break;
+                
+            case 2:
+                matching = IOServiceMatching("BNBTrackpadDevice");
+                type = kBluetoothDeviceTypeTrackpad;
+                break;
+                
+            default:
+                break;
+        }
+
+        if (MACH_PORT_NULL != matching) {
+            io_iterator_t iterator = IO_OBJECT_NULL;
+            
+            if (kIOReturnSuccess == IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iterator)) {
+                if (IO_OBJECT_NULL != iterator) {
+                    
+                    io_service_t service = MACH_PORT_NULL;
+                    
+                    while (MACH_PORT_NULL != (service = IOIteratorNext(iterator))) {
+                        BluetoothGenericDevice* device = [BluetoothGenericDevice bluetoothGenericDeviceWithService:service ofType:type];
+                        
+                        if (device) {
+                            [devices addObject:device];
+                        }
+                    }
+                    
+                    IOObjectRelease(iterator);
+                }
+            }
+        }
+    }
+    
+    return devices;
+}
+
++ (BluetoothGenericDevice*)bluetoothGenericDeviceWithService:(io_service_t)service ofType:(BluetoothDeviceType)type;
 {
     BluetoothGenericDevice *me = [[BluetoothGenericDevice alloc] init];
     
-    if (me)
-        [me discoverDeviceType:type];
+    if (me) {
+        [me setService:service];
+        [me setDeviceType:type];
+        
+        if (![me getBatteryLevel]) {
+            return nil;
+        }
+        
+        [me setProductName:(__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(service, CFSTR("Product"), kCFAllocatorDefault, 0)];
+        [me setSerialNumber:(__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(service, CFSTR("SerialNumber"), kCFAllocatorDefault, 0)];
+    }
     
     return me;
+}
+
+-(void)dealloc
+{
+    if (MACH_PORT_NULL != _service) {
+        IOObjectRelease(_service);
+    }
 }
 
 - (NSData*)getBatteryLevel
 {
     NSData *result = nil;
     
-    CFDictionaryRef matching = MACH_PORT_NULL;
-    
-    switch (_deviceType) {
-        case kBluetoothDeviceTypeMouse:
-            matching = IOServiceMatching("BNBMouseDevice");
-            break;
-            
-        case kBluetoothDeviceTypeKeyboard:{
-            matching = IOServiceMatching("AppleBluetoothHIDKeyboard");
-            break;
-        }
-            
-        default:
-            break;
-    }
-
-    if (MACH_PORT_NULL != matching) {
-        io_iterator_t iterator = IO_OBJECT_NULL;
+    if (MACH_PORT_NULL != _service) {
+        NSNumber *level = (__bridge_transfer  NSNumber *)IORegistryEntryCreateCFProperty(_service, CFSTR("BatteryPercent"), kCFAllocatorDefault, 0);
         
-        if (kIOReturnSuccess == IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iterator)) {
-            if (IO_OBJECT_NULL != iterator) {
-                
-                io_service_t service = MACH_PORT_NULL;
-                
-                while (MACH_PORT_NULL != (service = IOIteratorNext(iterator))) {
-                    CFStringRef batteryLevel = (CFStringRef)IORegistryEntryCreateCFProperty(service, CFSTR("BatteryPercent"), kCFAllocatorDefault, 0);
-                    
-                    if (batteryLevel != IO_OBJECT_NULL) {
-                        SInt32 bytes = CFStringGetIntValue(batteryLevel);
-                        result = [NSData dataWithBytes:&bytes length:sizeof(SInt32)];
-                        CFRelease(batteryLevel);
-                    }
-                    
-                    IOObjectRelease(service);
-                }
-                
-                IOObjectRelease(iterator);
-            }
+        if (level) {
+            NSUInteger bytes = [level unsignedIntegerValue];
+            result = [NSData dataWithBytes:&bytes length:sizeof(NSUInteger)];
         }
     }
     
     return result;
-}
-
-- (void)discoverDeviceType:(BluetoothDeviceType)type
-{
-    switch (type) {
-        case kBluetoothDeviceTypeMouse:
-        case kBluetoothDeviceTypeKeyboard:
-            _deviceType = type;
-            
-            if ([self getBatteryLevel] < 0)
-                _deviceType = kBluetoothDeviceTypeNone;
-            
-            break;
-            
-        default:
-            _deviceType = kBluetoothDeviceTypeNone;
-            break;
-    }
 }
 
 @end

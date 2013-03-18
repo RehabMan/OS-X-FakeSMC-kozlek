@@ -28,7 +28,7 @@
 
 #import <Foundation/Foundation.h>
 
-#include "ATASmartReporter.h"
+#include "ATAGenericDrive.h"
 
 typedef enum {
     kHWSensorGroupNone                  = 0,
@@ -39,12 +39,14 @@ typedef enum {
     kHWSensorGroupTachometer            = 1 << 4,
     kHWSensorGroupMultiplier            = 1 << 5,
     kHWSensorGroupFrequency             = 1 << 6,
-    kHWSensorGroupCurrent              = 1 << 7,
+    kHWSensorGroupCurrent               = 1 << 7,
     kHWSensorGroupPower                 = 1 << 8,
     
-    kSMARTGroupTemperature        = 1 << 9,
-    kSMARTGroupRemainingLife      = 1 << 10,
-    kSMARTGroupRemainingBlocks    = 1 << 11,
+    kBluetoothGroupBattery              = 1 << 9,
+    
+    kSMARTGroupTemperature              = 1 << 10,
+    kSMARTGroupRemainingLife            = 1 << 11,
+    kSMARTGroupRemainingBlocks          = 1 << 12,
 } HWSensorGroup;
 
 typedef enum {
@@ -59,6 +61,9 @@ typedef enum {
 @class HWMonitorEngine;
 
 @interface HWMonitorSensor : NSObject
+{
+    NSNumber *_rawValue;
+}
 
 @property (nonatomic, strong) HWMonitorEngine*  engine;
 
@@ -73,8 +78,8 @@ typedef enum {
 @property (readonly) NSNumber* rawValue;
 @property (readonly) NSString* formattedValue;
 
-@property (readonly) BOOL levelHasBeenChanged;
-@property (readonly) BOOL valueHasBeenChanged;
+@property (nonatomic, assign) BOOL levelHasBeenChanged;
+@property (nonatomic, assign) BOOL valueHasBeenChanged;
 
 @property (nonatomic, strong) id representedObject;
 
