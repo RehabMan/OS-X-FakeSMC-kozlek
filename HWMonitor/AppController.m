@@ -183,31 +183,31 @@ if (![_items objectForKey:name]) {\
 - (void)updateSmartSensors;
 {
     ////[_sensorsLock lock];
-    [self updateValuesForSensors:[_engine updateSmartSensors]];
+    NSArray *sensors = [_engine updateSmartSensors];
+    [self updateValuesForSensors:sensors];
     ////[_sensorsLock unlock];
 }
 
 - (void)updateSmcSensors
 {
     ////[_sensorsLock lock];
-    [self updateValuesForSensors:[_engine updateSensors]];
+    NSArray *sensors = [_engine updateSensors];
+    [self updateValuesForSensors:sensors];
     ////[_sensorsLock unlock];
 }
 
 - (void)updateFavoritesSensors
 {
     ////[_sensorsLock lock];
-    [self updateValuesForSensors:[_engine updateSensorsList:_favorites]];
+    NSArray *sensors = [_engine updateSensorsList:_favorites];
+    [self updateValuesForSensors:sensors];
     ////[_sensorsLock unlock];
-}
-
-- (void)captureDataToHistory
-{
-    [_graphsController captureDataToHistoryNow];
 }
 
 - (void)updateValuesForSensors:(NSArray*)sensors
 {
+    [_popupController updateValuesForSensors:sensors];
+    
     if ([self.window isVisible]) {
         for (HWMonitorSensor *sensor in sensors) {
             id cell = [_sensorsTableView viewAtColumn:0 row:GetIndexOfItem([sensor name]) makeIfNecessary:NO];
@@ -218,12 +218,11 @@ if (![_items objectForKey:name]) {\
         }
     }
     
-    [_popupController updateValuesForSensors:sensors];
     [_graphsController captureDataToHistoryNow];
 }
 
 - (void)updateLoop
-{   
+{
     if (_scheduleRebuildSensors) {
         [self rebuildSensorsList];
         _scheduleRebuildSensors = FALSE;
