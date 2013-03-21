@@ -34,8 +34,7 @@
 #import "GroupCell.h"
 #import "SensorCell.h"
 
-#define GetLocalizedString(key) \
-[[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
+#import "Localizer.h"
 
 #define AddItem(item, name) \
 if (![_items objectForKey:name]) {\
@@ -69,6 +68,8 @@ if (![_items objectForKey:name]) {\
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    [Localizer localizeView:self.window];
+    
     _defaults = [[BundleUserDefaults alloc] initWithPersistentDomainName:@"org.hwsensors.HWMonitor"];
 
     // Call undocumented function
