@@ -327,7 +327,14 @@
                     }
                     
                     [[cell valueField] setStringValue:[sensor formattedValue]];
-                    [[cell valueField] setTextColor:valueColor];
+                    
+                    if (![[[cell valueField] textColor] isEqualTo:valueColor]) {
+                        [[cell valueField] setTextColor:valueColor];
+                    }
+                    
+                    if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]]) {
+                        [cell setGaugeLevel:[[sensor rawValue] unsignedIntegerValue]];
+                    }
                 }
             }
         }
@@ -347,16 +354,17 @@
     id item = [_items objectAtIndex:row];
     
     if ([item isKindOfClass:[HWMonitorGroup class]]) {
-        return kHWMonitorGroupHeight;
+        return 19;
     }
     else if ([item isKindOfClass:[HWMonitorItem class]]) {
         HWMonitorSensor *sensor = [item sensor];
         
-        if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
-            return kHWMonitorSubtitledHeight;
+        if ((_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) ||
+            ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]] && [[sensor genericDevice] productName])) {
+            return 27;
         }
         else {
-            return kHWMonitorSensorHeight;
+            return 17;
         }
     }
     else if ([item isKindOfClass:[NSString class]] && [item isEqualToString:@"Toolbar"]) {
@@ -364,7 +372,7 @@
     }
 
 
-    return  kHWMonitorSensorHeight;
+    return 17;
 }
 
 - (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row
@@ -390,38 +398,46 @@
     else if ([item isKindOfClass:[HWMonitorItem class]]) {
         HWMonitorSensor *sensor = [item sensor];
         
-        SensorCell *sensorCell = nil;
+        id cell = nil;
         
         if ([sensor group] & (kHWSensorGroupTemperature | kSMARTGroupTemperature)) {
-            sensorCell = [tableView makeViewWithIdentifier:@"Temperature" owner:self];
+            cell = [tableView makeViewWithIdentifier:@"Temperature" owner:self];
         }
-        else if ([sensor group] & (kHWSensorGroupPWM | kBluetoothGroupBattery | kSMARTGroupRemainingLife)) {
-            sensorCell = [tableView makeViewWithIdentifier:@"Percentage" owner:self];
+        else if ([sensor group] & (kHWSensorGroupPWM | kSMARTGroupRemainingLife)) {
+            cell = [tableView makeViewWithIdentifier:@"Percentage" owner:self];
+        }
+        else if ([sensor group] & kBluetoothGroupBattery) {
+            cell = [tableView makeViewWithIdentifier:@"Battery" owner:self];
         }
         else {
-            sensorCell = [tableView makeViewWithIdentifier:@"Sensor" owner:self];
+            cell = [tableView makeViewWithIdentifier:@"Sensor" owner:self];
         }
+        
+        [cell setColorTheme:_colorTheme];
         
         if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
-            [sensorCell.subtitleField setTextColor:_colorTheme.itemSubTitleColor];
-            [sensorCell.subtitleField setStringValue:[[sensor genericDevice] volumesNames]];
-            [sensorCell.subtitleField setHidden:NO];
+            [[cell subtitleField] setStringValue:[[sensor genericDevice] volumesNames]];
+            [[cell subtitleField] setHidden:NO];
         }
-        else if (_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]]) {
-            [sensorCell.subtitleField setTextColor:_colorTheme.itemSubTitleColor];
-            [sensorCell.subtitleField setStringValue:[[sensor genericDevice] productName]];
-            [sensorCell.subtitleField setHidden:NO];
+        else if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]]) {
+            if ([[sensor genericDevice] productName]) {
+                [[cell subtitleField] setStringValue:[[sensor genericDevice] productName]];
+                [[cell subtitleField] setHidden:NO];
+            }
+            else  {
+                [[cell subtitleField] setHidden:YES];
+            }
+            
+            [cell setGaugeLevel:[[sensor rawValue] unsignedIntegerValue]];
         }
         else {
-            [sensorCell.subtitleField setHidden:YES];
+            [[cell subtitleField] setHidden:YES];
         }
         
-        [sensorCell.textField setTextColor:_colorTheme.itemTitleColor];
-        [sensorCell.textField setStringValue:[sensor title]];
-        [sensorCell.valueField setTextColor:_colorTheme.itemValueTitleColor];
-        [sensorCell.valueField setStringValue:[sensor formattedValue]];
+        [[cell textField] setStringValue:[sensor title]];
+        [[cell valueField] setStringValue:[sensor formattedValue]];
         
-        return sensorCell;
+        return cell;
     }
     else if ([item isKindOfClass:[NSString class]] && [item isEqualToString:@"Toolbar"]) {
         NSTableCellView *buttonsCell = [tableView makeViewWithIdentifier:item owner:self];

@@ -69,6 +69,7 @@ if (![_items objectForKey:name]) {\
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     [Localizer localizeView:self.window];
+    [Localizer localizeView:_graphsController.window];
     
     _defaults = [[BundleUserDefaults alloc] initWithPersistentDomainName:@"org.hwsensors.HWMonitor"];
 

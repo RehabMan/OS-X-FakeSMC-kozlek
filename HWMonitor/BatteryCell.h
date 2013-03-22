@@ -10,9 +10,10 @@
 
 @interface BatteryCell : NSTableCellView
 
-@property (nonatomic, unsafe_unretained) IBOutlet NSImageView *mouseImageView;
-@property (nonatomic, unsafe_unretained) IBOutlet NSTextField *mouseTextField;
-@property (nonatomic, unsafe_unretained) IBOutlet NSImageView *keyboardImageView;
-@property (nonatomic, unsafe_unretained) IBOutlet NSTextField *keyboardTextField;
+@property (nonatomic, unsafe_unretained) IBOutlet NSTextField *subtitleField;
+@property (nonatomic, unsafe_unretained) IBOutlet NSTextField *valueField;
+@property (nonatomic, assign) NSUInteger gaugeLevel;
+
+@property (nonatomic, strong) ColorTheme *colorTheme;
 
 @end
