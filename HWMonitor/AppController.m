@@ -134,6 +134,19 @@ if (![_items objectForKey:name]) {\
     
 }
 
+-(void)showWindow:(id)sender
+{
+    for (HWMonitorSensor *sensor in [_engine sensors]) {
+        id cell = [_sensorsTableView viewAtColumn:0 row:GetIndexOfItem([sensor name]) makeIfNecessary:NO];
+        
+        if (cell && [cell isKindOfClass:[SensorCell class]]) {
+            [[cell valueField] takeStringValueFrom:sensor];
+        }
+    }
+    
+    [super showWindow:sender];
+}
+
 - (void)loadIconNamed:(NSString*)name
 {
     if (!_icons)
@@ -208,22 +221,21 @@ if (![_items objectForKey:name]) {\
 
 - (void)updateValuesForSensors:(NSArray*)sensors
 {
-    [_popupController updateValuesForSensors:sensors];
-    
     if ([self.window isVisible]) {
         for (HWMonitorSensor *sensor in sensors) {
             id cell = [_sensorsTableView viewAtColumn:0 row:GetIndexOfItem([sensor name]) makeIfNecessary:NO];
             
             if (cell && [cell isKindOfClass:[SensorCell class]]) {
-                [[cell valueField] setStringValue:[sensor formattedValue]];
+                [[cell valueField] takeStringValueFrom:sensor];
             }
         }
     }
     
+    [_popupController updateValuesForSensors:sensors];
     [_graphsController captureDataToHistoryNow];
 }
 
-- (void)updateLoop
+- (BOOL)updateLoop
 {
     if (_scheduleRebuildSensors) {
         [self rebuildSensorsList];
@@ -236,18 +248,23 @@ if (![_items objectForKey:name]) {\
             if ([_smcSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
                 [self performSelectorInBackground:@selector(updateSmcSensors) withObject:nil];
                 _smcSensorsLastUpdated = now;
+                return TRUE;
             }
         }
         else if ([_favoritesSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
             [self performSelectorInBackground:@selector(updateFavoritesSensors) withObject:nil];
             _favoritesSensorsLastUpdated = now;
+            return TRUE;
         }
     
         if ([_smartSensorsLastUpdated timeIntervalSinceNow] < (- _smartSensorsUpdateInterval)) {
             [self performSelectorInBackground:@selector(updateSmartSensors) withObject:nil];
             _smartSensorsLastUpdated = now;
+            return TRUE;
         }
     }
+    
+    return FALSE;
 }
 
 - (void)rebuildSensorsTableView
@@ -583,7 +600,7 @@ if (![_items objectForKey:name]) {\
         [sensorCell.checkBox setTag:[_ordering indexOfObject:[sensor name]]];
         [sensorCell.imageView setImage:[[self getIconByGroup:[sensor group]] image]];
         [sensorCell.textField setStringValue:[sensor title]];
-        [sensorCell.valueField setStringValue:[sensor formattedValue]];
+        [sensorCell.valueField setStringValue:[sensor stringValue]];
         
         return sensorCell;
     }
