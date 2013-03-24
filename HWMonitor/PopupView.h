@@ -9,10 +9,11 @@
 //
 
 #define LINE_THICKNESS      1.0f
+#define SHADOW_SHIFT        0.25f
 #define ARROW_WIDTH         22.0f
 #define ARROW_HEIGHT        11.0f
 #define ARROW_OFFSET        3.0f
-#define CORNER_RADIUS       6.0f
+#define CORNER_RADIUS       5.0f
 
 #import "ColorTheme.h"
 

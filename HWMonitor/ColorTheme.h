@@ -15,7 +15,7 @@
 @property (nonatomic, strong) NSColor *toolbarStartColor;
 @property (nonatomic, strong) NSColor *toolbarEndColor;
 @property (nonatomic, strong) NSColor *toolbarTitleColor;
-@property (nonatomic, strong) NSColor *listStrokeColor;
+@property (nonatomic, strong) NSColor *toolbarShadowColor;
 
 @property (nonatomic, strong) NSColor *listBackgroundColor;
 
