@@ -35,7 +35,7 @@
 #import "HWMonitorIcon.h"
 #import "HWMonitorEngine.h"
 
-@interface AppController : NSWindowController <NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate, PopupControllerDelegate>
+@interface AppController : NSWindowController <NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate, PopupControllerDelegate, NSTokenFieldDelegate>
 {
     BundleUserDefaults* _defaults;
     HWMonitorEngine *_engine;
@@ -69,7 +69,9 @@
 
 @property (nonatomic, unsafe_unretained) IBOutlet NSTableView *sensorsTableView;
 
-- (IBAction)graphsBackgroundMonitorChanged:(id)sender;
+@property (readonly) BOOL hasDraggedFavoriteItem;
+@property (atomic, assign) NSDragOperation currentItemDragOperation;
+
 - (IBAction)favoritesChanged:(id)sender;
 - (IBAction)useFahrenheitChanged:(id)sender;
 - (IBAction)colorThemeChanged:(id)sender;
@@ -80,5 +82,6 @@
 - (IBAction)useBSDNamesChanged:(id)sender;
 - (IBAction)showVolumeNamesChanged:(id)sender;
 - (IBAction)toggleGraphSmoothing:(id)sender;
+- (IBAction)graphsBackgroundMonitorChanged:(id)sender;
 
 @end
