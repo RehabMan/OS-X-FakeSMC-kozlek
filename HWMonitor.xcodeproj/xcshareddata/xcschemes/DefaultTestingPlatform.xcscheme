@@ -17,8 +17,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7EFAE91816EBC8ED00F4DA72"
-               BuildableName = "SMC Value Decoder.octest"
-               BlueprintName = "SMC Value Decoder"
+               BuildableName = "DefaultTestingPlatform.octest"
+               BlueprintName = "DefaultTestingPlatform"
                ReferencedContainer = "container:HWMonitor.xcodeproj">
             </BuildableReference>
          </TestableReference>

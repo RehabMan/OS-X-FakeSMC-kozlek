@@ -76,7 +76,7 @@
     _engine = [[HWMonitorEngine alloc] initWithBundle:[NSBundle mainBundle]];
     
     [_engine setUseFahrenheit:[_defaults boolForKey:kHWMonitorUseFahrenheitKey]];
-    [_engine setUseBSDNames:[_defaults boolForKey:kHWMonitorUseBSDNames]];
+    [_engine setUseBsdNames:[_defaults boolForKey:kHWMonitorUseBSDNames]];
     
     [[_popupController statusItemView] setEngine:_engine];
     [[_popupController statusItemView] setUseBigFont:[_defaults boolForKey:kHWMonitorUseBigStatusMenuFont]];
@@ -309,7 +309,7 @@
     //[self addItem:@"Sensors" forKey:@"Sensors"];
     
     for (HWMonitorGroup *group in _groups) {
-        if ([group checkVisibility]) {
+        if ([[group items] count]) {
             [self addItem:[group title] forKey:[group title]];
         }
         
@@ -484,7 +484,7 @@
 
 -(IBAction)useBSDNamesChanged:(id)sender
 {
-    [_engine setUseBSDNames:[sender state]];
+    [_engine setUseBsdNames:[sender state]];
     [_popupController.tableView reloadData];
     [self rebuildSensorsTableView];
     [_defaults synchronize];
@@ -601,6 +601,11 @@
                 
                 PrefsSensorCell *itemCell = [tableView makeViewWithIdentifier:[sensor.representedObject representation] owner:self];;
                 
+                if (!itemCell) {
+                    // Fallback to default sensor cell
+                    itemCell = [tableView makeViewWithIdentifier:@"Sensor" owner:self];
+                }
+                
                 [itemCell.imageView setImage:[[self getIconByGroup:[sensor group]] image]];
                 [itemCell.textField setStringValue:[sensor title]];
                 [itemCell.valueField setStringValue:[sensor stringValue]];
@@ -624,6 +629,11 @@
             HWMonitorSensor *sensor = [item sensor];
             
             PrefsSensorCell *itemCell = [tableView makeViewWithIdentifier:[item representation] owner:self];
+            
+            if (!itemCell) {
+                // Fallback to default sensor cell
+                itemCell = [tableView makeViewWithIdentifier:@"Sensor" owner:self];
+            }
             
             [itemCell.checkBox setState:[item isVisible]];
             //[itemCell.checkBox setToolTip:GetLocalizedString(@"Show sensor in HWMonitor menu")];

@@ -25,9 +25,6 @@
  *
  */
 
-
-#import <Foundation/Foundation.h>
-
 #import "HWMonitorSensor.h"
 #import "ATAGenericDrive.h"
 #import "BluetoothGenericDevice.h"
@@ -41,6 +38,7 @@
     NSMutableArray *_sensors;
     NSMutableDictionary *_keys;
     NSLock *_sensorsLock;
+    NSArray *_currentProfile;
 }
 
 @property (nonatomic, strong) NSBundle* bundle;
@@ -49,7 +47,7 @@
 @property (readonly) NSDictionary *keys;
 
 @property (nonatomic, setter = setUseFahrenheit:) BOOL useFahrenheit;
-@property (nonatomic, setter = setUseBSDNames:) BOOL useBSDNames;
+@property (nonatomic, setter = setUseBsdNames:) BOOL useBsdNames;
 
 + (HWMonitorEngine*)engineWithBundle:(NSBundle*)bundle;
 
@@ -57,12 +55,11 @@
 + (NSData*)copyValueFromKeyInfo:(NSArray*)info;
 
 - (HWMonitorSensor*)addSensorWithKey:(NSString*)key title:(NSString*)title group:(NSUInteger)group;
-- (HWMonitorSensor*)addSMARTSensorWithGenericDisk:(ATAGenericDrive*)disk group:(NSUInteger)group;
+- (HWMonitorSensor*)addSmartSensorWithGenericDisk:(ATAGenericDrive*)disk group:(NSUInteger)group;
 - (HWMonitorSensor*)addBluetoothSensorWithGenericDevice:(BluetoothGenericDevice*)device group:(NSUInteger)group;
 
 - (id)init;
 - (id)initWithBundle:(NSBundle*)mainBundle;
-- (void)dealloc;
 
 - (NSArray*)populateInfoForKey:(NSString *)key;
 - (void)rebuildSensorsList;
