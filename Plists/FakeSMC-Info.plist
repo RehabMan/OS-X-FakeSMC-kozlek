@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.1.57</string>
+	<string>5.1.58</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -140,9 +140,9 @@
 					<key>CLKH</key>
 					<string>{clh</string>
 					<key>CLKT</key>
-					<string>ui16</string>
+					<string>ui32</string>
 					<key>CLWK</key>
-					<string>ui16</string>
+					<string>ui32</string>
 					<key>EPCI</key>
 					<string>flag</string>
 					<key>LSSS</key>

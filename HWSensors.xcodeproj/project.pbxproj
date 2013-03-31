@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
-		7E5D8E6216C6466300CB6720 /* Bump Build Number */ = {
+		7E5D8E6216C6466300CB6720 /* Bump Project Build Number */ = {
 			isa = PBXAggregateTarget;
-			buildConfigurationList = 7E5D8E6316C6466300CB6720 /* Build configuration list for PBXAggregateTarget "Bump Build Number" */;
+			buildConfigurationList = 7E5D8E6316C6466300CB6720 /* Build configuration list for PBXAggregateTarget "Bump Project Build Number" */;
 			buildPhases = (
 				7E5D8E6616C646CC00CB6720 /* ShellScript */,
 			);
 			dependencies = (
 			);
-			name = "Bump Build Number";
+			name = "Bump Project Build Number";
 			productName = Project;
 		};
 		7E86E05016CFD352001B9F52 /* Bump Project Version */ = {
@@ -166,8 +166,8 @@
 		7E79B82115BA99350079AAE8 /* CPUSensors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CPUSensors.h; sourceTree = "<group>"; };
 		7E79B82215BA99350079AAE8 /* CPUSensors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CPUSensors.cpp; sourceTree = "<group>"; };
 		7E79B82415BA99350079AAE8 /* CPUSensors-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CPUSensors-Prefix.pch"; sourceTree = "<group>"; };
+		7E9060D41708950500BF5BBF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7E93890015945B450005316D /* FakeSMCDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakeSMCDefinitions.h; sourceTree = "<group>"; };
-		7E9E7BA616E3D17D00CC8D5D /* SmcKeysDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SmcKeysDefinitions.h; sourceTree = "<group>"; };
 		7E9F544E167C71D1006E907B /* radeon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = radeon.h; sourceTree = "<group>"; };
 		7E9F544F167C71D1006E907B /* RadeonSensors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RadeonSensors.cpp; sourceTree = "<group>"; };
 		7E9F5450167C71D1006E907B /* RadeonSensors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RadeonSensors.h; sourceTree = "<group>"; };
@@ -315,6 +315,7 @@
 				7E40054E1585031B009AECED /* CoreData.framework */,
 				7EFAE8FF16EBC8AD00F4DA72 /* SenTestingKit.framework */,
 				7EFAE90116EBC8AD00F4DA72 /* Cocoa.framework */,
+				7E9060D41708950500BF5BBF /* Foundation.framework */,
 				7EFAE90316EBC8AD00F4DA72 /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -450,7 +451,6 @@
 			isa = PBXGroup;
 			children = (
 				7E93890015945B450005316D /* FakeSMCDefinitions.h */,
-				7E9E7BA616E3D17D00CC8D5D /* SmcKeysDefinitions.h */,
 				7EB00809168014BE00320B70 /* HWSensorsVersion.pch */,
 				7E5D8E5C16C643BD00CB6720 /* version.plist */,
 				7EBB50D915EEAE3C00FEBBB9 /* README.txt */,
@@ -830,7 +830,7 @@
 				7E79B81915BA99350079AAE8 /* CPUSensors */,
 				7EADE20615E5602E00FD117C /* GPUSensors */,
 				6A4E4738152178A00038C5DE /* LPCSensors */,
-				7E5D8E6216C6466300CB6720 /* Bump Build Number */,
+				7E5D8E6216C6466300CB6720 /* Bump Project Build Number */,
 				7E86E05016CFD352001B9F52 /* Bump Project Version */,
 			);
 		};
@@ -1498,7 +1498,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7E5D8E6316C6466300CB6720 /* Build configuration list for PBXAggregateTarget "Bump Build Number" */ = {
+		7E5D8E6316C6466300CB6720 /* Build configuration list for PBXAggregateTarget "Bump Project Build Number" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7E5D8E6416C6466300CB6720 /* Debug */,
