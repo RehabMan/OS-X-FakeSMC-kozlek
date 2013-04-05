@@ -31,7 +31,7 @@
 
 #include <kern/clock.h>
 
-class PTIDSensors : public FakeSMCPlugin
+class EXPORT PTIDSensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(PTIDSensors)
     

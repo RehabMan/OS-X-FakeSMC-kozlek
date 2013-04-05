@@ -76,7 +76,7 @@ const UInt16 NUVOTON_FAN_PWM_COMMAND_REG[]      = { 0x109, 0x209, 0x309 };
 const UInt16 NUVOTON_FAN_CONTROL_MODE_REG[]     = { 0x102, 0x202, 0x302 };
 
 
-class NCT677xSensors : public SuperIOPlugin
+class EXPORT NCT677xSensors : public SuperIOPlugin
 {
     OSDeclareDefaultStructors(NCT677xSensors)
 	

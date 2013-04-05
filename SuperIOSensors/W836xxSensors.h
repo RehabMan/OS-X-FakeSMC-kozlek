@@ -87,7 +87,7 @@ const UInt8 WINBOND_FAN_CONTROL_BIT[]				= { 0x02, 0x04, 0x01, 0x04 };
 const UInt8 WINBOND_FAN_MODE_BIT[]					= { 0x00, 0x01, 0x00, 0x06 };
 const UInt8 WINBOND_FAN_OUTPUT[]					= { 0x01, 0x03, 0x11, 0x61 };
 
-class W836xxSensors : public SuperIOPlugin
+class EXPORT W836xxSensors : public SuperIOPlugin
 {
     OSDeclareDefaultStructors(W836xxSensors)
 	

@@ -76,7 +76,7 @@ static UInt16 cpu_performance[kCPUSensorsMaxCpus];
 
 static UInt8  cpu_package_thermal;
 
-class CPUSensors : public FakeSMCPlugin
+class EXPORT CPUSensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(CPUSensors)    
     

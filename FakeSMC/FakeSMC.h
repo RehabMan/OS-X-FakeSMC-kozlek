@@ -5,7 +5,7 @@
 
 #include <IOKit/IOService.h>
 
-class FakeSMC : public IOService
+class EXPORT FakeSMC : public IOService
 {
 	OSDeclareDefaultStructors(FakeSMC)
 	

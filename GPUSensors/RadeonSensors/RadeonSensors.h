@@ -11,7 +11,7 @@
 #include "FakeSMCPlugin.h"
 #include "radeon.h"
 
-class RadeonMonitor : public FakeSMCPlugin
+class EXPORT RadeonMonitor : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(RadeonMonitor)    
 	

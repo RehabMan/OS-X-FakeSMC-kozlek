@@ -13,7 +13,7 @@
 #define DEFINE_FAKESMC_SENSOR_PARAMS
 #include "FakeSMCPlugin.h"
 
-class ACPISensors : public FakeSMCPlugin
+class EXPORT ACPISensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(ACPISensors)
     

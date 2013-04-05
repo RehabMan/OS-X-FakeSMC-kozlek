@@ -41,7 +41,7 @@ struct AppleSMCStatus {
 	uint8_t key_info[6];
 };
 
-class FakeSMCDevice : public IOACPIPlatformDevice
+class EXPORT FakeSMCDevice : public IOACPIPlatformDevice
 {
     OSDeclareDefaultStructors( FakeSMCDevice )
 	

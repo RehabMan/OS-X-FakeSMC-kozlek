@@ -12,13 +12,17 @@
 
 #include <IOKit/IOService.h>
 
+#ifndef EXPORT
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
 inline void copySymbol(const char *from, char* to)
 {
     // Made the key name valid (4 char long): add trailing spaces if needed
     snprintf(to, 5, "%-4s", from);
 }
 
-class FakeSMCKey : public OSObject
+class EXPORT FakeSMCKey : public OSObject
 {
     OSDeclareDefaultStructors(FakeSMCKey)
     

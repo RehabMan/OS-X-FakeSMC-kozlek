@@ -4,6 +4,10 @@
 #include <IOKit/IOService.h>
 #include <architecture/i386/pio.h>
 
+#ifndef EXPORT
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
 #define kSuperIOHWMAddress  "monitor-address"
 #define kSuperIOControlPort "control-port"
 #define kSuperIOModelValue  "model"
@@ -165,7 +169,7 @@ inline const char* superio_get_model_name(UInt16 model)
     return "unknown";
 }
 
-class SuperIODevice : public IOService
+class EXPORT SuperIODevice : public IOService
 {
 	OSDeclareDefaultStructors(SuperIODevice)
     

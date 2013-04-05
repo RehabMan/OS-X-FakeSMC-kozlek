@@ -36,7 +36,7 @@
 #include "nouveau.h"
 #include "xf86i2c.h"
 
-class GeforceSensors : public FakeSMCPlugin
+class EXPORT GeforceSensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(GeforceSensors)    
 	

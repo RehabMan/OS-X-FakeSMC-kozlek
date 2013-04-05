@@ -34,7 +34,7 @@
 
 class FakeSMCPlugin;
 
-class SuperIOPlugin : public FakeSMCPlugin {
+class EXPORT SuperIOPlugin : public FakeSMCPlugin {
 	OSDeclareAbstractStructors(SuperIOPlugin)
 	
 private:

@@ -9,6 +9,10 @@
 #ifndef HWSensors_definitions_h
 #define HWSensors_definitions_h
 
+#ifndef EXPORT
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
 #define KEY_COUNTER                             "#KEY"
 
 // Temperature (*C)
@@ -203,8 +207,6 @@
 #define bit_write(c,p,m) (c ? bit_set(p,m) : bit_clear(p,m))
 #define BIT(x)	(0x01 << (x))
 #define LONGBIT(x) ((unsigned long)0x00000001 << (x))
-
-#define EXPORT __attribute__((visibility("default")))
 
 typedef enum {
     LEFT_LOWER_FRONT, CENTER_LOWER_FRONT, RIGHT_LOWER_FRONT,

@@ -1127,10 +1127,9 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = Binaries/Debug;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1151,7 +1150,8 @@
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-fno-stack-protector";
-				SDKROOT = macosx10.7;
+				"OTHER_LDFLAGS[arch=x86_64]" = "-dead_strip";
+				SDKROOT = macosx10.8;
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
 				VERSION_FILE = Shared/version.plist;
@@ -1171,7 +1171,7 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CONFIGURATION_BUILD_DIR = Binaries/Release;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
@@ -1194,7 +1194,8 @@
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-fno-stack-protector";
-				SDKROOT = macosx10.7;
+				"OTHER_LDFLAGS[arch=x86_64]" = "-dead_strip";
+				SDKROOT = macosx10.8;
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
 				VERSION_FILE = Shared/version.plist;
@@ -1217,7 +1218,6 @@
 				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = FakeSMC;
@@ -1237,7 +1237,6 @@
 				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = FakeSMC;
@@ -1262,7 +1261,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = ACPISensors;
@@ -1283,7 +1281,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = ACPISensors;
@@ -1308,7 +1305,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = SuperIOSensors;
@@ -1329,7 +1325,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = SuperIOSensors;
@@ -1341,7 +1336,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 			};
 			name = Debug;
 		};
@@ -1349,7 +1343,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 			};
 			name = Release;
 		};
@@ -1370,7 +1363,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.CPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = CPUSensors;
@@ -1391,7 +1383,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.CPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = CPUSensors;
@@ -1430,7 +1421,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.GPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = GPUSensors;
@@ -1451,7 +1441,6 @@
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.GPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.7;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
 				TARGET_DIR = GPUSensors;

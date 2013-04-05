@@ -13,7 +13,7 @@
 
 #include "FakeSMCPlugin.h"
 
-class GmaSensors : public FakeSMCPlugin
+class EXPORT GmaSensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(GmaSensors) 
     
