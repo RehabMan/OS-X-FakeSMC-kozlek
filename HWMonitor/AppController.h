@@ -80,5 +80,6 @@
 - (IBAction)showVolumeNamesChanged:(id)sender;
 - (IBAction)toggleGraphSmoothing:(id)sender;
 - (IBAction)graphsBackgroundMonitorChanged:(id)sender;
+- (IBAction)graphsWindowTopmostChanged:(id)sender;
 
 @end
