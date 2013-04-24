@@ -8,7 +8,76 @@
 
 #import "ArrowlessScroller.h"
 
+#define HIGHLLIGHTED_OPACITY    0.85
+#define NORMAL_OPACITY          0.35
+
 @implementation ArrowlessScroller
+
+-(id)init
+{
+    self = [super init];
+    
+    if (self) {
+        [self setAlphaValue:NORMAL_OPACITY];
+    }
+    
+    return self;
+}
+
+- (id)initWithFrame:(NSRect)frame
+{
+    self = [super initWithFrame:frame];
+    
+    if (self) {
+        [self setAlphaValue:NORMAL_OPACITY];
+    }
+    
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    
+    if (self) {
+        [self setAlphaValue:NORMAL_OPACITY];
+    }
+    return self;
+}
+
+- (void) dealloc
+{
+    for (NSTrackingArea *area in [self trackingAreas]) {
+		[self removeTrackingArea:area];
+    }
+}
+
+- (void)mouseEntered:(NSEvent *)theEvent
+{
+	[super mouseEntered:theEvent];
+    [[self animator] setAlphaValue:HIGHLLIGHTED_OPACITY];
+	[self setNeedsDisplay];
+}
+
+- (void)mouseExited:(NSEvent *)theEvent
+{
+	[super mouseExited:theEvent];
+    [[self animator] setAlphaValue:NORMAL_OPACITY];
+    [self setNeedsDisplay];
+}
+
+-(void)updateTrackingAreas
+{
+    NSTrackingArea * trackingArea;
+	
+    for (NSTrackingArea *area in [self trackingAreas]) {
+		[self removeTrackingArea:area];
+    }
+	
+	trackingArea = [[NSTrackingArea alloc] initWithRect:[self bounds] options:NSTrackingMouseEnteredAndExited | NSTrackingActiveInKeyWindow | NSTrackingMouseMoved owner:self userInfo:nil];
+    
+	[self addTrackingArea:trackingArea];
+}
 
 - (void)drawKnob
 {
@@ -25,9 +94,9 @@
     
     NSBezierPath* thePath = [NSBezierPath bezierPath];
     
-    [thePath appendBezierPathWithRoundedRect:rect xRadius:4 yRadius:4];
+    [thePath appendBezierPathWithRoundedRect:rect xRadius:3 yRadius:3];
     
-    [[NSColor colorWithCalibratedWhite:0.5 alpha:0.5] setFill];    
+    [[NSColor colorWithCalibratedWhite:0.5 alpha:1.0] setFill];
     [thePath fill];
 }
 
