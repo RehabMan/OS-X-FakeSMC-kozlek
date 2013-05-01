@@ -38,16 +38,15 @@
 
 @implementation AppController
 
-#if 0 //REVIEW_rehabman: might eventually need this lock...
 - (id)init
 {
-    self = [super init];
-    if (self) {
-        _sensorsLock = [[NSLock alloc] init];
+    self = [super initWithWindowNibName:@"AppController" owner:self];
+    if (self != nil) {
+        //REVIEW_REHABMAN: might eventually need this lock
+        ////_sensorsLock = [[NSLock alloc] init];
     }
     return self;
 }
-#endif
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -130,6 +129,7 @@
         }
     }
     
+    [NSApp activateIgnoringOtherApps:YES];
     [super showWindow:sender];
 }
 
