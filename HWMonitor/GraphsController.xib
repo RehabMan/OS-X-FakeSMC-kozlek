@@ -52,7 +52,7 @@
 			<object class="NSWindowTemplate" id="296367886">
 				<int key="NSWindowStyleMask">8219</int>
 				<int key="NSWindowBacking">2</int>
-				<string key="NSWindowRect">{{1105, 301}, {600, 500}}</string>
+				<string key="NSWindowRect">{{180, 153}, {600, 500}}</string>
 				<int key="NSWTFlags">1685586944</int>
 				<string key="NSWindowTitle">History Graphs</string>
 				<string key="NSWindowClass">NSPanel</string>
@@ -363,11 +363,9 @@
 			</object>
 			<object class="NSCollectionViewItem" id="676651510"/>
 			<object class="NSCustomView" id="323302584">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">266</int>
 				<string key="NSFrameSize">{200, 150}</string>
-				<reference key="NSSuperview"/>
-				<reference key="NSNextKeyView"/>
 				<string key="NSReuseIdentifierKey">_NS:9</string>
 				<string key="NSClassName">NSView</string>
 			</object>
