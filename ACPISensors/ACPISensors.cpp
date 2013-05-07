@@ -47,9 +47,8 @@ bool ACPISensors::addSensorToList(OSDictionary *list, OSString *configKey, OSStr
             list->setObject(smcKey, acpiMethod);
             return true;
         }
+        HWSensorsWarningLog("failed to register sensor for key %s", configKey->getCStringNoCopy());
     }
-    
-    HWSensorsWarningLog("failed to register sensor for key %s", configKey->getCStringNoCopy());
     
     return false;
 }
@@ -81,12 +80,15 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, temps->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    for (int i = 0; i < FakeSMCTemperatureCount; i++) {
+                    int i = 0;
+                    for ( ; i < FakeSMCTemperatureCount; i++) {
                         if (addSensorToList(temperatures, key, method, FakeSMCTemperature[i].name, FakeSMCTemperature[i].key, FakeSMCTemperature[i].type, FakeSMCTemperature[i].size, kFakeSMCTemperatureSensor, count)) {
                             count++;
                             break;
                         }
-                        else HWSensorsErrorLog("Failed to register temperature sensor \"%s\" for method \"%s\"", key->getCStringNoCopy(), method->getCStringNoCopy());
+                    }
+                    if (i >= FakeSMCTemperatureCount) {
+                        HWSensorsErrorLog("Failed to register temperature sensor \"%s\" for method \"%s\"", key->getCStringNoCopy(), method->getCStringNoCopy());
                     }
                 }
             }
@@ -110,13 +112,15 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, volts->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    for (int i = 0; i < FakeSMCVoltageCount; i++) {
+                    int i = 0;
+                    for ( ; i < FakeSMCVoltageCount; i++) {
                         if (addSensorToList(voltages, key, method, FakeSMCVoltage[i].name, FakeSMCVoltage[i].key, FakeSMCVoltage[i].type, FakeSMCVoltage[i].size, kFakeSMCVoltageSensor, count)) {
                             count++;
                             break;
                         }
-                        else HWSensorsErrorLog("Failed to register voltage sensor \"%s\" for method \"%s\"", key->getCStringNoCopy(), method->getCStringNoCopy());
                     }
+                    if (i >= FakeSMCVoltageCount)
+                        HWSensorsErrorLog("Failed to register voltage sensor \"%s\" for method \"%s\"", key->getCStringNoCopy(), method->getCStringNoCopy());
                 }
             }
 
