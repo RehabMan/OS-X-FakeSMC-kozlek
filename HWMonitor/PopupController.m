@@ -295,11 +295,13 @@
     if (NSMaxX(panelRect) > (NSMaxX(screenRect) - ARROW_HEIGHT))
         panelRect.origin.x -= NSMaxX(panelRect) - (NSMaxX(screenRect) - ARROW_HEIGHT);
     
-    // Back to previous frame
-    [self.window setFrame:originalRect display:NO];
-    
     // Update arrow position
-    [self.popupView setArrowPosition:roundf(NSMidX(statusRect)) - NSMinX(panelRect)];
+    [self.popupView setArrowPosition:NSMidX(statusRect) - NSMinX(panelRect)];
+    
+    if (YES != NSEqualRects(originalRect, panelRect)) {
+        // Back to previous frame
+        [self.window setFrame:originalRect display:NO];
+    }
     
     // Order front if needed
     if (animated) {
@@ -361,7 +363,7 @@
                 [[cell valueField] setTextColor:valueColor];
             }
             
-            if ([item.sensor genericDevice] && [[item.sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]]) {
+            if ([item.sensor genericDevice] && [[item.sensor genericDevice] isKindOfClass:[GenericBatteryDevice class]]) {
                 [cell setGaugeLevel:[item.sensor intValue]];
             }
         }
@@ -396,7 +398,7 @@
         HWMonitorSensor *sensor = [item sensor];
         
         if ((_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) ||
-            ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]] && [[sensor genericDevice] productName])) {
+            ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[GenericBatteryDevice class]] && [[sensor genericDevice] productName])) {
             return 27;
         }
         else {
@@ -453,7 +455,7 @@
             [[cell subtitleField] setStringValue:[[sensor genericDevice] volumesNames]];
             [[cell subtitleField] setHidden:NO];
         }
-        else if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[BluetoothGenericDevice class]]) {
+        else if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[GenericBatteryDevice class]]) {
             if ([[sensor genericDevice] productName]) {
                 [[cell subtitleField] setStringValue:[[sensor genericDevice] productName]];
                 [[cell subtitleField] setHidden:NO];

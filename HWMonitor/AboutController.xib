@@ -52,7 +52,7 @@
 				<nil key="NSViewClass"/>
 				<nil key="NSUserInterfaceItemIdentifier"/>
 				<object class="NSView" key="NSWindowView" id="639894023">
-					<nil key="NSNextResponder"/>
+					<reference key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<array class="NSMutableArray" key="NSSubviews">
 						<object class="NSScrollView" id="941618259">
@@ -88,7 +88,7 @@
 														<int key="NSCellFlags2">33554432</int>
 														<object class="NSCustomResource" key="NSContents">
 															<string key="NSClassName">NSImage</string>
-															<string key="NSResourceName">heartbeat</string>
+															<string key="NSResourceName">hwmonitor_gray</string>
 														</object>
 														<string key="NSCellIdentifier">_NS:9</string>
 														<int key="NSAlign">0</int>
@@ -256,6 +256,7 @@
 							<int key="NSvFlags">268</int>
 							<string key="NSFrame">{{380, 9}, {110, 28}}</string>
 							<reference key="NSSuperview" ref="639894023"/>
+							<reference key="NSNextKeyView"/>
 							<string key="NSReuseIdentifierKey">_NS:9</string>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSButtonCell" key="NSCell" id="407194907">
@@ -280,6 +281,7 @@
 						</object>
 					</array>
 					<string key="NSFrameSize">{500, 286}</string>
+					<reference key="NSSuperview"/>
 					<reference key="NSNextKeyView" ref="941618259"/>
 					<string key="NSReuseIdentifierKey">_NS:20</string>
 				</object>
@@ -1024,7 +1026,7 @@
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 		<object class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
-			<string key="NS.key.0">heartbeat</string>
+			<string key="NS.key.0">hwmonitor_gray</string>
 			<string key="NS.object.0">{300, 300}</string>
 		</object>
 		<bool key="IBDocument.UseAutolayout">YES</bool>

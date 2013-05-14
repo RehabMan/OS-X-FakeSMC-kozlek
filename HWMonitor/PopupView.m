@@ -19,16 +19,16 @@
     if (_colorTheme != colorTheme) {
         _colorTheme = colorTheme;
         _cachedImage = nil;
-        [self setNeedsDisplay:YES];
+        //[self setNeedsDisplay:YES];
     }
 }
 
 - (void)setArrowPosition:(CGFloat)arrowPosition
 {
     if (_arrowPosition != arrowPosition) {
-        _arrowPosition = arrowPosition + LINE_THICKNESS / 2.0;
+        _arrowPosition = arrowPosition;
         _cachedImage = nil;
-        [self setNeedsDisplay:YES];
+        //[self setNeedsDisplay:YES];
     }
 }
 

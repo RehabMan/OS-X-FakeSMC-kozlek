@@ -11,9 +11,9 @@
 #include "FakeSMCPlugin.h"
 #include "radeon.h"
 
-class EXPORT RadeonMonitor : public FakeSMCPlugin
+class EXPORT RadeonSensors : public FakeSMCPlugin
 {
-    OSDeclareDefaultStructors(RadeonMonitor)    
+    OSDeclareDefaultStructors(RadeonSensors)    
 	
 private:
     radeon_device       card;
