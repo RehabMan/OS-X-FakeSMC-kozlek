@@ -26,7 +26,7 @@ To install:
 README.TXT from original repo
 ----------------------------------------------------------------------------
 
-Open source fake SMC device driver/emulator by netkas (http://netkas.org/) with 
+Open source SMC device driver/emulator (FakeSMC) by netkas (http://netkas.org/) with 
 hardware monitoring plugins.
 
 

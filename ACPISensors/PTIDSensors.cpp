@@ -289,7 +289,7 @@ bool PTIDSensors::start(IOService * provider)
         }
             
         default:
-            HWSensorsFatalLog("usupported interface version: 0x%x", (UInt32)version);
+            HWSensorsFatalLog("usupported interface version: 0x%x", (unsigned int)version);
             return false;
     }
     
