@@ -1,19 +1,28 @@
 DIST1=RehabMan-FakeSMC
 DIST2=RehabMan-SL-HWMonitor
 
+ifeq ($(findstring 32,$(BITS)),32)
+OPTIONS:=$(OPTIONS) -arch i386
+endif
+
+ifeq ($(findstring 64,$(BITS)),64)
+OPTIONS:=$(OPTIONS) -arch x86_64
+endif
+
+
 .PHONY: all
 all:
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Release
-	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Debug
-	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Release
+	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug
+	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme Drivers -configuration Release
+	xcodebuild build -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Debug
+	xcodebuild build -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Release
 
 .PHONY: clean
 clean:
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug clean
-	xcodebuild -workspace HWSensors.xcworkspace -scheme Drivers -configuration Release clean
-	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Debug clean
-	xcodebuild -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Release clean
+	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme Drivers -configuration Debug
+	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme Drivers -configuration Release
+	xcodebuild clean -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Debug
+	xcodebuild clean -workspace HWSensors.xcworkspace -scheme HWMonitor -configuration Release
 
 .PHONY: install
 install:
