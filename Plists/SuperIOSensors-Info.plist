@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.1.66</string>
+	<string>5.1.67</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -1768,6 +1768,8 @@
 						<key>VIN8</key>
 						<string>CMOS Battery</string>
 					</dict>
+					<key>P55-US3L</key>
+					<string>P55-UD4</string>
 					<key>P55-USB3</key>
 					<string>P55-UD4</string>
 					<key>P55M-UD4</key>
