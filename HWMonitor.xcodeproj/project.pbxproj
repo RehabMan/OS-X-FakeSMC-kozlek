@@ -495,7 +495,7 @@
 				7E0648F216DF3B8300ACB851 /* LaunchAtLoginController */,
 				7EF2A1041730532D00D8641C /* App Controller */,
 				7EF2A1031730519600D8641C /* Popup Panel */,
-				7EF2A1021730518A00D8641C /* History Graphs Window */,
+				7EF2A1021730518A00D8641C /* Graphs Window */,
 				7EF2A1011730517A00D8641C /* Update Dialog */,
 				7EF2A0FF17303C3600D8641C /* About Panel */,
 			);
@@ -626,14 +626,14 @@
 			name = "Update Dialog";
 			sourceTree = "<group>";
 		};
-		7EF2A1021730518A00D8641C /* History Graphs Window */ = {
+		7EF2A1021730518A00D8641C /* Graphs Window */ = {
 			isa = PBXGroup;
 			children = (
 				7EDA1ACF16DA83AF0012A0DC /* GraphsController.h */,
 				7EDA1AD016DA83AF0012A0DC /* GraphsController.m */,
 				7E2042001730844C00C13B65 /* GraphsController.xib */,
 			);
-			name = "History Graphs Window";
+			name = "Graphs Window";
 			sourceTree = "<group>";
 		};
 		7EF2A1031730519600D8641C /* Popup Panel */ = {
