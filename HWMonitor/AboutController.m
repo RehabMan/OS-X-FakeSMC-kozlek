@@ -47,7 +47,7 @@
 
 - (void)openGitHubLink:(id)sender
 {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/kozlek/HWSensors"]];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/RehabMan/OS-X-FakeSMC-kozlek"]];
 }
 
 @end
