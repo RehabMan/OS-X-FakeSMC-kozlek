@@ -9,3 +9,7 @@ xcuserdata
 Distribute
 DistributeSL
 smcutil
+
+*.pkgproj
+
+Binaries/HWSensors.pkgproj

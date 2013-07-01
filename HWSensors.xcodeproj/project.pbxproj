@@ -1148,6 +1148,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_PREFIX_HEADER = Shared/HWSensorsVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
+				INSTALL_GROUP = wheel;
+				INSTALL_MODE_FLAG = "a-w,u+w,a+rX";
+				INSTALL_OWNER = root;
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-fno-stack-protector";
@@ -1193,6 +1197,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_PREFIX_HEADER = Shared/HWSensorsVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
+				INSTALL_GROUP = wheel;
+				INSTALL_MODE_FLAG = "a-w,u+w,a+rX";
+				INSTALL_OWNER = root;
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-fno-stack-protector";
@@ -1218,6 +1226,7 @@
 				);
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_INSTALLED_PRODUCT = YES;
@@ -1237,6 +1246,7 @@
 				GCC_PREFIX_HEADER = "FakeSMC/FakeSMC-Prefix.pch";
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_INSTALLED_PRODUCT = YES;
