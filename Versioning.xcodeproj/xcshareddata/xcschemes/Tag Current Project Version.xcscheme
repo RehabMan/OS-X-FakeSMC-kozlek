@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7E9060E31708951800BF5BBF"
-               BuildableName = "smcutil"
-               BlueprintName = "smcutil"
-               ReferencedContainer = "container:HWMonitor.xcodeproj">
+               BlueprintIdentifier = "7EB7E71D17834E470071B3F0"
+               BuildableName = "Tag Current Project Version"
+               BlueprintName = "Tag Current Project Version"
+               ReferencedContainer = "container:Versioning.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       buildConfiguration = "Debug">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E9060E31708951800BF5BBF"
-            BuildableName = "smcutil"
-            BlueprintName = "smcutil"
-            ReferencedContainer = "container:HWMonitor.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </TestAction>
    <LaunchAction
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
@@ -48,15 +39,6 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E9060E31708951800BF5BBF"
-            BuildableName = "smcutil"
-            BlueprintName = "smcutil"
-            ReferencedContainer = "container:HWMonitor.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -66,15 +48,6 @@
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E9060E31708951800BF5BBF"
-            BuildableName = "smcutil"
-            BlueprintName = "smcutil"
-            ReferencedContainer = "container:HWMonitor.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -10,6 +10,8 @@
 #define EXPORT __attribute__((visibility("default")))
 #endif
 
+#include "version.h"
+
 #define HWSENSORS_LASTYEAR                  2013
 
 #define FAKESMC_BUNDLE                      org.netkas.driver.FakeSMC
