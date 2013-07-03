@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7EA8CA5D16EBB8FD00E71108"
-               BuildableName = "Bump App Version"
-               BlueprintName = "Bump App Version"
-               ReferencedContainer = "container:HWMonitor.xcodeproj">
+               BlueprintIdentifier = "7EB7E71117834ADE0071B3F0"
+               BuildableName = "Bump Minor Version"
+               BlueprintName = "Bump Minor Version"
+               ReferencedContainer = "container:Versioning.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

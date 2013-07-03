@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7EB7E71D17834E470071B3F0"
-               BuildableName = "Tag Current Project Version"
-               BlueprintName = "Tag Current Project Version"
+               BlueprintIdentifier = "7EDC5D1B1783F60400B0C7EC"
+               BuildableName = "Bump Major Version"
+               BlueprintName = "Bump Major Version"
                ReferencedContainer = "container:Versioning.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

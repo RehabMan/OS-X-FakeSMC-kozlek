@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
-		7EB7E71117834ADE0071B3F0 /* Bump Project Version */ = {
+		7EB7E71117834ADE0071B3F0 /* Bump Minor Version */ = {
 			isa = PBXAggregateTarget;
-			buildConfigurationList = 7EB7E71217834ADE0071B3F0 /* Build configuration list for PBXAggregateTarget "Bump Project Version" */;
+			buildConfigurationList = 7EB7E71217834ADE0071B3F0 /* Build configuration list for PBXAggregateTarget "Bump Minor Version" */;
 			buildPhases = (
 				7EB7E71517834AF30071B3F0 /* ShellScript */,
 			);
 			dependencies = (
 			);
-			name = "Bump Project Version";
+			name = "Bump Minor Version";
 			productName = "Bump HWSensors Version";
 		};
 		7EB7E71717834B610071B3F0 /* Pre-Build Script */ = {
@@ -29,20 +29,32 @@
 			name = "Pre-Build Script";
 			productName = "Pre-Build Script";
 		};
-		7EB7E71D17834E470071B3F0 /* Tag Current Project Version */ = {
+		7EB7E71D17834E470071B3F0 /* Tag Current Version */ = {
 			isa = PBXAggregateTarget;
-			buildConfigurationList = 7EB7E71E17834E470071B3F0 /* Build configuration list for PBXAggregateTarget "Tag Current Project Version" */;
+			buildConfigurationList = 7EB7E71E17834E470071B3F0 /* Build configuration list for PBXAggregateTarget "Tag Current Version" */;
 			buildPhases = (
 				7EB7E72117834E630071B3F0 /* ShellScript */,
 			);
 			dependencies = (
 			);
-			name = "Tag Current Project Version";
+			name = "Tag Current Version";
 			productName = "Tag Project Version";
+		};
+		7EDC5D1B1783F60400B0C7EC /* Bump Major Version */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 7EDC5D1C1783F60400B0C7EC /* Build configuration list for PBXAggregateTarget "Bump Major Version" */;
+			buildPhases = (
+				7EDC5D1F1783F60C00B0C7EC /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = "Bump Major Version";
+			productName = "Bump Major Version";
 		};
 /* End PBXAggregateTarget section */
 
 /* Begin PBXFileReference section */
+		7E2F25191783EAE800C86586 /* version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = version.h; path = Shared/version.h; sourceTree = "<group>"; };
 		7EB7E71C17834BF10071B3F0 /* version.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = version.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -50,6 +62,7 @@
 		7EB7E70917834A740071B3F0 = {
 			isa = PBXGroup;
 			children = (
+				7E2F25191783EAE800C86586 /* version.h */,
 				7EB7E71C17834BF10071B3F0 /* version.plist */,
 			);
 			sourceTree = "<group>";
@@ -74,8 +87,9 @@
 			projectRoot = "";
 			targets = (
 				7EB7E71717834B610071B3F0 /* Pre-Build Script */,
-				7EB7E71117834ADE0071B3F0 /* Bump Project Version */,
-				7EB7E71D17834E470071B3F0 /* Tag Current Project Version */,
+				7EDC5D1B1783F60400B0C7EC /* Bump Major Version */,
+				7EB7E71117834ADE0071B3F0 /* Bump Minor Version */,
+				7EB7E71D17834E470071B3F0 /* Tag Current Version */,
 			);
 		};
 /* End PBXProject section */
@@ -92,21 +106,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nexit 0\n\n# 2013 (c) sekati\n# https://gist.github.com/sekati/3172554\n# xcode-version-bump.sh\n# @desc Auto-increment the version number (only) when a project is archived for export.\n# @usage\n# 1. Select: your Target in Xcode\n# 2. Select: Build Phases Tab\n# 3. Select: Add Build Phase -> Add Run Script\n# 4. Paste code below in to new \"Run Script\" section\n# 5. Check the checkbox \"Run script only when installing\"\n# 6. Drag the \"Run Script\" below \"Link Binaries With Libraries\"\n# 7. Insure your starting version number is in SemVer format (e.g. 1.0.0)\n\n# This splits a two-decimal version string, such as \"0.45.123\", allowing us to increment the third position.\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print 'Project Version'\" \"${PROJECT_DIR}/version.plist\")\nNEWSUBVERSION=`echo $VERSIONNUM | awk -F \".\" '{print $3}'`\nNEWSUBVERSION=$(($NEWSUBVERSION + 1))\nNEWVERSIONSTRING=`echo $VERSIONNUM | awk -F \".\" '{print $1 \".\" $2 \".'$NEWSUBVERSION'\" }'`\n/usr/libexec/PlistBuddy -c \"Set :'Project Version' $NEWVERSIONSTRING\" \"${PROJECT_DIR}/version.plist\"";
+			shellScript = "#!/bin/sh\n\nexit 0\n# 2013 (c) sekati\n# https://gist.github.com/sekati/3172554\n# xcode-version-bump.sh\n# @desc Auto-increment the version number (only) when a project is archived for export.\n# @usage\n# 1. Select: your Target in Xcode\n# 2. Select: Build Phases Tab\n# 3. Select: Add Build Phase -> Add Run Script\n# 4. Paste code below in to new \"Run Script\" section\n# 5. Check the checkbox \"Run script only when installing\"\n# 6. Drag the \"Run Script\" below \"Link Binaries With Libraries\"\n# 7. Insure your starting version number is in SemVer format (e.g. 1.0.0)\n\n# This splits a two-decimal version string, such as \"0.45.123\", allowing us to increment the third position.\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print 'Project Version'\" \"${PROJECT_DIR}/version.plist\")\n#NEWSUBVERSION=`echo $VERSIONNUM | awk -F \".\" '{print $3}'`\nNEWSUBVERSION=`echo $VERSIONNUM | awk -F \".\" '{print $2}'`\nNEWSUBVERSION=$(($NEWSUBVERSION + 1))\n#NEWVERSIONSTRING=`echo $VERSIONNUM | awk -F \".\" '{print $1 \".\" $2 \".'$NEWSUBVERSION'\" }'`\nNEWVERSIONSTRING=`echo $VERSIONNUM | awk -F \".\" '{print $1 \".'$NEWSUBVERSION'\" }'`\n/usr/libexec/PlistBuddy -c \"Set :'Project Version' $NEWVERSIONSTRING\" \"${PROJECT_DIR}/version.plist\"\n\nPROJECTNAME=$(/usr/libexec/PlistBuddy -c \"Print 'Project Name'\" \"${PROJECT_DIR}/version.plist\")\ncd ${PROJECT_DIR}\ngit tag -a ${NEWVERSIONSTRING} -m '${PROJECTNAME} v${NEWVERSIONSTRING}'\ngit push --tags";
 			showEnvVarsInLog = 0;
 		};
 		7EB7E71B17834B660071B3F0 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
+			buildActionMask = 12;
 			files = (
 			);
 			inputPaths = (
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nexit 0\n\nalias cd_to_project=\"cd ${PROJECT_DIR}\"\nversion=`git describe`\necho \"#define GIT_VERSION $version\" > ${PROJECT_DIR}/Shared/version.h";
+			shellScript = "#!/bin/sh\n\nversion_file=\"${PROJECT_DIR}/Shared/version.h\"\nproject_name=$(/usr/libexec/PlistBuddy -c \"Print 'Project Name'\" \"${PROJECT_DIR}/version.plist\")\nuppercased_name=$(echo $project_name | tr [[:lower:]] [[:upper:]])\nproject_version=$(/usr/libexec/PlistBuddy -c \"Print 'Project Version'\" \"${PROJECT_DIR}/version.plist\")\n\ncd ${PROJECT_DIR}\n\ngit_revision=$(git rev-list --count HEAD)\ngit_postfix=$(git describe)\n\necho \"\" > ${version_file}\necho \"#define ${uppercased_name}_REVISION ${git_revision}\" >> ${version_file}\necho \"\" >> ${version_file}\necho \"#define ${uppercased_name}_VERSION ${project_version}.${git_revision}\" >> ${version_file}\necho \"\" >> ${version_file}";
 			showEnvVarsInLog = 0;
 		};
 		7EB7E72117834E630071B3F0 /* ShellScript */ = {
@@ -120,7 +134,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nexit 0\n\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print 'Project Version'\" \"${PROJECT_DIR}/version.plist\")\n\ncd ${PROJECT_DIR}\ngit tag -a ${VERSIONNUM} -m 'HWSensors v${VERSIONNUM}'";
+			shellScript = "#!/bin/sh\n\nexit 0\nproject_name=$(/usr/libexec/PlistBuddy -c \"Print 'Project Name'\" \"${PROJECT_DIR}/version.plist\")\nproject_version=$(/usr/libexec/PlistBuddy -c \"Print 'Project Version'\" \"${PROJECT_DIR}/version.plist\")\n\ncd ${PROJECT_DIR}\n\ngit_revision=$(git rev-list --count HEAD)\nfull_version=${project_version}'.'${git_revision}\ngit tag -a ${full_version} -m '${project_name} v${full_version}'\ngit push --tags";
+			showEnvVarsInLog = 0;
+		};
+		7EDC5D1F1783F60C00B0C7EC /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\n\nexit 0\n# 2013 (c) sekati\n# https://gist.github.com/sekati/3172554\n# xcode-version-bump.sh\n# @desc Auto-increment the version number (only) when a project is archived for export.\n# @usage\n# 1. Select: your Target in Xcode\n# 2. Select: Build Phases Tab\n# 3. Select: Add Build Phase -> Add Run Script\n# 4. Paste code below in to new \"Run Script\" section\n# 5. Check the checkbox \"Run script only when installing\"\n# 6. Drag the \"Run Script\" below \"Link Binaries With Libraries\"\n# 7. Insure your starting version number is in SemVer format (e.g. 1.0.0)\n\n# This splits a two-decimal version string, such as \"0.45.123\", allowing us to increment the third position.\nVERSIONNUM=$(/usr/libexec/PlistBuddy -c \"Print 'Project Version'\" \"${PROJECT_DIR}/version.plist\")\n#NEWSUBVERSION=`echo $VERSIONNUM | awk -F \".\" '{print $3}'`\nNEWSUBVERSION=`echo $VERSIONNUM | awk -F \".\" '{print $1}'`\nNEWSUBVERSION=$(($NEWSUBVERSION + 1))\n#NEWVERSIONSTRING=`echo $VERSIONNUM | awk -F \".\" '{print $1 \".\" $2 \".'$NEWSUBVERSION'\" }'`\nNEWVERSIONSTRING=`echo $VERSIONNUM | awk -F \".\" '{print '$NEWSUBVERSION' \".\" $2}'`\n/usr/libexec/PlistBuddy -c \"Set :'Project Version' $NEWVERSIONSTRING\" \"${PROJECT_DIR}/version.plist\"\n\nPROJECTNAME=$(/usr/libexec/PlistBuddy -c \"Print 'Project Name'\" \"${PROJECT_DIR}/version.plist\")\ncd ${PROJECT_DIR}\ngit tag -a ${NEWVERSIONSTRING} -m '${PROJECTNAME} v${NEWVERSIONSTRING}'\ngit push --tags";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -169,11 +197,29 @@
 		7EB7E71F17834E470071B3F0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
 			};
 			name = Debug;
 		};
 		7EB7E72017834E470071B3F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.7;
+			};
+			name = Release;
+		};
+		7EDC5D1D1783F60400B0C7EC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7EDC5D1E1783F60400B0C7EC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -192,7 +238,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7EB7E71217834ADE0071B3F0 /* Build configuration list for PBXAggregateTarget "Bump Project Version" */ = {
+		7EB7E71217834ADE0071B3F0 /* Build configuration list for PBXAggregateTarget "Bump Minor Version" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7EB7E71317834ADE0071B3F0 /* Debug */,
@@ -210,11 +256,20 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7EB7E71E17834E470071B3F0 /* Build configuration list for PBXAggregateTarget "Tag Current Project Version" */ = {
+		7EB7E71E17834E470071B3F0 /* Build configuration list for PBXAggregateTarget "Tag Current Version" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7EB7E71F17834E470071B3F0 /* Debug */,
 				7EB7E72017834E470071B3F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7EDC5D1C1783F60400B0C7EC /* Build configuration list for PBXAggregateTarget "Bump Major Version" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7EDC5D1D1783F60400B0C7EC /* Debug */,
+				7EDC5D1E1783F60400B0C7EC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

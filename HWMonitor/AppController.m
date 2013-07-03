@@ -40,8 +40,9 @@
 
 - (id)init
 {
-    self = [super initWithWindowNibName:@"AppController" owner:self];
-    if (self != nil) {
+    self = [super initWithWindowNibName:@"AppController"];
+    if (self != nil)
+    {
         //REVIEW_REHABMAN: might eventually need this lock
         ////_sensorsLock = [[NSLock alloc] init];
     }

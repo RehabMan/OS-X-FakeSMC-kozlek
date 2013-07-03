@@ -17,15 +17,17 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.1.71</string>
+	<string>HWSENSORS_VERSION</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>433</string>
+	<string>HWSENSORS_REVISION</string>
 	<key>IOKitPersonalities</key>
 	<dict>
 		<key>AMD Radeon Monitoring Plugin</key>
 		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>GPUSENSORS_BUNDLE</string>
 			<key>IOClass</key>
 			<string>RadeonSensors</string>
 			<key>IOMatchCategory</key>
@@ -39,6 +41,8 @@
 		</dict>
 		<key>Intel GMA X3100 Monitoring Plugin</key>
 		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>GPUSENSORS_BUNDLE</string>
 			<key>IOClass</key>
 			<string>GmaSensors</string>
 			<key>IOMatchCategory</key>
@@ -52,6 +56,8 @@
 		</dict>
 		<key>nVidia GeForce Monitoring Plugin</key>
 		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>GPUSENSORS_BUNDLE</string>
 			<key>IOClass</key>
 			<string>GeforceSensors</string>
 			<key>IOMatchCategory</key>
