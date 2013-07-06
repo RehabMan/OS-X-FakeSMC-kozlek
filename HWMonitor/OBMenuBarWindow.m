@@ -282,52 +282,15 @@ const CGFloat OBMenuBarWindowArrowWidth = 20.0;
 
 #pragma mark - Menu bar icon
 
-//- (void)setHasMenuBarIcon:(BOOL)flag
-//{
-//    if (hasMenuBarIcon != flag)
-//    {
-//        hasMenuBarIcon = flag;
-//        if (flag)
-//        {
-//            // Create the status item
-//            statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-//            CGFloat thickness = [[NSStatusBar systemStatusBar] thickness];
-//            statusItemView = [[OBMenuBarWindowIconView alloc] initWithFrame:NSMakeRect(0, 0, (self.menuBarIcon ? self.menuBarIcon.size.width : thickness) + 6, thickness)];
-//            statusItemView.menuBarWindow = self;
-//            statusItem.view = statusItemView;
-//            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(statusItemViewDidMove:) name:NSWindowDidMoveNotification object:statusItem.view.window];
-//        }
-//        else
-//        {
-//            if (statusItemView)
-//            {
-//                [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidMoveNotification object:statusItemView];
-//            }
-//            statusItemView = nil;
-//            statusItem = nil;
-//            self.attachedToMenuBar = NO;
-//        }
-//    }
-//}
+- (void)attachToMenuBar:(id)sender
+{
+    [self setAttachedToMenuBar:YES];
+}
 
-//- (void)setMenuBarIcon:(NSImage *)image
-//{
-//    menuBarIcon = image;
-//    if (statusItemView)
-//    {
-//        [statusItemView setFrameSize:NSMakeSize(image.size.width + 6, statusItemView.frame.size.height)];
-//        [statusItemView setNeedsDisplay:YES];
-//    }
-//}
-//
-//- (void)setHighlightedMenuBarIcon:(NSImage *)image
-//{
-//    highlightedMenuBarIcon = image;
-//    if (statusItemView)
-//    {
-//        [statusItemView setNeedsDisplay:YES];
-//    }
-//}
+- (void)detachFromMenuBar:(id)sender
+{
+    [self setAttachedToMenuBar:NO];
+}
 
 - (void)setAttachedToMenuBar:(BOOL)isAttached
 {
@@ -904,14 +867,16 @@ const CGFloat OBMenuBarWindowArrowWidth = 20.0;
     
     // Draw the title bar highlight
     NSBezierPath *highlightPath = [NSBezierPath bezierPath];
-    [highlightPath moveToPoint:topLeft];
-    if (isAttached)
-    {
-        [highlightPath lineToPoint:arrowPointLeft];
-        [highlightPath lineToPoint:arrowPointMiddle];
-        [highlightPath lineToPoint:arrowPointRight];
-    }
-    [highlightPath lineToPoint:topRight];
+    [highlightPath moveToPoint:arrowPointMiddle];
+    [highlightPath lineToPoint:arrowPointLeft];
+    [highlightPath appendBezierPathWithArcFromPoint:NSMakePoint(topLeft.x + 1.5, topLeft.y)
+                                            toPoint:NSMakePoint(bottomLeft.x, topLeft.y - cornerRadius)
+                                             radius:cornerRadius];
+    [highlightPath moveToPoint:arrowPointMiddle];
+    [highlightPath lineToPoint:arrowPointRight];
+    [highlightPath appendBezierPathWithArcFromPoint:NSMakePoint(topRight.x - 1.5, topRight.y)
+                                            toPoint:NSMakePoint(bottomRight.x, topRight.y - cornerRadius)
+                                             radius:cornerRadius];
     //[window.colorTheme.listStrokeColor set];
     if (window.colorTheme) {
         [[window.colorTheme.toolbarShadowColor highlightWithLevel:0.5] set];
