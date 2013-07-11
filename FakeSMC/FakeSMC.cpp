@@ -78,9 +78,8 @@ bool FakeSMC::start(IOService *provider)
         smcDevice->registerService();
 
         // Loading keys from NVRAM
-        OSDictionary *matching = serviceMatching("IODTNVRAM");
         
-        if (IORegistryEntry* nvram = waitForMatchingService(matching)) {
+        if (IORegistryEntry* nvram = IORegistryEntry::fromPath("IODeviceTree:/chosen/nvram")) {
             if (OSData *keys = OSDynamicCast(OSData, nvram->getProperty(kFakeSMCPropertyKeys))) {
                 if (keys->getLength()) {
                     int count = 0;
@@ -102,9 +101,8 @@ bool FakeSMC::start(IOService *provider)
                     HWSensorsInfoLog("%d key%s added from NVRAM", count, count == 1 ? "" : "s");
                 }
             }
+            nvram->release();
         }
-        
-        OSSafeRelease(matching);
 	}
     else {
         HWSensorsInfoLog("failed to initialize SMC device");
