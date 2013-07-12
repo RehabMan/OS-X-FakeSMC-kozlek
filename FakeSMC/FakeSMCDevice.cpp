@@ -154,7 +154,9 @@ void FakeSMCDevice::applesmc_io_data_writeb(void *opaque, uint32_t addr, uint32_
                     FakeSMCDebugLog("system writing key %s, length %d", name, s->data_len);
                     
 					if (FakeSMCKey* key = addKeyWithValue(name, type ? type->getCStringNoCopy() : 0, s->data_len, s->value)) {
+#if NVRAMKEYS
                         saveKeyToNVRAM(key);
+#endif
                     }
                     
 					bzero(s->value, 255);
@@ -251,6 +253,7 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
     return ((struct AppleSMCStatus*)opaque)->status;
 }
 
+#if NVRAMKEYS
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
 {
     nvramKeys->setObject(key->getKey(), key);
@@ -272,6 +275,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
                 OSSafeRelease(iterator);
             }
             
+            //REVIEW: one of these causes issue on wake from sleep...
             ((IORegistryEntry*)nvram)->setProperty(kFakeSMCPropertyKeys, data);
             nvram->sync();
             //nvram->setProperty(kIONVRAMSyncNowPropertyKey, kFakeSMCPropertyKeys);
@@ -281,6 +285,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
         }
     }
 }
+#endif //NVRAMKEYS
 
 UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
 
@@ -649,7 +654,9 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
     // Init SMC device
     
     exposedValues = OSDictionary::withCapacity(16);
+#if NVRAMKEYS
     nvramKeys = OSDictionary::withCapacity(16);
+#endif
     
 	this->setName("SMC");
     

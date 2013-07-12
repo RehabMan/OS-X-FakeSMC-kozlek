@@ -27,6 +27,9 @@
 #define APPLESMC_GET_KEY_BY_INDEX_CMD	0x12
 #define APPLESMC_GET_KEY_TYPE_CMD		0x13
 
+//REVIEW: temporarily to disable NVRAM key writing/loading
+#define NVRAMKEYS 0
+
 struct AppleSMCStatus {
 	uint8_t cmd;
 	uint8_t status;
@@ -58,7 +61,9 @@ private:
 	OSArray             *keys;
     OSDictionary        *types;
     OSDictionary        *exposedValues;
+#if NVRAMKEYS
     OSDictionary        *nvramKeys;
+#endif
     
    	FakeSMCKey			*keyCounterKey;
     FakeSMCKey          *fanCounterKey;
@@ -88,9 +93,9 @@ public:
 	
 	virtual void		updateKeyCounterKey(void);
     virtual void		updateFanCounterKey(void);
-    
+#if NVRAMKEYS
     void                saveKeyToNVRAM(FakeSMCKey *key, bool sync = true);
-    
+#endif
     virtual void		ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );
     virtual void		ioWrite16( UInt16 offset, UInt16 value, IOMemoryMap * map = 0 );
     virtual void		ioWrite8(  UInt16 offset, UInt8 value, IOMemoryMap * map = 0 );

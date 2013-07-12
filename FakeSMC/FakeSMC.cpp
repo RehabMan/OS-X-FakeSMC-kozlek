@@ -94,7 +94,7 @@ bool FakeSMC::start(IOService *provider)
     }
 
 	registerService();
-    
+#if NVRAMKEYS
     // Chameleon/Chimera exporting NVRAM to IODeviceTree:/chosen/nvram
     IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     
@@ -139,7 +139,7 @@ bool FakeSMC::start(IOService *provider)
         
         OSSafeRelease(nvram);
     }
-		
+#endif //NVRAMKEYS
 	return true;
 }
 
