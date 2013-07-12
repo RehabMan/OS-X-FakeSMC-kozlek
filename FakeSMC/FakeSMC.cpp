@@ -1,4 +1,4 @@
-
+#include "version.h"
 
 #include "FakeSMC.h"
 #include "FakeSMCDefinitions.h"
@@ -6,7 +6,6 @@
 #include "OEMInfo.h"
 
 #include <IOKit/IODeviceTreeSupport.h>
-#include <IOKit/IONVRAM.h>
 
 #define super IOService
 OSDefineMetaClassAndStructors (FakeSMC, IOService)
@@ -16,7 +15,7 @@ bool FakeSMC::init(OSDictionary *dictionary)
 	if (!super::init(dictionary))
 		return false;
     
-    IOLog("HWSensors Project Copyright %d netkas, slice, usr-sse2, kozlek, navi, THe KiNG, RehabMan. All rights reserved.\n",HWSENSORS_LASTYEAR);
+    IOLog("HWSensors v%s Copyright %d netkas, slice, usr-sse2, kozlek, navi, THe KiNG, RehabMan. All rights reserved.\n", HWSENSORS_VERSION_STRING, HWSENSORS_LASTYEAR);
     
     //HWSensorsInfoLog("Opensource SMC device emulator. Copyright 2009 netkas. All rights reserved.");
     
@@ -93,16 +92,18 @@ bool FakeSMC::start(IOService *provider)
     // Load keys from NVRAM
     IORegistryEntry* nvram = NULL;
     
-    if (vendor && vendor->getLength() == 14 && 0 == memcmp(vendor->getBytesNoCopy(), "C\0L\0O\0V\0E\0R\0\0\0", 14) ) {
-        // System booted with Clover
-        if (OSDictionary *matching = serviceMatching("IODTNVRAM")) {
-            nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching));
-            OSSafeRelease(matching);
+    if (vendor) {
+        if (vendor->getLength() == 14 && 0 == memcmp(vendor->getBytesNoCopy(), "C\0L\0O\0V\0E\0R\0\0\0", 14) ) {
+            // System booted with Clover
+            if (OSDictionary *matching = serviceMatching("IODTNVRAM")) {
+                nvram = OSDynamicCast(IORegistryEntry, waitForMatchingService(matching));
+                OSSafeRelease(matching);
+            }
         }
-    }
-    else {
-        // System booted with other non-Apple bootloader
-        nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+        else /*if (vendor->getLength() >= 18 && 0 == memcmp(vendor->getBytesNoCopy(), "C\0h\0a\0m\0e\0l\0e\0o\0n\0", 18))*/ {
+            // System booted with chameleon bootloader
+            nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+        }
     }
     
     if (nvram) {
@@ -117,7 +118,9 @@ bool FakeSMC::start(IOService *provider)
                 unsigned char size = 0; memcpy(&size, keys->getBytesNoCopy(offset, 1), 1); offset++;
                 const void *value = keys->getBytesNoCopy(offset, size); offset += size;
                 
-                if (smcDevice->addKeyWithValue(name, type, size, value)) {
+                if (FakeSMCKey *key = smcDevice->addKeyWithValue(name, type, size, value)) {
+                    // Add key to NVRAM keys list
+                    smcDevice->saveKeyToNVRAM(key, false);
                     HWSensorsDebugLog("key %s loaded from NVRAM", name);
                     count++;
                 }
