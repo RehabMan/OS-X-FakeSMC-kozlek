@@ -63,6 +63,7 @@ private:
     OSDictionary        *exposedValues;
 #if NVRAMKEYS
     OSDictionary        *nvramKeys;
+    bool                doSyncNVRAM;
 #endif
     
    	FakeSMCKey			*keyCounterKey;

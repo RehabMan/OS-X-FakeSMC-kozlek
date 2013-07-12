@@ -14,7 +14,6 @@
 
 #include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOKitKeys.h>
-#include <IOKit/IONVRAM.h>
 
 #ifdef DEBUG
 #define FakeSMCTraceLog(string, args...) do { if (trace) { IOLog ("%s: [Trace] " string "\n",getName() , ## args); } } while(0)
@@ -145,21 +144,18 @@ void FakeSMCDevice::applesmc_io_data_writeb(void *opaque, uint32_t addr, uint32_
 				s->status = 0x05;
 				if(s->data_pos == s->data_len) {
 					s->status = 0x00;
-					char name[5];
                     
-					snprintf(name, 5, "%c%c%c%c", s->key[0], s->key[1], s->key[2], s->key[3]);
-                    
-                    OSString *type = OSDynamicCast(OSString, types->getObject(name));
+                    // Add or update key
+                    char name[5]; name[4] = 0; memcpy(name, s->key, 4);
                     
                     FakeSMCDebugLog("system writing key %s, length %d", name, s->data_len);
                     
-					if (FakeSMCKey* key = addKeyWithValue(name, type ? type->getCStringNoCopy() : 0, s->data_len, s->value)) {
+                    FakeSMCKey* key = addKeyWithValue(name, 0, s->data_len, s->value);
+
+                    bzero(s->value, sizeof(s->value));
 #if NVRAMKEYS
-                        saveKeyToNVRAM(key);
+                    if (key) saveKeyToNVRAM(key);
 #endif
-                    }
-                    
-					bzero(s->value, 255);
 				}
 			};
 			s->read_pos++;
@@ -259,7 +255,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
     nvramKeys->setObject(key->getKey(), key);
     
     if (sync) {
-        if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
+        if (IORegistryEntry *options = OSDynamicCast(IORegistryEntry, fromPath("/options", gIODTPlane))) {
             
             OSData *data = OSData::withCapacity(512);
             
@@ -276,12 +272,11 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
             }
             
             //REVIEW: one of these causes issue on wake from sleep...
-            ((IORegistryEntry*)nvram)->setProperty(kFakeSMCPropertyKeys, data);
-            nvram->sync();
-            //nvram->setProperty(kIONVRAMSyncNowPropertyKey, kFakeSMCPropertyKeys);
+            options->setProperty(kFakeSMCPropertyKeys, data);
+            if (doSyncNVRAM) options->setProperty(kIONVRAMSyncNowPropertyKey, kFakeSMCPropertyKeys);
             
             OSSafeRelease(data);
-            OSSafeRelease(nvram);
+            OSSafeRelease(options);
         }
     }
 }
@@ -320,7 +315,11 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
 	if ((key = getKey(name))) {
         
         if (value) {
-            key->setType(type);
+            if (type == 0) {
+                OSString *wellKnownType = OSDynamicCast(OSString, types->getObject(name));
+                key->setType(wellKnownType ? wellKnownType->getCStringNoCopy() : 0);
+            }
+            else key->setType(type);
             key->setSize(size);
             key->setValueFromBuffer(value, size);
         }
@@ -559,6 +558,12 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 {
 	if (!super::init(platform, 0, 0))
 		return false;
+
+#if NVRAMKEYS
+    IORegistryEntry *nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+    doSyncNVRAM = nvram == 0; // Sync NVRAM if bootloader is not Chameleon/Chimera
+    OSSafeRelease(nvram);
+#endif
     
     device_lock = IORecursiveLockAlloc();
     if (!device_lock)
