@@ -93,8 +93,6 @@ bool FakeSMC::start(IOService *provider)
 		return false;
     }
 
-    //REVIEW: registerService for smcDevice already called in FakeSMCDevice::init (above...)
-    ////smcDevice->registerService();
 	registerService();
     
     // Chameleon/Chimera exporting NVRAM to IODeviceTree:/chosen/nvram
@@ -115,10 +113,8 @@ bool FakeSMC::start(IOService *provider)
             
             int count = 0;
             unsigned int offset = 0;
-            
             const unsigned char* data = static_cast<const unsigned char*>(keys->getBytesNoCopy());
-            unsigned int length = keys->getLength();
-            
+            const unsigned int length = keys->getLength();
             char name[5]; name[4] = 0;
             char type[5]; type[4] = 0;
             
