@@ -91,7 +91,7 @@ bool FakeSMC::start(IOService *provider)
 	registerService();
     
     // Load keys from NVRAM
-    IODTNVRAM* nvram = NULL;
+    IORegistryEntry* nvram = NULL;
     
     if (vendor && vendor->getLength() == 14 && 0 == memcmp(vendor->getBytesNoCopy(), "C\0L\0O\0V\0E\0R\0\0\0", 14) ) {
         // System booted with Clover
@@ -102,7 +102,7 @@ bool FakeSMC::start(IOService *provider)
     }
     else {
         // System booted with other non-Apple bootloader
-        nvram = OSDynamicCast(IODTNVRAM, IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane));
+        nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     }
     
     if (nvram) {
