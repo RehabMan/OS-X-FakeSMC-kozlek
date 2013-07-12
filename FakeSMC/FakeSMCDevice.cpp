@@ -257,7 +257,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
     
     if (sync) {
         if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
-            OSData *data = OSData::withCapacity(0);
+            OSData *data = OSData::withCapacity(512);
             
             if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(nvramKeys)) {
                 
