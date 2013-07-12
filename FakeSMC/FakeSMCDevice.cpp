@@ -16,8 +16,13 @@
 #include <IOKit/IOKitKeys.h>
 #include <IOKit/IONVRAM.h>
 
+#ifdef DEBUG
 #define FakeSMCTraceLog(string, args...) do { if (trace) { IOLog ("%s: [Trace] " string "\n",getName() , ## args); } } while(0)
 #define FakeSMCDebugLog(string, args...) do { if (debug) { IOLog ("%s: [Debug] " string "\n",getName() , ## args); } } while(0)
+#else
+#define FakeSMCTraceLog(string, args...) do { } while(0)
+#define FakeSMCDebugLog(string, args...) do { } while(0)
+#endif
 
 #define FakeSMCSetProperty(key, value)	do { if (!this->setProperty(key, value)) {HWSensorsErrorLog("failed to set '%s' property", key); return false; } } while(0)
 
@@ -315,7 +320,8 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
             key->setSize(size);
             key->setValueFromBuffer(value, size);
         }
-        
+
+#ifdef DEBUG
         if (debug) {
             if (strncmp("NATJ", key->getKey(), 5) == 0) {
                 UInt8 val = *(UInt8*)key->getValue();
@@ -365,6 +371,7 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
         }
         
 		FakeSMCDebugLog("value updated for key %s, type: %s, size: %d", name, type, size);
+#endif
 	}
     else {
         
@@ -658,7 +665,8 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
         HWSensorsErrorLog("failed to set '_STA' property");
         return false;
     }
-    
+
+#ifdef DEBUG
 	if (OSBoolean *debugKey = OSDynamicCast(OSBoolean, properties->getObject("debug")))
 		debug = debugKey->getValue();
     else
@@ -668,6 +676,7 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 		trace = traceKey->getValue();
     else
         trace = false;
+#endif
     
 	IODeviceMemory::InitElement	rangeList[1];
     

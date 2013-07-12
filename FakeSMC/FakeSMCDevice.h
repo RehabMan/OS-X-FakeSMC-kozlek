@@ -62,9 +62,11 @@ private:
     
    	FakeSMCKey			*keyCounterKey;
     FakeSMCKey          *fanCounterKey;
-	
+
+#ifdef DEBUG
     bool				trace;
 	bool				debug;
+#endif
     
     UInt16              vacantGPUIndex;
     UInt16              vacantFanIndex;

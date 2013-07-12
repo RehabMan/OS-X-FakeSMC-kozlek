@@ -134,12 +134,19 @@ typedef SInt16 s16;
 typedef SInt32 s32;
 typedef SInt64 s64;
 
+#ifdef DEBUG
 #define pr_err(format, args...) do {IOLog("pr_err: " format, ##args);} while (0)
 #define pr_debug(format, args...) do {IOLog("pr_debug: " format, ##args);} while (0)
 #define dev_err(dev, format, args...) do {IOLog("dev_err: " format, ##args);} while (0)
 #define dev_warn(dev, format, args...) do {IOLog("dev_warn: " format, ##args);} while (0)
 #define pr_info(format, args...) do {IOLog("pr_info: " format, ##args);} while (0)
-
+#else
+#define pr_err(format, args...) do { } while (0)
+#define pr_debug(format, args...) do { } while (0)
+#define dev_err(dev, format, args...) do { } while (0)
+#define dev_warn(dev, format, args...) do { } while (0)
+#define pr_info(format, args...) do { } while (0)
+#endif
 #define printk(format, args...) do {IOLog("printk: " format, ##args);} while (0)
 
 /* REP NOP (PAUSE) is a good thing to insert into busy-wait loops. */

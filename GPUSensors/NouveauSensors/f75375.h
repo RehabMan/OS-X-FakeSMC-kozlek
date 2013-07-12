@@ -4,15 +4,21 @@
 //#include "nvclock.h"
 #include "nvclock_i2c.h"
 
+#ifdef DEBUG
 int debug;
+#endif
+
 typedef struct _fan_vtemp
 {
 	int temp[4];
 	int speed[5];
 } fan_vtemp;
 
-
-#define dbg_printf(x) if (debug==1) IOLog(x)
+#ifdef DEBUG
+#define dbg_printf(x) do { if (debug==1) IOLog(x); } while (0)
+#else
+#define dbg_printf(x) do { } while (0)
+#endif
 
 #define MODE_SPEED			0x00
 #define MODE_TEMP			0x10
