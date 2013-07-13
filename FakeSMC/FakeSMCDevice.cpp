@@ -571,6 +571,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     exposedValues = OSDictionary::withCapacity(16);
     
 #if NVRAMKEYS
+    nvramKeys = 0;
     // Allows store keys in NVRAM only if booted with Clover
     OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
     if (vendor && vendor->isEqualTo("CLOVER")) {

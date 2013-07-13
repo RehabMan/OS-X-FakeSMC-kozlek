@@ -115,12 +115,9 @@ bool FakeSMC::start(IOService *provider)
 	registerService();
 
 #if NVRAMKEYS
-    IORegistryEntry* chosen_nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
-    bool isChameleon = chosen_nvram != NULL;
-    OSSafeRelease(chosen_nvram);
-    
     // Find driver and load keys from NVRAM
-    if (!isChameleon && OSDictionary *matching = serviceMatching("IODTNVRAM")) {
+    OSDictionary *matching = 0;
+    if (smcDevice->nvramKeys && (matching = serviceMatching("IODTNVRAM"))) {
         if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10))) {
             
             OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
