@@ -250,36 +250,57 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
 }
 
 #if NVRAMKEYS
+
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
 {
+    IORecursiveLockLock(device_lock);
+    
     nvramKeys->setObject(key->getKey(), key);
     
     if (sync) {
-        if (IORegistryEntry *options = OSDynamicCast(IORegistryEntry, fromPath("/options", gIODTPlane))) {
-            
-            OSData *data = OSData::withCapacity(512);
-            
-            if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(nvramKeys)) {
-                while (OSString *nextKeyName = OSDynamicCast(OSString, iterator->getNextObject())) {
-                    FakeSMCKey *nextKey = OSDynamicCast(FakeSMCKey, nvramKeys->getObject(nextKeyName));
-                    data->appendBytes(nextKey->getKey(), 4);
-                    data->appendBytes(nextKey->getType(), 4);
-                    data->appendByte(nextKey->getSize(), 1);
-                    data->appendBytes(nextKey->getValue(), nextKey->getSize());
-                }
-                
-                OSSafeRelease(iterator);
+#if NVRAMKEYS_INTERRUPTSYNC
+        // trigger schedule to FakeSMCDevice::interruptOccurred on workloop thread...
+        _interruptSource->interruptOccurred(0, 0, 0);
+#else
+        // do sync right away...
+        syncKeysToNVRAM();
+#endif
+    }
+    
+    IORecursiveLockUnlock(device_lock);
+}
+
+void FakeSMCDevice::syncKeysToNVRAM()
+{
+    IORecursiveLockLock(device_lock);
+    
+    if (IORegistryEntry *options = OSDynamicCast(IORegistryEntry, fromPath("/options", gIODTPlane))) {
+        
+        OSData *data = OSData::withCapacity(512);
+        
+        if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(nvramKeys)) {
+            while (OSString *nextKeyName = OSDynamicCast(OSString, iterator->getNextObject())) {
+                FakeSMCKey *nextKey = OSDynamicCast(FakeSMCKey, nvramKeys->getObject(nextKeyName));
+                data->appendBytes(nextKey->getKey(), 4);
+                data->appendBytes(nextKey->getType(), 4);
+                data->appendByte(nextKey->getSize(), 1);
+                data->appendBytes(nextKey->getValue(), nextKey->getSize());
             }
             
-            //REVIEW: one of these causes issue on wake from sleep...
-            options->setProperty(kFakeSMCPropertyKeys, data);
-            if (doSyncNVRAM) options->setProperty(kIONVRAMSyncNowPropertyKey, kFakeSMCPropertyKeys);
-            
-            OSSafeRelease(data);
-            OSSafeRelease(options);
+            OSSafeRelease(iterator);
         }
+        
+        //REVIEW: one of these causes issue on wake from sleep...
+        options->setProperty(kFakeSMCPropertyKeys, data);
+        if (doSyncNVRAM) options->setProperty(kIONVRAMSyncNowPropertyKey, kFakeSMCPropertyKeys);
+        
+        OSSafeRelease(data);
+        OSSafeRelease(options);
     }
+    
+    IORecursiveLockUnlock(device_lock);
 }
+
 #endif //NVRAMKEYS
 
 UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
@@ -554,11 +575,29 @@ void FakeSMCDevice::ioWrite8( UInt16 offset, UInt8 value, IOMemoryMap * map )
 	//HWSensorsDebugLog("iowrite8 called");
 }
 
+#if NVRAMKEYS_INTERRUPTSYNC
+
+IOWorkLoop * FakeSMCDevice::getWorkLoop() const
+{
+    if (!_workLoop)
+        return super::getWorkLoop();
+    
+    return _workLoop;
+}
+
+void FakeSMCDevice::interruptOccurred(IOInterruptEventSource*, int)
+{
+    // sync NVRAM keys in workloop thread...
+    syncKeysToNVRAM();
+}
+
+#endif
+
 bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
 {
 	if (!super::init(platform, 0, 0))
 		return false;
-
+    
 #if NVRAMKEYS
     IORegistryEntry *nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     doSyncNVRAM = nvram == 0; // Sync NVRAM if bootloader is not Chameleon/Chimera
@@ -568,6 +607,30 @@ bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
     device_lock = IORecursiveLockAlloc();
     if (!device_lock)
         return false;
+
+#if NVRAMKEYS_INTERRUPTSYNC
+    //REVIEW: workloop/eventsource fail won't force fail for now...
+    _workLoop = IOWorkLoop::workLoop();
+    if (!_workLoop) {
+        FakeSMCTraceLog("Unable to allocate IOWorkLoop");
+        //return false;
+    }
+    _interruptSource = 0;
+    if (_workLoop) {
+        _interruptSource = IOInterruptEventSource::interruptEventSource(this, OSMemberFunctionCast(IOInterruptEventAction, this, &FakeSMCDevice::interruptOccurred));
+        if (!_interruptSource) {
+            FakeSMCTraceLog("Unable to allocate IOInterruptEventSource");
+            //return false;
+        }
+        if (_interruptSource) {
+            if (_workLoop->addEventSource(_interruptSource) != kIOReturnSuccess) {
+                FakeSMCTraceLog("Unable to add interrupt event source");
+                //return false;
+            }
+            _interruptSource->enable();
+        }
+    }
+#endif
     
 	status = (ApleSMCStatus *) IOMalloc(sizeof(struct AppleSMCStatus));
     if (!status)

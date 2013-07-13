@@ -12,6 +12,7 @@
 
 #include "FakeSMCKey.h"
 
+#include <IOKit/IOInterruptEventSource.h>
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
 #include <IOKit/IOLocks.h>
 
@@ -28,7 +29,8 @@
 #define APPLESMC_GET_KEY_TYPE_CMD		0x13
 
 //REVIEW: temporarily to disable NVRAM key writing/loading
-#define NVRAMKEYS 0
+#define NVRAMKEYS 1
+#define NVRAMKEYS_INTERRUPTSYNC 1
 
 struct AppleSMCStatus {
 	uint8_t cmd;
@@ -54,6 +56,10 @@ private:
 	void				*interrupt_refcon;
 	int					interrupt_source;
     IORecursiveLock*    device_lock;
+#if NVRAMKEYS_INTERRUPTSYNC
+    IOWorkLoop*         _workLoop;
+    IOInterruptEventSource* _interruptSource;
+#endif
 	
 	struct
     ApleSMCStatus       *status;
@@ -96,6 +102,7 @@ public:
     virtual void		updateFanCounterKey(void);
 #if NVRAMKEYS
     void                saveKeyToNVRAM(FakeSMCKey *key, bool sync = true);
+    void                syncKeysToNVRAM();
 #endif
     virtual void		ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );
     virtual void		ioWrite16( UInt16 offset, UInt16 value, IOMemoryMap * map = 0 );
@@ -116,7 +123,12 @@ public:
     	
 	//virtual void		setDebug(bool debug_val);
     
-    virtual IOReturn	callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 ); 
+    virtual IOReturn	callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 );
+
+#if NVRAMKEYS_INTERRUPTSYNC
+    void  interruptOccurred(IOInterruptEventSource *, int);
+    virtual IOWorkLoop * getWorkLoop() const;
+#endif
 };
 
 #endif
