@@ -116,10 +116,16 @@ bool FakeSMC::start(IOService *provider)
 
 #if NVRAMKEYS
     // Find driver and load keys from NVRAM
-    OSDictionary *matching = 0;
-    if (smcDevice->savingKeysToNVRAM() && (matching = serviceMatching("IODTNVRAM"))) {
-        if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10))) {
-            
+    if (smcDevice->savingKeysToNVRAM()) {
+        // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
+        IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+        OSDictionary* matching = 0;
+        if (!nvram) {
+            // probably booting w/ Clover
+            matching = serviceMatching("IODTNVRAM");
+            nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10));
+        }
+        if (nvram) {
             OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
             
             if (nvram->serializeProperties(s)) {

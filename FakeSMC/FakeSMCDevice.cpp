@@ -272,7 +272,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
             if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
                 char name[32];
                 
-                snprintf(name, 32, "%s.%s:%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
+                snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
             
                 const OSSymbol *tempName = OSSymbol::withCString(name);
             
@@ -514,8 +514,10 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     }
     else {
         OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-        if (vendor && vendor->isEqualTo("CLOVER"))
+        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
+            (vendor && vendor->isEqualTo("CLOVER"))) {
             nvramKeys = OSDictionary::withCapacity(16);
+        }
     }
 #endif
     
