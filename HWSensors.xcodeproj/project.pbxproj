@@ -67,6 +67,44 @@
 		7EB73CFA1791BCBC007D93D4 /* OEMInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EB73CF81791BCBC007D93D4 /* OEMInfo.cpp */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		842BE1BC17931C1E00531799 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 842BE1B817931BEE00531799;
+			remoteInfo = PreBuild;
+		};
+		842BE1BE17931C2400531799 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 842BE1B817931BEE00531799;
+			remoteInfo = PreBuild;
+		};
+		842BE1C017931C2800531799 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 842BE1B817931BEE00531799;
+			remoteInfo = PreBuild;
+		};
+		842BE1C217931C2C00531799 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 842BE1B817931BEE00531799;
+			remoteInfo = PreBuild;
+		};
+		842BE1C417931C3000531799 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 842BE1B817931BEE00531799;
+			remoteInfo = PreBuild;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1D05ABE413ED0DAD00EADBF6 /* FakeSMC.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FakeSMC.kext; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D05AC0513ED0E8D00EADBF6 /* FakeSMC-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FakeSMC-Prefix.pch"; sourceTree = "<group>"; };
@@ -660,6 +698,23 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXLegacyTarget section */
+		842BE1B817931BEE00531799 /* PreBuild */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "${SOURCE_ROOT}/Scripts/PreBuild.sh ${ACTION}";
+			buildConfigurationList = 842BE1BB17931BEE00531799 /* Build configuration list for PBXLegacyTarget "PreBuild" */;
+			buildPhases = (
+			);
+			buildToolPath = /bin/sh;
+			buildWorkingDirectory = "${SOURCE_ROOT}";
+			dependencies = (
+			);
+			name = PreBuild;
+			passBuildSettingsInEnvironment = 0;
+			productName = PreBuild;
+		};
+/* End PBXLegacyTarget section */
+
 /* Begin PBXNativeTarget section */
 		1D05ABE313ED0DAD00EADBF6 /* FakeSMC */ = {
 			isa = PBXNativeTarget;
@@ -672,6 +727,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				842BE1BD17931C1E00531799 /* PBXTargetDependency */,
 			);
 			name = FakeSMC;
 			productName = FakeSMC;
@@ -689,6 +745,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				842BE1BF17931C2400531799 /* PBXTargetDependency */,
 			);
 			name = ACPISensors;
 			productName = ACPISensors;
@@ -706,6 +763,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				842BE1C517931C3000531799 /* PBXTargetDependency */,
 			);
 			name = LPCSensors;
 			productName = SuperIOSensors;
@@ -723,6 +781,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				842BE1C117931C2800531799 /* PBXTargetDependency */,
 			);
 			name = CPUSensors;
 			productName = CPUSensors;
@@ -740,6 +799,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				842BE1C317931C2C00531799 /* PBXTargetDependency */,
 			);
 			name = GPUSensors;
 			productName = GPUSensors;
@@ -771,6 +831,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				842BE1B817931BEE00531799 /* PreBuild */,
 				1D05ABE313ED0DAD00EADBF6 /* FakeSMC */,
 				1D6FE3ED13FEBFF200376E64 /* ACPISensors */,
 				7E79B81915BA99350079AAE8 /* CPUSensors */,
@@ -913,6 +974,34 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		842BE1BD17931C1E00531799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 842BE1BC17931C1E00531799 /* PBXContainerItemProxy */;
+		};
+		842BE1BF17931C2400531799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 842BE1BE17931C2400531799 /* PBXContainerItemProxy */;
+		};
+		842BE1C117931C2800531799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 842BE1C017931C2800531799 /* PBXContainerItemProxy */;
+		};
+		842BE1C317931C2C00531799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 842BE1C217931C2C00531799 /* PBXContainerItemProxy */;
+		};
+		842BE1C517931C3000531799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 842BE1C417931C3000531799 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		1D05AC0713ED0E9600EADBF6 /* InfoPlist.strings */ = {
@@ -1267,6 +1356,50 @@
 			};
 			name = Release;
 		};
+		842BE1B917931BEE00531799 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		842BE1BA17931BEE00531799 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1323,6 +1456,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		842BE1BB17931BEE00531799 /* Build configuration list for PBXLegacyTarget "PreBuild" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				842BE1B917931BEE00531799 /* Debug */,
+				842BE1BA17931BEE00531799 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

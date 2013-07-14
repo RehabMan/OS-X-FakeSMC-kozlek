@@ -100,6 +100,16 @@
 		7EFAE92416EBC8ED00F4DA72 /* DefaultTestingPlatform.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EFAE92316EBC8ED00F4DA72 /* DefaultTestingPlatform.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		842BE1CA17931EF300531799 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7EA248E016D8E93A002231B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 842BE1C617931E9E00531799;
+			remoteInfo = PreBuild;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		7E9060E21708951800BF5BBF /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -644,6 +654,23 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXLegacyTarget section */
+		842BE1C617931E9E00531799 /* PreBuild */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "${SOURCE_ROOT}/Scripts/PreBuild.sh ${ACTION}";
+			buildConfigurationList = 842BE1C917931E9E00531799 /* Build configuration list for PBXLegacyTarget "PreBuild" */;
+			buildPhases = (
+			);
+			buildToolPath = /bin/sh;
+			buildWorkingDirectory = "${SOURCE_ROOT}";
+			dependencies = (
+			);
+			name = PreBuild;
+			passBuildSettingsInEnvironment = 0;
+			productName = PreBuild;
+		};
+/* End PBXLegacyTarget section */
+
 /* Begin PBXNativeTarget section */
 		7E9060E31708951800BF5BBF /* smcutil */ = {
 			isa = PBXNativeTarget;
@@ -673,6 +700,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				842BE1CB17931EF300531799 /* PBXTargetDependency */,
 			);
 			name = HWMonitor;
 			productName = HWMonitor;
@@ -728,6 +756,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				842BE1C617931E9E00531799 /* PreBuild */,
 				7EA248E716D8E93A002231B2 /* HWMonitor */,
 				7E9060E31708951800BF5BBF /* smcutil */,
 				7EFAE91816EBC8ED00F4DA72 /* DefaultTestingPlatform */,
@@ -875,6 +904,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		842BE1CB17931EF300531799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1C617931E9E00531799 /* PreBuild */;
+			targetProxy = 842BE1CA17931EF300531799 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		7EA248F416D8E93A002231B2 /* InfoPlist.strings */ = {
@@ -1064,6 +1101,35 @@
 			};
 			name = Release;
 		};
+		842BE1C717931E9E00531799 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		842BE1C817931E9E00531799 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1102,6 +1168,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		842BE1C917931E9E00531799 /* Build configuration list for PBXLegacyTarget "PreBuild" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				842BE1C717931E9E00531799 /* Debug */,
+				842BE1C817931E9E00531799 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
