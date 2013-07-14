@@ -62,7 +62,8 @@ private:
     OSDictionary        *types;
     OSDictionary        *exposedValues;
 #if NVRAMKEYS
-    OSDictionary        *nvramKeys;
+    //OSDictionary        *nvramKeys;
+    bool                ignoreNVRAM;
 #endif
     
    	FakeSMCKey			*keyCounterKey;
@@ -95,8 +96,8 @@ public:
     void                updateFanCounterKey(void);
     
 #if NVRAMKEYS
-    void                saveKeyToNVRAM(FakeSMCKey *key, bool sync = true);
-    bool                savingKeysToNVRAM() { return 0 != nvramKeys; }
+    void                saveKeyToNVRAM(FakeSMCKey *key);
+    bool                savingKeysToNVRAM() { return !ignoreNVRAM; }
 #endif
     
     bool                initAndStart(IOService *platform, IOService *provider);

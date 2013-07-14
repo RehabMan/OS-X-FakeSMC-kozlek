@@ -259,29 +259,24 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
 #pragma mark -
 #pragma mark NVRAM
 
-void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
+void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
+    if (ignoreNVRAM)
+        return;
+    
     IORecursiveLockLock(device_lock);
     
-    if (nvramKeys) {
-
-        nvramKeys->setObject(key->getKey(), key);
+    if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
+        char name[32];
         
-        if (sync) {
-
-            if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
-                char name[32];
-                
-                snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
-            
-                const OSSymbol *tempName = OSSymbol::withCString(name);
-            
-                nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-                
-                OSSafeRelease(tempName);
-                OSSafeRelease(nvram);
-            }
-        }
+        snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
+        
+        const OSSymbol *tempName = OSSymbol::withCString(name);
+        
+        nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        
+        OSSafeRelease(tempName);
+        OSSafeRelease(nvram);
     }
     
     IORecursiveLockUnlock(device_lock);
@@ -507,7 +502,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     exposedValues = OSDictionary::withCapacity(16);
     
 #if NVRAMKEYS
-    nvramKeys = 0;
+    ignoreNVRAM = true;
     int arg_value = 1;
     if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
         HWSensorsInfoLog("ignoring NVRAM...");
@@ -516,7 +511,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
         if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
             (vendor && vendor->isEqualTo("CLOVER"))) {
-            nvramKeys = OSDictionary::withCapacity(16);
+            ignoreNVRAM = false;
         }
     }
 #endif
