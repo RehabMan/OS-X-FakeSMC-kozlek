@@ -29,6 +29,9 @@
 #define super IOACPIPlatformDevice
 OSDefineMetaClassAndStructors (FakeSMCDevice, IOACPIPlatformDevice)
 
+#pragma mark -
+#pragma mark Internal I/O methods
+
 void FakeSMCDevice::applesmc_io_cmd_writeb(void *opaque, uint32_t addr, uint32_t val)
 {
     struct AppleSMCStatus *s = (struct AppleSMCStatus *)opaque;
@@ -151,6 +154,9 @@ void FakeSMCDevice::applesmc_io_data_writeb(void *opaque, uint32_t addr, uint32_
                     FakeSMCDebugLog("system writing key %s, length %d", name, s->data_len);
                     
                     FakeSMCKey* key = addKeyWithValue(name, 0, s->data_len, s->value);
+#if !NVRAMKEYS
+                    key=key; //REVIEW: just to avoid warning
+#endif
 
                     bzero(s->value, sizeof(s->value));
 #if NVRAMKEYS
@@ -250,8 +256,13 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
 }
 
 #if NVRAMKEYS
+#pragma mark -
+#pragma mark NVRAM
+
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
 {
+    IORecursiveLockLock(device_lock);
+    
     if (nvramKeys) {
 
         nvramKeys->setObject(key->getKey(), key);
@@ -272,8 +283,13 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
             }
         }
     }
+    
+    IORecursiveLockUnlock(device_lock);
 }
 #endif //NVRAMKEYS
+
+#pragma mark -
+#pragma mark Key storage engine
 
 UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
 
@@ -372,7 +388,8 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
         
         if (!type) wellKnownType = OSDynamicCast(OSString, types->getObject(name));
         
-        if (FakeSMCKey *key = FakeSMCKey::withValue(name, type ? type : wellKnownType ? wellKnownType->getCStringNoCopy() : 0, size, value)) {
+        key = FakeSMCKey::withValue(name, type ? type : wellKnownType ? wellKnownType->getCStringNoCopy() : 0, size, value);
+        if (key) {
             keys->setObject(key);
             updateKeyCounterKey();
         }
@@ -463,89 +480,8 @@ FakeSMCKey *FakeSMCDevice::getKey(unsigned int index)
 	return key;
 }
 
-UInt32 FakeSMCDevice::ioRead32( UInt16 offset, IOMemoryMap * map )
-{
-    UInt32  value=0;
-    UInt16  base = 0;
-    
-    if (map) base = map->getPhysicalAddress();
-    
-	//HWSensorsDebugLog("ioread32 called");
-    
-    return (value);
-}
-
-UInt16 FakeSMCDevice::ioRead16( UInt16 offset, IOMemoryMap * map )
-{
-    UInt16  value=0;
-    UInt16  base = 0;
-    
-    if (map) base = map->getPhysicalAddress();
-    
-	//HWSensorsDebugLog("ioread16 called");
-    
-    return (value);
-}
-
-UInt8 FakeSMCDevice::ioRead8( UInt16 offset, IOMemoryMap * map )
-{
-    UInt8  value =0;
-    UInt16  base = 0;
-	struct AppleSMCStatus *s = (struct AppleSMCStatus *)status;
-    //	IODelay(10);
-    
-    if (map) base = map->getPhysicalAddress();
-	if((base+offset) == APPLESMC_DATA_PORT) value=applesmc_io_data_readb(status, base+offset);
-	if((base+offset) == APPLESMC_CMD_PORT) value=applesmc_io_cmd_readb(status, base+offset);
-    
-    if((base+offset) == APPLESMC_ERROR_CODE_PORT)
-	{
-		if(s->status_1e != 0)
-		{
-			value = s->status_1e;
-			s->status_1e = 0x00;
-            //			IOLog("generating error %x\n", value);
-		}
-		else value = 0x0;
-	}
-    //	if(((base+offset) != APPLESMC_DATA_PORT) && ((base+offset) != APPLESMC_CMD_PORT)) IOLog("ioread8 to port %x.\n", base+offset);
-    
-	//HWSensorsDebugLog("ioread8 called");
-    
-	return (value);
-}
-
-void FakeSMCDevice::ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map )
-{
-    UInt16 base = 0;
-    
-    if (map) base = map->getPhysicalAddress();
-    
-	//HWSensorsDebugLog("iowrite32 called");
-}
-
-void FakeSMCDevice::ioWrite16( UInt16 offset, UInt16 value, IOMemoryMap * map )
-{
-    UInt16 base = 0;
-    
-    if (map) base = map->getPhysicalAddress();
-    
-	//HWSensorsDebugLog("iowrite16 called");
-}
-
-void FakeSMCDevice::ioWrite8( UInt16 offset, UInt8 value, IOMemoryMap * map )
-{
-    UInt16 base = 0;
-	IODelay(10);
-    if (map) base = map->getPhysicalAddress();
-    
-	if((base+offset) == APPLESMC_DATA_PORT) applesmc_io_data_writeb(status, base+offset, value);
-	if((base+offset) == APPLESMC_CMD_PORT) applesmc_io_cmd_writeb(status, base+offset,value);
-	//    outb( base + offset, value );
-    //	if(((base+offset) != APPLESMC_DATA_PORT) && ((base+offset) != APPLESMC_CMD_PORT)) IOLog("iowrite8 to port %x.\n", base+offset);
-    
-	//HWSensorsDebugLog("iowrite8 called");
-}
+#pragma mark -
+#pragma mark Custom init method
 
 bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
 {
@@ -572,10 +508,14 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     
 #if NVRAMKEYS
     nvramKeys = 0;
-    // Allows store keys in NVRAM only if booted with Clover
-    OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-    if (vendor && vendor->isEqualTo("CLOVER")) {
-        nvramKeys = OSDictionary::withCapacity(16);
+    int arg_value = 1;
+    if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
+        HWSensorsInfoLog("ignoring NVRAM...");
+    }
+    else {
+        OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
+        if (vendor && vendor->isEqualTo("CLOVER"))
+            nvramKeys = OSDictionary::withCapacity(16);
     }
 #endif
     
@@ -735,6 +675,94 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
 	HWSensorsInfoLog("successfully initialized");
     
 	return true;
+}
+
+
+#pragma mark -
+#pragma mark Virtual methods
+
+UInt32 FakeSMCDevice::ioRead32( UInt16 offset, IOMemoryMap * map )
+{
+    UInt32  value=0;
+    UInt16  base = 0;
+    
+    if (map) base = map->getPhysicalAddress();
+    
+	//HWSensorsDebugLog("ioread32 called");
+    
+    return (value);
+}
+
+UInt16 FakeSMCDevice::ioRead16( UInt16 offset, IOMemoryMap * map )
+{
+    UInt16  value=0;
+    UInt16  base = 0;
+    
+    if (map) base = map->getPhysicalAddress();
+    
+	//HWSensorsDebugLog("ioread16 called");
+    
+    return (value);
+}
+
+UInt8 FakeSMCDevice::ioRead8( UInt16 offset, IOMemoryMap * map )
+{
+    UInt8  value =0;
+    UInt16  base = 0;
+	struct AppleSMCStatus *s = (struct AppleSMCStatus *)status;
+    //	IODelay(10);
+    
+    if (map) base = map->getPhysicalAddress();
+	if((base+offset) == APPLESMC_DATA_PORT) value=applesmc_io_data_readb(status, base+offset);
+	if((base+offset) == APPLESMC_CMD_PORT) value=applesmc_io_cmd_readb(status, base+offset);
+    
+    if((base+offset) == APPLESMC_ERROR_CODE_PORT)
+	{
+		if(s->status_1e != 0)
+		{
+			value = s->status_1e;
+			s->status_1e = 0x00;
+            //			IOLog("generating error %x\n", value);
+		}
+		else value = 0x0;
+	}
+    //	if(((base+offset) != APPLESMC_DATA_PORT) && ((base+offset) != APPLESMC_CMD_PORT)) IOLog("ioread8 to port %x.\n", base+offset);
+    
+	//HWSensorsDebugLog("ioread8 called");
+    
+	return (value);
+}
+
+void FakeSMCDevice::ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map )
+{
+    UInt16 base = 0;
+    
+    if (map) base = map->getPhysicalAddress();
+    
+	//HWSensorsDebugLog("iowrite32 called");
+}
+
+void FakeSMCDevice::ioWrite16( UInt16 offset, UInt16 value, IOMemoryMap * map )
+{
+    UInt16 base = 0;
+    
+    if (map) base = map->getPhysicalAddress();
+    
+	//HWSensorsDebugLog("iowrite16 called");
+}
+
+void FakeSMCDevice::ioWrite8( UInt16 offset, UInt8 value, IOMemoryMap * map )
+{
+    UInt16 base = 0;
+	IODelay(10);
+    if (map) base = map->getPhysicalAddress();
+    
+	if((base+offset) == APPLESMC_DATA_PORT) applesmc_io_data_writeb(status, base+offset, value);
+	if((base+offset) == APPLESMC_CMD_PORT) applesmc_io_cmd_writeb(status, base+offset,value);
+	//    outb( base + offset, value );
+    //	if(((base+offset) != APPLESMC_DATA_PORT) && ((base+offset) != APPLESMC_CMD_PORT)) IOLog("iowrite8 to port %x.\n", base+offset);
+    
+	//HWSensorsDebugLog("iowrite8 called");
 }
 
 IOReturn FakeSMCDevice::setProperties(OSObject * properties)

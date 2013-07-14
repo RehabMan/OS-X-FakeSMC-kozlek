@@ -99,7 +99,7 @@ bool FakeSMC::start(IOService *provider)
     
     int arg_value = 1;
     
-    if (PE_parse_boot_argn("-fakesmc_force_start", &arg_value, sizeof(arg_value))) {
+    if (PE_parse_boot_argn("-fakesmc-force-start", &arg_value, sizeof(arg_value))) {
         HWSensorsInfoLog("firmware vendor check disabled");
     }
     else if (vendor && vendor->isEqualTo("Apple")) {
@@ -117,7 +117,7 @@ bool FakeSMC::start(IOService *provider)
 #if NVRAMKEYS
     // Find driver and load keys from NVRAM
     OSDictionary *matching = 0;
-    if (smcDevice->nvramKeys && (matching = serviceMatching("IODTNVRAM"))) {
+    if (smcDevice->savingKeysToNVRAM() && (matching = serviceMatching("IODTNVRAM"))) {
         if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10))) {
             
             OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary

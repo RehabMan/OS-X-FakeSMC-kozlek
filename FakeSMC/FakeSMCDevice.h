@@ -44,12 +44,9 @@ struct AppleSMCStatus {
 	uint8_t key_info[6];
 };
 
-class FakeSMC;
-
 class EXPORT FakeSMCDevice : public IOACPIPlatformDevice
 {
     OSDeclareDefaultStructors( FakeSMCDevice )
-    friend class FakeSMC;   //REVIEW: for access to nvramKeys
 	
 private:
 	OSObject			*interrupt_target;
@@ -99,6 +96,7 @@ public:
     
 #if NVRAMKEYS
     void                saveKeyToNVRAM(FakeSMCKey *key, bool sync = true);
+    bool                savingKeysToNVRAM() { return 0 != nvramKeys; }
 #endif
     
     bool                initAndStart(IOService *platform, IOService *provider);
