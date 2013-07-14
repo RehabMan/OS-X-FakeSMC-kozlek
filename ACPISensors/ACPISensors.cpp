@@ -70,7 +70,7 @@ bool ACPISensors::start(IOService * provider)
         // Temperatures
         if (OSDictionary *temps = OSDynamicCast(OSDictionary, configuration->getObject("Temperatures"))) {
             
-            temperatures = OSDictionary::withCapacity(0);
+            temperatures = OSDictionary::withCapacity(temps->getCount());
             
             OSCollectionIterator *iterator = OSCollectionIterator::withCollection(temps);
             UInt16 count = 0;
@@ -102,7 +102,7 @@ bool ACPISensors::start(IOService * provider)
         // Voltages
         if (OSDictionary *volts = OSDynamicCast(OSDictionary, configuration->getObject("Voltages"))) {
             
-            voltages = OSDictionary::withCapacity(0);
+            voltages = OSDictionary::withCapacity(volts->getCount());
             
             OSCollectionIterator *iterator = OSCollectionIterator::withCollection(volts);
             UInt16 count = 0;
@@ -133,7 +133,7 @@ bool ACPISensors::start(IOService * provider)
         // Tachometers
         if (OSDictionary *fans = OSDynamicCast(OSDictionary, configuration->getObject("Tachometers"))) {
             
-            tachometers = OSDictionary::withCapacity(0);
+            tachometers = OSDictionary::withCapacity(fans->getCount());
             
             OSCollectionIterator *iterator = OSCollectionIterator::withCollection(fans);
             UInt16 count = 0;

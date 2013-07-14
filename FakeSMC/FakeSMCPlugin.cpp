@@ -393,7 +393,7 @@ bool FakeSMCPlugin::init(OSDictionary *properties)
     if (!super::init(properties))
         return false;
     
-    sensors = OSDictionary::withCapacity(0);
+    sensors = OSDictionary::withCapacity(8);
     
     if (!sensors)
         return false;
