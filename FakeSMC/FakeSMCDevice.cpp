@@ -8,12 +8,12 @@
  */
 
 #include "FakeSMCDevice.h"
-#include "FakeSMCDefinitions.h"
 
-#include "FakeSMCPlugin.h"
+#include "FakeSMCDefinitions.h"
 
 #include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOKitKeys.h>
+#include <IOKit/IONVRAM.h>
 
 #ifdef DEBUG
 #define FakeSMCTraceLog(string, args...) do { if (trace) { IOLog ("%s: [Trace] " string "\n",getName() , ## args); } } while(0)
@@ -28,6 +28,9 @@
 
 #define super IOACPIPlatformDevice
 OSDefineMetaClassAndStructors (FakeSMCDevice, IOACPIPlatformDevice)
+
+#pragma mark -
+#pragma mark Internal I/O methods
 
 void FakeSMCDevice::applesmc_io_cmd_writeb(void *opaque, uint32_t addr, uint32_t val)
 {
@@ -151,10 +154,12 @@ void FakeSMCDevice::applesmc_io_data_writeb(void *opaque, uint32_t addr, uint32_
                     FakeSMCDebugLog("system writing key %s, length %d", name, s->data_len);
                     
                     FakeSMCKey* key = addKeyWithValue(name, 0, s->data_len, s->value);
-
+                    
                     bzero(s->value, sizeof(s->value));
 #if NVRAMKEYS
                     if (key) saveKeyToNVRAM(key);
+#else
+                    key=key; //REVIEW: just to avoid warning
 #endif
 				}
 			};
@@ -249,59 +254,53 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
     return ((struct AppleSMCStatus*)opaque)->status;
 }
 
+#pragma mark -
+#pragma mark NVRAM
+
 #if NVRAMKEYS
 
-void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key, bool sync)
+void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
+    if (ignoreNVRAM)
+        return;
+
     IORecursiveLockLock(device_lock);
     
-    nvramKeys->setObject(key->getKey(), key);
-    
-    if (sync) {
 #if NVRAMKEYS_INTERRUPTSYNC
-        // trigger schedule to FakeSMCDevice::interruptOccurred on workloop thread...
-        _interruptSource->interruptOccurred(0, 0, 0);
+    HWSensorsDebugLog("adding key %s to _keysToSync", key->getKey());
+    _keysToSync->setObject(key->getKey(), key);
+    _interruptSource->interruptOccurred(0, 0, 0);
 #else
-        // do sync right away...
-        syncKeysToNVRAM();
+    reallySaveKeyToNVRAM(key);
 #endif
-    }
     
     IORecursiveLockUnlock(device_lock);
 }
 
-void FakeSMCDevice::syncKeysToNVRAM()
+void FakeSMCDevice::reallySaveKeyToNVRAM(FakeSMCKey* key)
 {
     IORecursiveLockLock(device_lock);
     
-    if (IORegistryEntry *options = OSDynamicCast(IORegistryEntry, fromPath("/options", gIODTPlane))) {
+    if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
+        char name[32];
         
-        OSData *data = OSData::withCapacity(512);
+        snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
         
-        if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(nvramKeys)) {
-            while (OSString *nextKeyName = OSDynamicCast(OSString, iterator->getNextObject())) {
-                FakeSMCKey *nextKey = OSDynamicCast(FakeSMCKey, nvramKeys->getObject(nextKeyName));
-                data->appendBytes(nextKey->getKey(), 4);
-                data->appendBytes(nextKey->getType(), 4);
-                data->appendByte(nextKey->getSize(), 1);
-                data->appendBytes(nextKey->getValue(), nextKey->getSize());
-            }
-            
-            OSSafeRelease(iterator);
-        }
+        const OSSymbol *tempName = OSSymbol::withCString(name);
         
-        //REVIEW: one of these causes issue on wake from sleep...
-        options->setProperty(kFakeSMCPropertyKeys, data);
-        if (doSyncNVRAM) options->setProperty(kIONVRAMSyncNowPropertyKey, kFakeSMCPropertyKeys);
+        nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
-        OSSafeRelease(data);
-        OSSafeRelease(options);
+        OSSafeRelease(tempName);
+        OSSafeRelease(nvram);
     }
     
     IORecursiveLockUnlock(device_lock);
 }
 
 #endif //NVRAMKEYS
+
+#pragma mark -
+#pragma mark Key storage engine
 
 UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
 
@@ -336,11 +335,6 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
 	if ((key = getKey(name))) {
         
         if (value) {
-            if (type == 0) {
-                OSString *wellKnownType = OSDynamicCast(OSString, types->getObject(name));
-                key->setType(wellKnownType ? wellKnownType->getCStringNoCopy() : 0);
-            }
-            else key->setType(type);
             key->setSize(size);
             key->setValueFromBuffer(value, size);
         }
@@ -401,11 +395,17 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
         
         FakeSMCDebugLog("adding key %s with value, type: %s, size: %d", name, type, size);
         
-        if ((key = FakeSMCKey::withValue(name, type, size, value))) {
+        OSString *wellKnownType = 0;
+        
+        if (!type) wellKnownType = OSDynamicCast(OSString, types->getObject(name));
+        
+        key = FakeSMCKey::withValue(name, type ? type : wellKnownType ? wellKnownType->getCStringNoCopy() : 0, size, value);
+        if (key) {
             keys->setObject(key);
             updateKeyCounterKey();
         }
 	}
+    
     IORecursiveLockUnlock(device_lock);
     
     if (!key)
@@ -491,6 +491,279 @@ FakeSMCKey *FakeSMCDevice::getKey(unsigned int index)
 	return key;
 }
 
+#pragma mark -
+#pragma mark Custom init method
+
+#if NVRAMKEYS_INTERRUPTSYNC
+
+IOWorkLoop * FakeSMCDevice::getWorkLoop() const
+{
+    if (!_workLoop)
+        return super::getWorkLoop();
+    
+    return _workLoop;
+}
+
+void FakeSMCDevice::interruptOccurred(IOInterruptEventSource*, int)
+{
+    // sync NVRAM keys in workloop thread...
+    syncKeysToNVRAM();
+}
+
+void FakeSMCDevice::syncKeysToNVRAM()
+{
+    IORecursiveLockLock(device_lock);
+    
+    HWSensorsDebugLog("in syncKeysToNVRAM, _keysToSync has %d element(s)", _keysToSync->getCount());
+    
+    if (OSCollectionIterator* iterator = OSCollectionIterator::withCollection(_keysToSync)) {
+        HWSensorsDebugLog("got iterator");
+        while (OSString *name = OSDynamicCast(OSString, iterator->getNextObject())) {
+            HWSensorsDebugLog("got name from next object %s", name->getCStringNoCopy());
+            FakeSMCKey* key = getKey(name->getCStringNoCopy());
+            if (!key) {
+                HWSensorsDebugLog("getKey for %s returned 0", name->getCStringNoCopy());
+            }
+            if (key) {
+                HWSensorsDebugLog("delayed save of key %s", name->getCStringNoCopy());
+                reallySaveKeyToNVRAM(key);
+            }
+        }
+        iterator->release();
+    }
+    _keysToSync->flushCollection();
+    
+    IORecursiveLockUnlock(device_lock);
+}
+
+#endif
+
+bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
+{
+	if (!provider || !super::init(platform, 0, 0))
+		return false;
+    
+    OSDictionary *properties = OSDynamicCast(OSDictionary, provider->getProperty("Configuration"));
+    if (!properties)
+        return false;
+    
+    device_lock = IORecursiveLockAlloc();
+    if (!device_lock)
+        return false;
+
+#if NVRAMKEYS_INTERRUPTSYNC
+    //REVIEW: workloop/eventsource fail won't force fail for now...
+    _workLoop = IOWorkLoop::workLoop();
+    if (!_workLoop) {
+        FakeSMCTraceLog("Unable to allocate IOWorkLoop");
+        //return false;
+    }
+    _interruptSource = 0;
+    _keysToSync = 0;
+    if (_workLoop) {
+        _interruptSource = IOInterruptEventSource::interruptEventSource(this, OSMemberFunctionCast(IOInterruptEventAction, this, &FakeSMCDevice::interruptOccurred));
+        if (!_interruptSource) {
+            FakeSMCTraceLog("Unable to allocate IOInterruptEventSource");
+            //return false;
+        }
+        if (_interruptSource) {
+            if (_workLoop->addEventSource(_interruptSource) != kIOReturnSuccess) {
+                FakeSMCTraceLog("Unable to add interrupt event source");
+                //return false;
+            }
+            _interruptSource->enable();
+            _keysToSync = OSDictionary::withCapacity(8);
+        }
+    }
+#endif
+    
+	status = (ApleSMCStatus *) IOMalloc(sizeof(struct AppleSMCStatus));
+    if (!status)
+        return false;
+	bzero((void*)status, sizeof(struct AppleSMCStatus));
+	interrupt_handler = 0;
+    
+	keys = OSArray::withCapacity(64);
+    types = OSDictionary::withCapacity(16);
+    exposedValues = OSDictionary::withCapacity(16);
+    
+#if NVRAMKEYS
+    ignoreNVRAM = true;
+    int arg_value = 1;
+    if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
+        HWSensorsInfoLog("ignoring NVRAM...");
+    }
+    else {
+        OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
+        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
+            (vendor && vendor->isEqualTo("CLOVER"))) {
+            ignoreNVRAM = false;
+        }
+    }
+#endif
+    
+    // Add fist key - counter key
+    keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
+	keys->setObject(keyCounterKey);
+    
+    fanCounterKey = FakeSMCKey::withValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, "\0");
+    keys->setObject(fanCounterKey);
+    
+    // Load preconfigured keys
+    FakeSMCDebugLog("loading keys...");
+    
+    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Keys"))) {
+		if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
+			while (const OSSymbol *key = (const OSSymbol *)iterator->getNextObject()) {
+				if (OSArray *array = OSDynamicCast(OSArray, dictionary->getObject(key))) {
+					if (OSIterator *aiterator = OSCollectionIterator::withCollection(array)) {
+                        
+						OSString *type = OSDynamicCast(OSString, aiterator->getNextObject());
+						OSData *value = OSDynamicCast(OSData, aiterator->getNextObject());
+                        
+						if (type && value)
+							addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy());
+                        
+                        OSSafeRelease(aiterator);
+					}
+				}
+				key = 0;
+			}
+            
+			OSSafeRelease(iterator);
+		}
+        
+		HWSensorsInfoLog("%d preconfigured key%s added", keys->getCount(), keys->getCount() == 1 ? "" : "s");
+	}
+	else {
+		HWSensorsWarningLog("no preconfigured keys found");
+	}
+    
+    // Load wellknown type names
+    FakeSMCDebugLog("loading types...");
+    
+    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Types"))) {
+        if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
+			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
+                if (OSString *value = OSDynamicCast(OSString, dictionary->getObject(key))) {
+                    types->setObject(key, value);
+                }
+            }
+            OSSafeRelease(iterator);
+        }
+    }
+    
+    // Set Clover platform keys
+    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Clover"))) {
+        UInt32 count = 0;
+        if (IORegistryEntry* cloverPlatformNode = fromPath("/efi/platform", gIODTPlane)) {
+            if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
+                while (OSString *name = OSDynamicCast(OSString, iterator->getNextObject())) {
+                    if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty(name))) {
+                        if (OSArray *items = OSDynamicCast(OSArray, dictionary->getObject(name))) {
+                            OSString *key = OSDynamicCast(OSString, items->getObject(0));
+                            OSString *type = OSDynamicCast(OSString, items->getObject(1));
+                            
+                            if (addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), data->getLength(), data->getBytesNoCopy()))
+                                count++;
+                        }
+                    }
+                }
+                OSSafeRelease(iterator);
+            }
+        }
+        
+        if (count)
+            HWSensorsInfoLog("%d key%s exported by Clover EFI", count, count == 1 ? "" : "s");
+    }
+    
+    // Start SMC device
+    
+    if (!super::start(platform))
+        return false;
+    
+	this->setName("SMC");
+    
+    FakeSMCSetProperty("name", "APP0001");
+    
+	if (OSString *compatibleKey = OSDynamicCast(OSString, properties->getObject("smc-compatible")))
+		FakeSMCSetProperty("compatible", (const char *)compatibleKey->getCStringNoCopy());
+	else
+		FakeSMCSetProperty("compatible", "smc-napa");
+    
+	if (!this->setProperty("_STA", (unsigned long long)0x0000000b, 32)) {
+        HWSensorsErrorLog("failed to set '_STA' property");
+        return false;
+    }
+
+#ifdef DEBUG
+	if (OSBoolean *debugKey = OSDynamicCast(OSBoolean, properties->getObject("debug")))
+		debug = debugKey->getValue();
+    else
+        debug = false;
+    
+    if (OSBoolean *traceKey = OSDynamicCast(OSBoolean, properties->getObject("trace")))
+		trace = traceKey->getValue();
+    else
+        trace = false;
+#endif
+    
+	IODeviceMemory::InitElement	rangeList[1];
+    
+	rangeList[0].start = 0x300;
+	rangeList[0].length = 0x20;
+    
+	if(OSArray *array = IODeviceMemory::arrayFromList(rangeList, 1)) {
+		this->setDeviceMemory(array);
+		OSSafeRelease(array);
+	}
+	else
+	{
+		HWSensorsFatalLog("failed to create Device memory array");
+		return false;
+	}
+    
+	OSArray *controllers = OSArray::withCapacity(1);
+    
+    if(!controllers) {
+		HWSensorsFatalLog("failed to create controllers array");
+        return false;
+    }
+    
+    controllers->setObject((OSSymbol *)OSSymbol::withCStringNoCopy("io-apic-0"));
+    
+	OSArray *specifiers  = OSArray::withCapacity(1);
+    
+    if(!specifiers) {
+		HWSensorsFatalLog("failed to create specifiers array");
+        return false;
+    }
+    
+	UInt64 line = 0x06;
+    
+    OSData *tmpData = OSData::withBytes(&line, sizeof(line));
+    
+    if (!tmpData) {
+		HWSensorsFatalLog("failed to create specifiers data");
+        return false;
+    }
+    
+    specifiers->setObject(tmpData);
+    
+	this->setProperty(gIOInterruptControllersKey, controllers) && this->setProperty(gIOInterruptSpecifiersKey, specifiers);
+	this->attachToParent(platform, gIOServicePlane);
+    
+    registerService();
+    
+	HWSensorsInfoLog("successfully initialized");
+    
+	return true;
+}
+
+
+#pragma mark -
+#pragma mark Virtual methods
+
 UInt32 FakeSMCDevice::ioRead32( UInt16 offset, IOMemoryMap * map )
 {
     UInt32  value=0;
@@ -573,235 +846,6 @@ void FakeSMCDevice::ioWrite8( UInt16 offset, UInt8 value, IOMemoryMap * map )
     //	if(((base+offset) != APPLESMC_DATA_PORT) && ((base+offset) != APPLESMC_CMD_PORT)) IOLog("iowrite8 to port %x.\n", base+offset);
     
 	//HWSensorsDebugLog("iowrite8 called");
-}
-
-#if NVRAMKEYS_INTERRUPTSYNC
-
-IOWorkLoop * FakeSMCDevice::getWorkLoop() const
-{
-    if (!_workLoop)
-        return super::getWorkLoop();
-    
-    return _workLoop;
-}
-
-void FakeSMCDevice::interruptOccurred(IOInterruptEventSource*, int)
-{
-    // sync NVRAM keys in workloop thread...
-    syncKeysToNVRAM();
-}
-
-#endif
-
-bool FakeSMCDevice::init(IOService *platform, OSDictionary *properties)
-{
-	if (!super::init(platform, 0, 0))
-		return false;
-    
-#if NVRAMKEYS
-    IORegistryEntry *nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
-    doSyncNVRAM = nvram == 0; // Sync NVRAM if bootloader is not Chameleon/Chimera
-    OSSafeRelease(nvram);
-#endif
-    
-    device_lock = IORecursiveLockAlloc();
-    if (!device_lock)
-        return false;
-
-#if NVRAMKEYS_INTERRUPTSYNC
-    //REVIEW: workloop/eventsource fail won't force fail for now...
-    _workLoop = IOWorkLoop::workLoop();
-    if (!_workLoop) {
-        FakeSMCTraceLog("Unable to allocate IOWorkLoop");
-        //return false;
-    }
-    _interruptSource = 0;
-    if (_workLoop) {
-        _interruptSource = IOInterruptEventSource::interruptEventSource(this, OSMemberFunctionCast(IOInterruptEventAction, this, &FakeSMCDevice::interruptOccurred));
-        if (!_interruptSource) {
-            FakeSMCTraceLog("Unable to allocate IOInterruptEventSource");
-            //return false;
-        }
-        if (_interruptSource) {
-            if (_workLoop->addEventSource(_interruptSource) != kIOReturnSuccess) {
-                FakeSMCTraceLog("Unable to add interrupt event source");
-                //return false;
-            }
-            _interruptSource->enable();
-        }
-    }
-#endif
-    
-	status = (ApleSMCStatus *) IOMalloc(sizeof(struct AppleSMCStatus));
-    if (!status)
-        return false;
-	bzero((void*)status, sizeof(struct AppleSMCStatus));
-    
-	interrupt_handler = 0;
-    
-	keys = OSArray::withCapacity(64);
-    
-    // Add fist key - counter key
-    keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
-	keys->setObject(keyCounterKey);
-    
-    fanCounterKey = FakeSMCKey::withValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, "\0");
-    keys->setObject(fanCounterKey);
-    
-    
-    // Load preconfigured keys
-    FakeSMCDebugLog("loading keys...");
-    
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Keys"))) {
-		if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-			while (const OSSymbol *key = (const OSSymbol *)iterator->getNextObject()) {
-				if (OSArray *array = OSDynamicCast(OSArray, dictionary->getObject(key))) {
-					if (OSIterator *aiterator = OSCollectionIterator::withCollection(array)) {
-                        
-						OSString *type = OSDynamicCast(OSString, aiterator->getNextObject());
-						OSData *value = OSDynamicCast(OSData, aiterator->getNextObject());
-                        
-						if (type && value)
-							addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy());
-                        
-                        OSSafeRelease(aiterator);
-					}
-				}
-				key = 0;
-			}
-            
-			OSSafeRelease(iterator);
-		}
-        
-		HWSensorsInfoLog("%d preconfigured key%s added", keys->getCount(), keys->getCount() == 1 ? "" : "s");
-	}
-	else {
-		HWSensorsWarningLog("no preconfigured keys found");
-	}
-    
-    // Load wellknown type names
-    types = OSDictionary::withCapacity(16);
-    
-    FakeSMCDebugLog("loading types...");
-    
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Types"))) {
-        if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
-                if (OSString *value = OSDynamicCast(OSString, dictionary->getObject(key))) {
-                    types->setObject(key, value);
-                }
-            }
-            OSSafeRelease(iterator);
-        }
-    }
-    
-    // Set Clover platform keys
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Clover"))) {
-        UInt32 count = 0;
-        if (IORegistryEntry* cloverPlatformNode = fromPath("/efi/platform", gIODTPlane)) {
-            if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-                while (OSString *name = OSDynamicCast(OSString, iterator->getNextObject())) {
-                    if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty(name))) {
-                        if (OSArray *items = OSDynamicCast(OSArray, dictionary->getObject(name))) {
-                            OSString *key = OSDynamicCast(OSString, items->getObject(0));
-                            OSString *type = OSDynamicCast(OSString, items->getObject(1));
-                            
-                            if (addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), data->getLength(), data->getBytesNoCopy()))
-                                count++;
-                        }
-                    }
-                }
-                OSSafeRelease(iterator);
-            }
-        }
-        
-        if (count)
-            HWSensorsInfoLog("%d key%s exported by Clover EFI", count, count == 1 ? "" : "s");
-    }
-    
-    // Init SMC device
-    
-    exposedValues = OSDictionary::withCapacity(16);
-#if NVRAMKEYS
-    nvramKeys = OSDictionary::withCapacity(16);
-#endif
-    
-	this->setName("SMC");
-    
-    FakeSMCSetProperty("name", "APP0001");
-    
-	if (OSString *compatibleKey = OSDynamicCast(OSString, properties->getObject("smc-compatible")))
-		FakeSMCSetProperty("compatible", (const char *)compatibleKey->getCStringNoCopy());
-	else
-		FakeSMCSetProperty("compatible", "smc-napa");
-    
-	if (!this->setProperty("_STA", (unsigned long long)0x0000000b, 32)) {
-        HWSensorsErrorLog("failed to set '_STA' property");
-        return false;
-    }
-
-#ifdef DEBUG
-	if (OSBoolean *debugKey = OSDynamicCast(OSBoolean, properties->getObject("debug")))
-		debug = debugKey->getValue();
-    else
-        debug = false;
-    
-    if (OSBoolean *traceKey = OSDynamicCast(OSBoolean, properties->getObject("trace")))
-		trace = traceKey->getValue();
-    else
-        trace = false;
-#endif
-    
-	IODeviceMemory::InitElement	rangeList[1];
-    
-	rangeList[0].start = 0x300;
-	rangeList[0].length = 0x20;
-    
-	if(OSArray *array = IODeviceMemory::arrayFromList(rangeList, 1)) {
-		this->setDeviceMemory(array);
-		OSSafeRelease(array);
-	}
-	else
-	{
-		HWSensorsFatalLog("failed to create Device memory array");
-		return false;
-	}
-    
-	OSArray *controllers = OSArray::withCapacity(1);
-    
-    if(!controllers) {
-		HWSensorsFatalLog("failed to create controllers array");
-        return false;
-    }
-    
-    controllers->setObject((OSSymbol *)OSSymbol::withCStringNoCopy("io-apic-0"));
-    
-	OSArray *specifiers  = OSArray::withCapacity(1);
-    
-    if(!specifiers) {
-		HWSensorsFatalLog("failed to create specifiers array");
-        return false;
-    }
-    
-	UInt64 line = 0x06;
-    
-    OSData *tmpData = OSData::withBytes(&line, sizeof(line));
-    
-    if (!tmpData) {
-		HWSensorsFatalLog("failed to create specifiers data");
-        return false;
-    }
-    
-    specifiers->setObject(tmpData);
-    
-	this->setProperty(gIOInterruptControllersKey, controllers) && this->setProperty(gIOInterruptSpecifiersKey, specifiers);
-	this->attachToParent(platform, gIOServicePlane);
-    
-    registerService();
-    
-	HWSensorsInfoLog("successfully initialized");
-    
-	return true;
 }
 
 IOReturn FakeSMCDevice::setProperties(OSObject * properties)
