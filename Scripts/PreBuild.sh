@@ -8,6 +8,7 @@
 #  Modified by RehabMan 13/07/13.
 #
 
+PROJECT_DIR=.
 real_version_file="${PROJECT_DIR}/Shared/version.h"
 version_file="/tmp/org_fakesmc_prebuild_version.h"
 project_name=$(/usr/libexec/PlistBuddy -c "Print 'Project Name'" "${PROJECT_DIR}/version.plist")
@@ -18,7 +19,6 @@ project_version=$(/usr/libexec/PlistBuddy -c "Print 'Project Version'" "${PROJEC
 if [ "$1" == "clean" ]
 then
     rm -f ${real_version_file}
-    exit 0
 fi
 
 cd ${PROJECT_DIR}
