@@ -264,9 +264,11 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
     if (ignoreNVRAM)
         return;
     
+#if 0
     if (exceptionKeys && exceptionKeys->getObject(key->getKey())) {
         return;
     }
+#endif
     
     IORecursiveLockLock(device_lock);
     
@@ -277,7 +279,10 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
         
         const OSSymbol *tempName = OSSymbol::withCString(name);
         
-        nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        if (runningClover)
+            nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        else
+            nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
         OSSafeRelease(tempName);
         OSSafeRelease(nvram);
@@ -506,6 +511,8 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     exposedValues = OSDictionary::withCapacity(16);
     
 #if NVRAMKEYS
+    OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
+    runningClover = (vendor && vendor->isEqualTo("CLOVER"));
     ignoreNVRAM = true;
     int arg_value = 1;
     if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
@@ -513,9 +520,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     }
     else {
 #if 0
-        OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
-            (vendor && vendor->isEqualTo("CLOVER"))) {
+        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || runningClover) {
             ignoreNVRAM = false;
         }
 #else
