@@ -264,6 +264,9 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
     if (ignoreNVRAM)
         return;
 
+    if (_exceptionKeys->getObject(key->getKey()))
+        return;
+
     IORecursiveLockLock(device_lock);
     
 #if NVRAMKEYS_INTERRUPTSYNC
@@ -652,6 +655,26 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
             OSSafeRelease(iterator);
         }
     }
+
+#if NVRAMKEYS
+    // Load wellknown type names
+    FakeSMCDebugLog("loading NVRAM exceptions...");
+
+    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("ExceptionKeys"))) {
+        _exceptionKeys = OSDictionary::withCapacity(dictionary->getCount());
+        if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
+			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
+                if (OSNumber *value = OSDynamicCast(OSNumber, dictionary->getObject(key))) {
+                    if (value->unsigned32BitValue()) {
+                        HWSensorsDebugLog("key %s entered as exception to NVRAM", key->getCStringNoCopy());
+                        _exceptionKeys->setObject(key, value);
+                    }
+                }
+            }
+            OSSafeRelease(iterator);
+        }
+    }
+#endif
     
     // Set Clover platform keys
     if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Clover"))) {
