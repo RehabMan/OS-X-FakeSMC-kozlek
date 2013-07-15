@@ -264,7 +264,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
     if (ignoreNVRAM)
         return;
 #if 0  //REVIEW: disable exceptionKeys test for testing of timer
-    if (_exceptionKeys->getObject(key->getKey()))
+    if (exceptionKeys->getObject(key->getKey()))
         return;
 #endif
     IORecursiveLockLock(device_lock);
@@ -292,8 +292,10 @@ void FakeSMCDevice::reallySaveKeyToNVRAM(FakeSMCKey* key)
         
         const OSSymbol *tempName = OSSymbol::withCString(name);
         
-        //nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-        nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        if (runningClover)
+            nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        else
+            nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
         OSSafeRelease(tempName);
         OSSafeRelease(nvram);
@@ -639,6 +641,8 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     exposedValues = OSDictionary::withCapacity(16);
     
 #if NVRAMKEYS
+    OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
+    runningClover = (vendor && vendor->isEqualTo("CLOVER"));
     ignoreNVRAM = true;
     int arg_value = 1;
     if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
@@ -646,9 +650,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     }
     else {
 #if 0
-        OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
-            (vendor && vendor->isEqualTo("CLOVER"))) {
+        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || runningClover) {
             ignoreNVRAM = false;
         }
 #else
@@ -709,18 +711,17 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     }
 
 #if NVRAMKEYS
-    // Load wellknown type names
+    // Load NVRAM exception keys
     FakeSMCDebugLog("loading NVRAM exceptions...");
-
+    
+    exceptionKeys = NULL;
     if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("ExceptionKeys"))) {
-        _exceptionKeys = OSDictionary::withCapacity(dictionary->getCount());
+        exceptionKeys = OSDictionary::withCapacity(dictionary->getCount());
         if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
 			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
                 if (OSNumber *value = OSDynamicCast(OSNumber, dictionary->getObject(key))) {
-                    if (value->unsigned32BitValue()) {
-                        HWSensorsDebugLog("key %s entered as exception to NVRAM", key->getCStringNoCopy());
-                        _exceptionKeys->setObject(key, value);
-                    }
+                    if (value->unsigned32BitValue())
+                        exceptionKeys->setObject(key, value);
                 }
             }
             OSSafeRelease(iterator);

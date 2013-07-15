@@ -169,9 +169,9 @@
 				<key>ExceptionKeys</key>
 				<dict>
 					<key>NATi</key>
-					<integer>0</integer>
+					<integer>1</integer>
 					<key>NATJ</key>
-					<integer>0</integer>
+					<integer>1</integer>
 					<key>MSDW</key>
 					<integer>1</integer>
 					<key>NTOK</key>

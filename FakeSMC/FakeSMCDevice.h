@@ -72,8 +72,9 @@ private:
     OSDictionary        *types;
     OSDictionary        *exposedValues;
 #if NVRAMKEYS
+    bool                runningClover;
     bool                ignoreNVRAM;
-    OSDictionary*       _exceptionKeys;
+    OSDictionary        *exceptionKeys;
 #endif
     
    	FakeSMCKey			*keyCounterKey;
