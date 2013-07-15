@@ -512,11 +512,15 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         HWSensorsInfoLog("ignoring NVRAM...");
     }
     else {
+#if 0
         OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
         if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
             (vendor && vendor->isEqualTo("CLOVER"))) {
             ignoreNVRAM = false;
         }
+#else
+        ignoreNVRAM = false;
+#endif
     }
 #endif
     
