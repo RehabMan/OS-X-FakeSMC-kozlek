@@ -499,6 +499,27 @@ FakeSMCKey *FakeSMCDevice::getKey(unsigned int index)
 
 #if NVRAMKEYS_INTERRUPTSYNC
 
+enum {
+    kFakePowerStateSleep  = 0,
+    kFakePowerStateNormal = 1,
+    kFakePowerStateCount = 2
+};
+
+static IOPMPowerState FakePowerStateArray[ kFakePowerStateCount ] =
+{
+    { 1,0,0,0,0,0,0,0,0,0,0,0 },
+    { 1,kIOPMDeviceUsable, IOPMPowerOn, IOPMPowerOn, 0,0,0,0,0,0,0,0 }
+};
+
+IOReturn FakeSMCDevice::setPowerState(unsigned long powerStateOrdinal, IOService* policyMaker)
+{
+    HWSensorsDebugLog("setPowerState called; powerStateOrdinal=%lx", powerStateOrdinal);
+
+    _powerState = powerStateOrdinal;
+
+    return kIOReturnSuccess;
+}
+
 IOWorkLoop * FakeSMCDevice::getWorkLoop() const
 {
     if (!_workLoop)
@@ -515,6 +536,9 @@ void FakeSMCDevice::interruptOccurred(IOInterruptEventSource*, int)
 
 void FakeSMCDevice::syncKeysToNVRAM()
 {
+    if (kFakePowerStateNormal != _powerState)
+        return;
+    
     IORecursiveLockLock(device_lock);
     
     HWSensorsDebugLog("in syncKeysToNVRAM, _keysToSync has %d element(s)", _keysToSync->getCount());
@@ -553,7 +577,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     device_lock = IORecursiveLockAlloc();
     if (!device_lock)
         return false;
-
+    
 #if NVRAMKEYS_INTERRUPTSYNC
     //REVIEW: workloop/eventsource fail won't force fail for now...
     _workLoop = IOWorkLoop::workLoop();
@@ -578,6 +602,12 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
             _keysToSync = OSDictionary::withCapacity(8);
         }
     }
+    
+    _powerState = kFakePowerStateNormal;
+    PMinit();
+    registerPowerDriver(this, FakePowerStateArray, kFakePowerStateCount);
+    provider->joinPMtree(this);
+    
 #endif
     
 	status = (ApleSMCStatus *) IOMalloc(sizeof(struct AppleSMCStatus));

@@ -60,6 +60,7 @@ private:
     IOWorkLoop*         _workLoop;
     IOInterruptEventSource* _interruptSource;
     OSDictionary*       _keysToSync;
+    unsigned long       _powerState;
 #endif
 	
 	struct
@@ -132,6 +133,7 @@ public:
     void  interruptOccurred(IOInterruptEventSource *, int);
     virtual IOWorkLoop * getWorkLoop() const;
     void                syncKeysToNVRAM();
+    virtual IOReturn    setPowerState(unsigned long powerStateOrdinal, IOService* policyMaker);
 #endif
 };
 
