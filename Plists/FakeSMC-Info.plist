@@ -166,6 +166,23 @@
 					<key>RPlt</key>
 					<string>ch8*</string>
 				</dict>
+				<key>ExceptionKeys</key>
+				<dict>
+					<key>NATi</key>
+					<integer>1</integer>
+					<key>NATJ</key>
+					<integer>1</integer>
+					<key>MSDW</key>
+					<integer>1</integer>
+					<key>NTOK</key>
+					<integer>1</integer>
+					<key>CLKT</key>
+					<integer>1</integer>
+					<key>CLKH</key>
+					<integer>1</integer>
+					<key>WKTP</key>
+					<integer>0</integer>
+				</dict>
 				<key>debug</key>
 				<false/>
 				<key>smc-compatible</key>

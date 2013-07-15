@@ -28,7 +28,7 @@
 #define APPLESMC_GET_KEY_TYPE_CMD		0x13
 
 //REVIEW: temporarily to disable NVRAM key writing/loading
-#define NVRAMKEYS 0
+#define NVRAMKEYS 1
 
 struct AppleSMCStatus {
 	uint8_t cmd;
@@ -62,8 +62,8 @@ private:
     OSDictionary        *types;
     OSDictionary        *exposedValues;
 #if NVRAMKEYS
-    //OSDictionary        *nvramKeys;
     bool                ignoreNVRAM;
+    OSDictionary        *exceptionKeys;
 #endif
     
    	FakeSMCKey			*keyCounterKey;
