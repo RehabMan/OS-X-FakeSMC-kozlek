@@ -292,7 +292,8 @@ void FakeSMCDevice::reallySaveKeyToNVRAM(FakeSMCKey* key)
         
         const OSSymbol *tempName = OSSymbol::withCString(name);
         
-        nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        //nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
         OSSafeRelease(tempName);
         OSSafeRelease(nvram);

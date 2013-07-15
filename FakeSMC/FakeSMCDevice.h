@@ -31,7 +31,7 @@
 
 //REVIEW: temporarily to disable NVRAM key writing/loading
 #define NVRAMKEYS 1
-#define NVRAMKEYS_INTERRUPTSYNC 1
+#define NVRAMKEYS_INTERRUPTSYNC 0
 
 struct AppleSMCStatus {
 	uint8_t cmd;
