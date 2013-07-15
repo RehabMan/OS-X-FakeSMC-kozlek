@@ -13,6 +13,7 @@
 #include "FakeSMCKey.h"
 
 #include <IOKit/IOInterruptEventSource.h>
+#include <IOKit/IOTimerEventSource.h>
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
 #include <IOKit/IOLocks.h>
 
@@ -30,7 +31,7 @@
 
 //REVIEW: temporarily to disable NVRAM key writing/loading
 #define NVRAMKEYS 1
-#define NVRAMKEYS_INTERRUPTSYNC 0
+#define NVRAMKEYS_INTERRUPTSYNC 1
 
 struct AppleSMCStatus {
 	uint8_t cmd;
@@ -59,6 +60,7 @@ private:
 #if NVRAMKEYS_INTERRUPTSYNC
     IOWorkLoop*         _workLoop;
     IOInterruptEventSource* _interruptSource;
+    IOTimerEventSource* _timerSource;
     OSDictionary*       _keysToSync;
     unsigned long       _powerState;
 #endif
@@ -131,6 +133,7 @@ public:
 
 #if NVRAMKEYS_INTERRUPTSYNC
     void  interruptOccurred(IOInterruptEventSource *, int);
+    void  timerFired(void);
     virtual IOWorkLoop * getWorkLoop() const;
     void                syncKeysToNVRAM();
     virtual IOReturn    setPowerState(unsigned long powerStateOrdinal, IOService* policyMaker);

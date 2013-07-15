@@ -263,16 +263,17 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
     if (ignoreNVRAM)
         return;
-
+#if 0  //REVIEW: disable exceptionKeys test for testing of timer
     if (_exceptionKeys->getObject(key->getKey()))
         return;
-
+#endif
     IORecursiveLockLock(device_lock);
     
 #if NVRAMKEYS_INTERRUPTSYNC
     HWSensorsDebugLog("adding key %s to _keysToSync", key->getKey());
     _keysToSync->setObject(key->getKey(), key);
-    _interruptSource->interruptOccurred(0, 0, 0);
+    //_interruptSource->interruptOccurred(0, 0, 0);
+    _timerSource->setTimeoutMS(2000);
 #else
     reallySaveKeyToNVRAM(key);
 #endif
@@ -534,6 +535,11 @@ void FakeSMCDevice::interruptOccurred(IOInterruptEventSource*, int)
     syncKeysToNVRAM();
 }
 
+void FakeSMCDevice::timerFired()
+{
+    syncKeysToNVRAM();
+}
+
 void FakeSMCDevice::syncKeysToNVRAM()
 {
     if (kFakePowerStateNormal != _powerState)
@@ -601,6 +607,17 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
             _interruptSource->enable();
             _keysToSync = OSDictionary::withCapacity(8);
         }
+        _timerSource = IOTimerEventSource::timerEventSource(this, OSMemberFunctionCast(IOTimerEventSource::Action, this, &FakeSMCDevice::timerFired));
+        if (!_timerSource) {
+            FakeSMCTraceLog("Unable to allocate IOTimerEventSource");
+            //return false;
+        }
+        if (_timerSource) {
+            if (_workLoop->addEventSource(_timerSource) != kIOReturnSuccess) {
+                FakeSMCTraceLog("Unable to add time event source");
+                //return false;
+            }
+        }
     }
     
     _powerState = kFakePowerStateNormal;
@@ -627,11 +644,15 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         HWSensorsInfoLog("ignoring NVRAM...");
     }
     else {
+#if 0
         OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
         if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) ||
             (vendor && vendor->isEqualTo("CLOVER"))) {
             ignoreNVRAM = false;
         }
+#else
+        ignoreNVRAM = false;
+#endif
     }
 #endif
     
