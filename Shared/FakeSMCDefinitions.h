@@ -195,7 +195,6 @@
 #define kFakeSMCSetValueCallback                "kFakeSMCSetValueCallback"
 
 // NVRAM
-#define kEFIFirmwareVendor                      "firmware-vendor"
 #define kFakeSMCFirmwareVendor                  "fw-vendor"
 #define kFakeSMCKeyPropertyPrefix               "fakesmc-key"
 

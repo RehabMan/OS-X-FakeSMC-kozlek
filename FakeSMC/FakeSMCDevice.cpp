@@ -25,6 +25,9 @@
 
 #define FakeSMCSetProperty(key, value)	do { if (!this->setProperty(key, value)) {HWSensorsErrorLog("failed to set '%s' property", key); return false; } } while(0)
 
+#define KEYSLOCK    IORecursiveLockLock(keysLock)
+#define KEYSUNLOCK  IORecursiveLockUnlock(keysLock)
+
 
 #define super IOACPIPlatformDevice
 OSDefineMetaClassAndStructors (FakeSMCDevice, IOACPIPlatformDevice)
@@ -262,44 +265,46 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
 
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
-    if (ignoreNVRAM)
-        return;
+    KEYSLOCK;
     
-    IORecursiveLockLock(device_lock);
-    
-#if 0
-    if (exceptionKeys && exceptionKeys->getObject(key->getKey())) {
-        IORecursiveLockUnlock(device_lock);
-        return;
-    }
+#if NVRAMKEYS_EXCEPTION
+    if (nvramAllowed && (!exceptionKeys || exceptionKeys->getObject(key->getKey()))) {
+#else
+    if (nvramAllowed) {
 #endif
-    
-    if (IORegistryEntry *nvram = fromPath("/options", gIODTPlane)) {
-        char name[32];
+        if (IORegistryEntry *nvram = fromPath("/options", gIODTPlane)) {
+            char name[32];
+            
+            snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
+            
+            const OSSymbol *tempName = OSSymbol::withCString(name);
+            
+            if (runningChameleon)
+                nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+            else
+                nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
-        snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
-        
-        const OSSymbol *tempName = OSSymbol::withCString(name);
-        
-        if (runningChameleon)
-            nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-        else
-            nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-        
-        OSSafeRelease(tempName);
-        OSSafeRelease(nvram);
+            if (runningChameleon)
+                nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+            else
+                nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+            
+            OSSafeRelease(tempName);
+            OSSafeRelease(nvram);
+        }
     }
     
-    IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
 }
 
-void FakeSMCDevice::loadKeysFromNVRAM()
+UInt32 FakeSMCDevice::loadKeysFromNVRAM()
 {
-    if (ignoreNVRAM)
-        return;
+    if (!nvramAllowed)
+        return 0;
+    
+    UInt32 count = 0;
     
     // Find driver and load keys from NVRAM
-    
     // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
     IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     OSDictionary* matching = 0;
@@ -308,52 +313,56 @@ void FakeSMCDevice::loadKeysFromNVRAM()
         matching = serviceMatching("IODTNVRAM");
         nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10));
     }
-    if (nvram) {
-        OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
-        
-        if (nvram->serializeProperties(s)) {
-            if (OSDictionary *props = OSDynamicCast(OSDictionary, OSUnserializeXML(s->text()))) {
-                if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(props)) {
-                    
-                    int count = 0;
-                    size_t prefix_length = strlen(kFakeSMCKeyPropertyPrefix);
-                    
-                    char name[5]; name[4] = 0;
-                    char type[5]; type[4] = 0;
-                    
-                    while (OSString *property = OSDynamicCast(OSString, iterator->getNextObject())) {
-                        const char *buffer = static_cast<const char *>(property->getCStringNoCopy());
+    if (1) { //REVIEW: just to reduce diffs
+        if (nvram) {
+            
+            nvramAllowed = true;
+            
+            OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
+            
+            if (nvram->serializeProperties(s)) {
+                if (OSDictionary *props = OSDynamicCast(OSDictionary, OSUnserializeXML(s->text()))) {
+                    if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(props)) {
                         
-                        if (0 == strncmp(buffer, kFakeSMCKeyPropertyPrefix, prefix_length)) {
-                            if (OSData *data = OSDynamicCast(OSData, props->getObject(property))) {
-                                memcpy(name, buffer + prefix_length + 1, 4); // fakesmc-key. ->
-                                memcpy(type, buffer + prefix_length + 1 + 4 + 1, 4); // fakesmc-key.xxxx: ->
-                                
-                                if (addKeyWithValue(name, type, data->getLength(), data->getBytesNoCopy())) {
-                                    HWSensorsDebugLog("key %s of type %s loaded from NVRAM", name, type);
-                                    count++;
+                        size_t prefix_length = strlen(kFakeSMCKeyPropertyPrefix);
+                        
+                        char name[5]; name[4] = 0;
+                        char type[5]; type[4] = 0;
+                        
+                        while (OSString *property = OSDynamicCast(OSString, iterator->getNextObject())) {
+                            const char *buffer = static_cast<const char *>(property->getCStringNoCopy());
+                            
+                            if (property->getLength() >= prefix_length + 1 + 4 + 1 + 0 && 0 == strncmp(buffer, kFakeSMCKeyPropertyPrefix, prefix_length)) {
+                                if (OSData *data = OSDynamicCast(OSData, props->getObject(property))) {
+                                    strncpy(name, buffer + prefix_length + 1, 4); // fakesmc-key-???? ->
+                                    strncpy(type, buffer + prefix_length + 1 + 4 + 1, 4); // fakesmc-key-xxxx-???? ->
+                                    
+                                    if (addKeyWithValue(name, type, data->getLength(), data->getBytesNoCopy())) {
+                                        HWSensorsDebugLog("key %s of type %s loaded from NVRAM", name, type);
+                                        count++;
+                                    }
                                 }
                             }
                         }
+                        
+                        OSSafeRelease(iterator);
                     }
                     
-                    if (count) HWSensorsInfoLog("%d key%s loaded from NVRAM", count, count == 1 ? "" : "s");
-                    
-                    OSSafeRelease(iterator);
+                    OSSafeRelease(props);
                 }
-                
-                OSSafeRelease(props);
             }
+            
+            OSSafeRelease(s);
+            OSSafeRelease(nvram);
+        }
+        else {
+            HWSensorsWarningLog("NVRAM is unavailable");
         }
         
-        OSSafeRelease(s);
-        OSSafeRelease(nvram);
-    }
-    else {
-        HWSensorsWarningLog("NVRAM is unavailable");
+        OSSafeRelease(matching);
     }
     
-    OSSafeRelease(matching);
+    return count;
 }
 
 #endif //NVRAMKEYS
@@ -361,7 +370,10 @@ void FakeSMCDevice::loadKeysFromNVRAM()
 #pragma mark -
 #pragma mark Key storage engine
 
-UInt32 FakeSMCDevice::getCount() { return keys->getCount(); }
+UInt32 FakeSMCDevice::getCount()
+{
+    return keys->getCount();
+}
 
 void FakeSMCDevice::updateKeyCounterKey()
 {
@@ -369,7 +381,9 @@ void FakeSMCDevice::updateKeyCounterKey()
     
 	//char value[] = { static_cast<char>(count << 24), static_cast<char>(count << 16), static_cast<char>(count << 8), static_cast<char>(count) };
     
+    KEYSLOCK;
 	keyCounterKey->setValueFromBuffer(&count, 4);
+    KEYSUNLOCK;
 }
 
 void FakeSMCDevice::updateFanCounterKey()
@@ -383,12 +397,14 @@ void FakeSMCDevice::updateFanCounterKey()
     }
     
     //addKeyWithValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, &count);
+    KEYSLOCK;
 	fanCounterKey->setValueFromBuffer(&count, 1);
+    KEYSUNLOCK;
 }
 
 FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value)
 {
-    IORecursiveLockLock(device_lock);
+    KEYSLOCK;
     
     FakeSMCKey* key;
 	if ((key = getKey(name))) {
@@ -469,7 +485,7 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
         }
 	}
     
-    IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
     
     if (!key)
         HWSensorsErrorLog("failed to create key %s", name);
@@ -479,13 +495,14 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
 
 FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type, unsigned char size, IOService *handler)
 {
-    IORecursiveLockLock(device_lock);
+    KEYSLOCK;
     
     FakeSMCKey* key;
 	if ((key = getKey(name))) {
 		HWSensorsErrorLog("key %s already handled", name);
         if (key->getHandler() != NULL) {
             // TODO: check priority?
+            
             HWSensorsErrorLog("key %s already handled", name);
             key = 0;
         }
@@ -505,7 +522,7 @@ FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type,
             updateKeyCounterKey();
         }
 	}
-    IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
     
     if (!key)
         HWSensorsErrorLog("failed to create key %s", name);
@@ -515,17 +532,16 @@ FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type,
 
 FakeSMCKey *FakeSMCDevice::getKey(const char *name)
 {
-    IORecursiveLockLock(device_lock);
+    KEYSLOCK;
     
     FakeSMCKey* key = 0;
     if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keys)) {
         
         // Made the key name valid (4 char long): add trailing spaces if needed
         char validKeyNameBuffer[5];
-        snprintf(validKeyNameBuffer, 5, "%-4s", name);
+        copySymbol(name, validKeyNameBuffer);
         
 		while ((key = OSDynamicCast(FakeSMCKey, iterator->getNextObject()))) {
-            
             UInt32 key1 = HWSensorsKeyToInt(&validKeyNameBuffer);
 			UInt32 key2 = HWSensorsKeyToInt(key->getKey());
 			if (key1 == key2) {
@@ -535,7 +551,7 @@ FakeSMCKey *FakeSMCDevice::getKey(const char *name)
         
         OSSafeRelease(iterator);
 	}
-    IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
     
     if (!key)
         FakeSMCDebugLog("key %s not found", name);
@@ -545,9 +561,9 @@ FakeSMCKey *FakeSMCDevice::getKey(const char *name)
 
 FakeSMCKey *FakeSMCDevice::getKey(unsigned int index)
 {
-    IORecursiveLockLock(device_lock);
+    KEYSLOCK;
     FakeSMCKey* key = OSDynamicCast(FakeSMCKey, keys->getObject(index));
-    IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
     if (!key)
         FakeSMCDebugLog("key with index %d not found", index);
     
@@ -566,10 +582,6 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     if (!properties)
         return false;
     
-    device_lock = IORecursiveLockAlloc();
-    if (!device_lock)
-        return false;
-    
 	status = (ApleSMCStatus *) IOMalloc(sizeof(struct AppleSMCStatus));
     if (!status)
         return false;
@@ -580,33 +592,29 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     types = OSDictionary::withCapacity(16);
     exposedValues = OSDictionary::withCapacity(16);
     
-#if NVRAMKEYS
-    OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-    static const char kChameleonID[] = "Chameleon";
-    static const int kChameleonIDLen = sizeof(kChameleonID)/sizeof(kChameleonID[0])-1;
-    runningChameleon = vendor && 0 == strncmp(kChameleonID, vendor->getCStringNoCopy(), kChameleonIDLen);
-    ignoreNVRAM = true;
-    int arg_value = 1;
-    if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
-        HWSensorsInfoLog("ignoring NVRAM...");
-    }
-    else {
-#if 0
-        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon) {
-            ignoreNVRAM = false;
-        }
-#else
-        ignoreNVRAM = false;
-#endif
-    }
-#endif
-    
     // Add fist key - counter key
     keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
 	keys->setObject(keyCounterKey);
     
     fanCounterKey = FakeSMCKey::withValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, "\0");
     keys->setObject(fanCounterKey);
+    
+    keysLock = IORecursiveLockAlloc();
+    if (!keysLock)
+        return false;
+
+#if NVRAMKEYS
+    OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
+    static const char kChameleonID[] = "Chameleon";
+    static const int kChameleonIDLen = sizeof(kChameleonID)-1;
+    runningChameleon = vendor && 0 == strncmp(kChameleonID, vendor->getCStringNoCopy(), kChameleonIDLen);
+    
+    //REVIEW: a bit of hack for testing...
+    nvramAllowed = false;
+    int arg_value = 1;
+    if (!PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value)))
+        nvramAllowed = true; //PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon;
+#endif
     
     // Load preconfigured keys
     FakeSMCDebugLog("loading keys...");
@@ -652,7 +660,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         }
     }
     
-#if NVRAMKEYS
+#if NVRAMKEYS_EXCEPTION
     // Load NVRAM exception keys
     FakeSMCDebugLog("loading NVRAM exceptions...");
     
@@ -868,7 +876,7 @@ void FakeSMCDevice::ioWrite8( UInt16 offset, UInt8 value, IOMemoryMap * map )
 
 IOReturn FakeSMCDevice::setProperties(OSObject * properties)
 {
-    IORecursiveLockLock(device_lock);
+    KEYSLOCK;
     
     IOReturn result = kIOReturnUnsupported;
     
@@ -919,7 +927,7 @@ IOReturn FakeSMCDevice::setProperties(OSObject * properties)
         }
     }
     
-    IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
     
 	return result;
 }
@@ -964,8 +972,7 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
-    ////if (waitForFunction)
-        IORecursiveLockLock(device_lock);
+    KEYSLOCK;
     
     IOReturn result = kIOReturnUnsupported;
     
@@ -1164,14 +1171,12 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         }
     }
     else {
-        ////if (waitForFunction)
-            IORecursiveLockUnlock(device_lock);
+        KEYSUNLOCK;
         
         return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
     }
     
-    ////if (waitForFunction)
-        IORecursiveLockUnlock(device_lock);
+    KEYSUNLOCK;
     
 	return result;
 }

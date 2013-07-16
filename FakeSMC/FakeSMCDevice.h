@@ -29,6 +29,7 @@
 
 //REVIEW: temporarily to disable NVRAM key writing/loading
 #define NVRAMKEYS 1
+#define NVRAMKEYS_EXCEPTION 0
 
 struct AppleSMCStatus {
 	uint8_t cmd;
@@ -53,7 +54,6 @@ private:
 	IOInterruptAction	interrupt_handler;
 	void				*interrupt_refcon;
 	int					interrupt_source;
-    IORecursiveLock*    device_lock;
 	
 	struct
     ApleSMCStatus       *status;
@@ -61,11 +61,6 @@ private:
 	OSArray             *keys;
     OSDictionary        *types;
     OSDictionary        *exposedValues;
-#if NVRAMKEYS
-    bool                runningChameleon;
-    bool                ignoreNVRAM;
-    OSDictionary        *exceptionKeys;
-#endif
     
    	FakeSMCKey			*keyCounterKey;
     FakeSMCKey          *fanCounterKey;
@@ -74,6 +69,16 @@ private:
     bool				trace;
 	bool				debug;
 #endif
+    
+#if NVRAMKEYS
+    bool                nvramAllowed;
+    bool                runningChameleon;
+#endif
+#if NVRAMKEYS_EXCEPTION
+    OSDictionary        *exceptionKeys;
+#endif
+    
+    IORecursiveLock     *keysLock;
     
     UInt16              vacantGPUIndex;
     UInt16              vacantFanIndex;
@@ -85,7 +90,7 @@ private:
 	const char          *applesmc_get_key_by_index(uint32_t index, struct AppleSMCStatus *s);
 	void                applesmc_fill_data(struct AppleSMCStatus *s);
 	void                applesmc_fill_info(struct AppleSMCStatus *s);
-    
+
 public:
     FakeSMCKey          *addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value);
 	FakeSMCKey          *addKeyWithHandler(const char *name, const char *type, unsigned char size, IOService *handler);
@@ -98,9 +103,8 @@ public:
     
 #if NVRAMKEYS
     void                saveKeyToNVRAM(FakeSMCKey *key);
-    void                loadKeysFromNVRAM();
+    UInt32              loadKeysFromNVRAM();
 #endif
-   
     bool                initAndStart(IOService *platform, IOService *provider);
     
     virtual void		ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );

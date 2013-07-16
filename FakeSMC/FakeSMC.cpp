@@ -60,7 +60,7 @@ bool FakeSMC::init(OSDictionary *dictionary)
     }
     
     if (IORegistryEntry *efi = IORegistryEntry::fromPath("/efi", gIODTPlane)) {
-        if (OSData *vendor = OSDynamicCast(OSData, efi->getProperty(kEFIFirmwareVendor))) {
+        if (OSData *vendor = OSDynamicCast(OSData, efi->getProperty("firmware-vendor"))) { // firmware-vendor is in EFI node
             OSData *buffer = OSData::withCapacity(128);
             const unsigned char* data = static_cast<const unsigned char*>(vendor->getBytesNoCopy());
             
@@ -114,9 +114,17 @@ bool FakeSMC::start(IOService *provider)
     }
 
 	registerService();
-
+    
 #if NVRAMKEYS
-    smcDevice->loadKeysFromNVRAM();
+    // Load keys from NVRAM
+    
+    if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
+        HWSensorsInfoLog("ignoring NVRAM...");
+    }
+    else {
+        UInt32 count = smcDevice->loadKeysFromNVRAM();
+        if (count) HWSensorsInfoLog("%d key%s loaded from NVRAM", count, count == 1 ? "" : "s");
+    }
 #endif
 
 	return true;
