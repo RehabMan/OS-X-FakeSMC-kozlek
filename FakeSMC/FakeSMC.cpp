@@ -60,7 +60,7 @@ bool FakeSMC::init(OSDictionary *dictionary)
     }
     
     if (IORegistryEntry *efi = IORegistryEntry::fromPath("/efi", gIODTPlane)) {
-        if (OSData *vendor = OSDynamicCast(OSData, efi->getProperty(kFakeSMCFirmwareVendor))) {
+        if (OSData *vendor = OSDynamicCast(OSData, efi->getProperty(kEFIFirmwareVendor))) {
             OSData *buffer = OSData::withCapacity(128);
             const unsigned char* data = static_cast<const unsigned char*>(vendor->getBytesNoCopy());
             
