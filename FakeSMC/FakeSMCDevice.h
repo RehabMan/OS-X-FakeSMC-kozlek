@@ -62,7 +62,7 @@ private:
     OSDictionary        *types;
     OSDictionary        *exposedValues;
 #if NVRAMKEYS
-    bool                runningClover;
+    bool                runningChameleon;
     bool                ignoreNVRAM;
     OSDictionary        *exceptionKeys;
 #endif
@@ -98,9 +98,9 @@ public:
     
 #if NVRAMKEYS
     void                saveKeyToNVRAM(FakeSMCKey *key);
-    bool                savingKeysToNVRAM() { return !ignoreNVRAM; }
+    void                loadKeysFromNVRAM();
 #endif
-    
+   
     bool                initAndStart(IOService *platform, IOService *provider);
     
     virtual void		ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );

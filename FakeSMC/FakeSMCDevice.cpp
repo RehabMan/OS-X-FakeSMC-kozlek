@@ -255,34 +255,36 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
     return ((struct AppleSMCStatus*)opaque)->status;
 }
 
-#if NVRAMKEYS
 #pragma mark -
 #pragma mark NVRAM
+
+#if NVRAMKEYS
 
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
     if (ignoreNVRAM)
         return;
     
+    IORecursiveLockLock(device_lock);
+    
 #if 0
     if (exceptionKeys && exceptionKeys->getObject(key->getKey())) {
+        IORecursiveLockUnlock(device_lock);
         return;
     }
 #endif
     
-    IORecursiveLockLock(device_lock);
-    
-    if (IODTNVRAM *nvram = OSDynamicCast(IODTNVRAM, fromPath("/options", gIODTPlane))) {
+    if (IORegistryEntry *nvram = fromPath("/options", gIODTPlane)) {
         char name[32];
         
         snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
         
         const OSSymbol *tempName = OSSymbol::withCString(name);
         
-        if (runningClover)
-            nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-        else
+        if (runningChameleon)
             nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        else
+            nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
         OSSafeRelease(tempName);
         OSSafeRelease(nvram);
@@ -290,6 +292,70 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
     
     IORecursiveLockUnlock(device_lock);
 }
+
+void FakeSMCDevice::loadKeysFromNVRAM()
+{
+    if (ignoreNVRAM)
+        return;
+    
+    // Find driver and load keys from NVRAM
+    
+    // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
+    IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+    OSDictionary* matching = 0;
+    if (!nvram) {
+        // probably booting w/ Clover
+        matching = serviceMatching("IODTNVRAM");
+        nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10));
+    }
+    if (nvram) {
+        OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
+        
+        if (nvram->serializeProperties(s)) {
+            if (OSDictionary *props = OSDynamicCast(OSDictionary, OSUnserializeXML(s->text()))) {
+                if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(props)) {
+                    
+                    int count = 0;
+                    size_t prefix_length = strlen(kFakeSMCKeyPropertyPrefix);
+                    
+                    char name[5]; name[4] = 0;
+                    char type[5]; type[4] = 0;
+                    
+                    while (OSString *property = OSDynamicCast(OSString, iterator->getNextObject())) {
+                        const char *buffer = static_cast<const char *>(property->getCStringNoCopy());
+                        
+                        if (0 == strncmp(buffer, kFakeSMCKeyPropertyPrefix, prefix_length)) {
+                            if (OSData *data = OSDynamicCast(OSData, props->getObject(property))) {
+                                memcpy(name, buffer + prefix_length + 1, 4); // fakesmc-key. ->
+                                memcpy(type, buffer + prefix_length + 1 + 4 + 1, 4); // fakesmc-key.xxxx: ->
+                                
+                                if (addKeyWithValue(name, type, data->getLength(), data->getBytesNoCopy())) {
+                                    HWSensorsDebugLog("key %s of type %s loaded from NVRAM", name, type);
+                                    count++;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (count) HWSensorsInfoLog("%d key%s loaded from NVRAM", count, count == 1 ? "" : "s");
+                    
+                    OSSafeRelease(iterator);
+                }
+                
+                OSSafeRelease(props);
+            }
+        }
+        
+        OSSafeRelease(s);
+        OSSafeRelease(nvram);
+    }
+    else {
+        HWSensorsWarningLog("NVRAM is unavailable");
+    }
+    
+    OSSafeRelease(matching);
+}
+
 #endif //NVRAMKEYS
 
 #pragma mark -
@@ -326,6 +392,10 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
     
     FakeSMCKey* key;
 	if ((key = getKey(name))) {
+        
+        if (type && strncmp(type, key->getType(), 4) == 0) {
+            key->setType(type);
+        }
         
         if (value) {
             key->setSize(size);
@@ -512,7 +582,9 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     
 #if NVRAMKEYS
     OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-    runningClover = (vendor && vendor->isEqualTo("CLOVER"));
+    static const char kChameleonID[] = "Chameleon";
+    static const int kChameleonIDLen = sizeof(kChameleonID)/sizeof(kChameleonID[0])-1;
+    runningChameleon = vendor && 0 == strncmp(kChameleonID, vendor->getCStringNoCopy(), kChameleonIDLen);
     ignoreNVRAM = true;
     int arg_value = 1;
     if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
@@ -520,7 +592,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     }
     else {
 #if 0
-        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || runningClover) {
+        if (PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon) {
             ignoreNVRAM = false;
         }
 #else
