@@ -8,24 +8,28 @@
 #  Modified by RehabMan 13/07/13.
 #
 
-PROJECT_DIR=.
-real_version_file="${PROJECT_DIR}/Shared/version.h"
+real_version_file="./Shared/version.h"
+revision_file="./revision.txt"
 version_file="/tmp/org_fakesmc_prebuild_version.h"
-project_name=$(/usr/libexec/PlistBuddy -c "Print 'Project Name'" "${PROJECT_DIR}/version.plist")
+
+if [ "$1" == "clean" ]
+then
+    rm -f ${real_version_file}
+    echo "-" > ${real_version_file}
+    rm -f ${revision_file}
+    echo "-" > ${revision_file}
+    #exit 0
+fi
+
+project_name=$(/usr/libexec/PlistBuddy -c "Print 'Project Name'" "./version.plist")
 uppercased_name=$(echo $project_name | tr [[:lower:]] [[:upper:]])
-project_version=$(/usr/libexec/PlistBuddy -c "Print 'Project Version'" "${PROJECT_DIR}/version.plist")
-revision_file="${PROJECT_DIR}/revision.txt"
+project_version=$(/usr/libexec/PlistBuddy -c "Print 'Project Version'" "./version.plist")
+
 last_revision=$(<$revision_file)
 
 echo Last project revision: ${last_revision}
 
-# Clean removes version.h to eventually regenerate
-if [ "$1" == "clean" ]
-then
-    rm -f ${real_version_file}
-fi
-
-cd ${PROJECT_DIR}
+cd .
 
 sc_revision=$(svnversion)
 
