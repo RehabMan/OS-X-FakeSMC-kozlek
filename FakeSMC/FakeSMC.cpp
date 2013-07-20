@@ -118,7 +118,7 @@ bool FakeSMC::start(IOService *provider)
 #if NVRAMKEYS
     // Load keys from NVRAM
     
-    if (PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value))) {
+    if (PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value))) {
         HWSensorsInfoLog("ignoring NVRAM...");
     }
     else {

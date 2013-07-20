@@ -612,7 +612,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     //REVIEW: a bit of hack for testing...
     nvramAllowed = false;
     int arg_value = 1;
-    if (!PE_parse_boot_argn("-fakesmc-ignore-nvram", &arg_value, sizeof(arg_value)))
+    if (!PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value)))
         nvramAllowed = true; //PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon;
 #endif
     
