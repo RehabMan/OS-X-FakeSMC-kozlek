@@ -71,7 +71,6 @@ private:
 #endif
     
 #if NVRAMKEYS
-    IORegistryEntry     *_nvram;
     bool                genericNVRAM;
     bool                nvramAllowed;
 #endif

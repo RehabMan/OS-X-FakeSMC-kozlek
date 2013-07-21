@@ -268,10 +268,12 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
     KEYSLOCK;
             
 #if NVRAMKEYS_EXCEPTION
-    if (_nvram && (!exceptionKeys || exceptionKeys->getObject(key->getKey()))) {
-#else
-    if (_nvram) {
+    if (!exceptionKeys || exceptionKeys->getObject(key->getKey())) {
+        KEYSUNLOCK;
+        return;
+    }
 #endif
+    if (IORegistryEntry *nvram = OSDynamicCast(IORegistryEntry, fromPath("/options", gIODTPlane))) {
         char name[32];
         
         snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
@@ -279,12 +281,12 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
         const OSSymbol *tempName = OSSymbol::withCString(name);
     
         if (genericNVRAM)
-            _nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+            nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         else
-            _nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+            nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
         
         OSSafeRelease(tempName);
-        ////OSSafeRelease(nvram);
+        OSSafeRelease(nvram);
     }
     
     KEYSUNLOCK;
@@ -299,22 +301,22 @@ UInt32 FakeSMCDevice::loadKeysFromNVRAM()
     
     // Find driver and load keys from NVRAM
     // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
-    _nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+    IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     OSDictionary* matching = 0;
-    if (!_nvram) {
+    if (!nvram) {
         // probably booting w/ Clover
         matching = serviceMatching("IODTNVRAM");
-        _nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 15));
+        nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 15));
     }
     if (1) { //REVIEW: just to reduce diffs
-        if (_nvram) {
+        if (nvram) {
             
-            if ((genericNVRAM = (0 == strncmp(_nvram->getName(), "AppleNVRAM", strlen("AppleNVRAM")))))
+            if ((genericNVRAM = (0 == strncmp(nvram->getName(), "AppleNVRAM", strlen("AppleNVRAM")))))
                 HWSensorsInfoLog("fallback to generic NVRAM methods");
             
             OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
             
-            if (_nvram->serializeProperties(s)) {
+            if (nvram->serializeProperties(s)) {
                 if (OSDictionary *props = OSDynamicCast(OSDictionary, OSUnserializeXML(s->text()))) {
                     if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(props)) {
                         
@@ -347,7 +349,7 @@ UInt32 FakeSMCDevice::loadKeysFromNVRAM()
             }
             
             OSSafeRelease(s);
-            ////OSSafeRelease(nvram);
+            OSSafeRelease(nvram);
         }
         else {
             HWSensorsWarningLog("NVRAM is unavailable");
