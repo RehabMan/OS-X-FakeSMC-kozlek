@@ -266,32 +266,25 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
     KEYSLOCK;
-    
+            
 #if NVRAMKEYS_EXCEPTION
-    if (nvramAllowed && (!exceptionKeys || exceptionKeys->getObject(key->getKey()))) {
+    if (_nvram && (!exceptionKeys || exceptionKeys->getObject(key->getKey()))) {
 #else
-    if (nvramAllowed) {
+    if (_nvram) {
 #endif
-        if (IORegistryEntry *nvram = fromPath("/options", gIODTPlane)) {
-            char name[32];
-            
-            snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
-            
-            const OSSymbol *tempName = OSSymbol::withCString(name);
-            
-            if (runningChameleon)
-                nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-            else
-                nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        char name[32];
         
-            if (runningChameleon)
-                nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-            else
-                nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
-            
-            OSSafeRelease(tempName);
-            OSSafeRelease(nvram);
-        }
+        snprintf(name, 32, "%s-%s-%s", kFakeSMCKeyPropertyPrefix, key->getKey(), key->getType());
+    
+        const OSSymbol *tempName = OSSymbol::withCString(name);
+    
+        if (genericNVRAM)
+            _nvram->IORegistryEntry::setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        else
+            _nvram->setProperty(tempName, OSData::withBytes(key->getValue(), key->getSize()));
+        
+        OSSafeRelease(tempName);
+        ////OSSafeRelease(nvram);
     }
     
     KEYSUNLOCK;
@@ -306,21 +299,22 @@ UInt32 FakeSMCDevice::loadKeysFromNVRAM()
     
     // Find driver and load keys from NVRAM
     // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
-    IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
+    _nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     OSDictionary* matching = 0;
-    if (!nvram) {
+    if (!_nvram) {
         // probably booting w/ Clover
         matching = serviceMatching("IODTNVRAM");
-        nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 10));
+        _nvram = OSDynamicCast(IODTNVRAM, waitForMatchingService(matching, 1000000000ULL * 15));
     }
     if (1) { //REVIEW: just to reduce diffs
-        if (nvram) {
+        if (_nvram) {
             
-            nvramAllowed = true;
+            if ((genericNVRAM = (0 == strncmp(_nvram->getName(), "AppleNVRAM", strlen("AppleNVRAM")))))
+                HWSensorsInfoLog("fallback to generic NVRAM methods");
             
             OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
             
-            if (nvram->serializeProperties(s)) {
+            if (_nvram->serializeProperties(s)) {
                 if (OSDictionary *props = OSDynamicCast(OSDictionary, OSUnserializeXML(s->text()))) {
                     if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(props)) {
                         
@@ -353,7 +347,7 @@ UInt32 FakeSMCDevice::loadKeysFromNVRAM()
             }
             
             OSSafeRelease(s);
-            OSSafeRelease(nvram);
+            ////OSSafeRelease(nvram);
         }
         else {
             HWSensorsWarningLog("NVRAM is unavailable");
@@ -604,10 +598,12 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         return false;
 
 #if NVRAMKEYS
+/*
     OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
     static const char kChameleonID[] = "Chameleon";
     static const int kChameleonIDLen = sizeof(kChameleonID)-1;
-    runningChameleon = vendor && 0 == strncmp(kChameleonID, vendor->getCStringNoCopy(), kChameleonIDLen);
+    bool runningChameleon = vendor && 0 == strncmp(kChameleonID, vendor->getCStringNoCopy(), kChameleonIDLen);
+*/
     
     //REVIEW: a bit of hack for testing...
     nvramAllowed = false;

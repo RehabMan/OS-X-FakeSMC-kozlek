@@ -71,8 +71,9 @@ private:
 #endif
     
 #if NVRAMKEYS
+    IORegistryEntry     *_nvram;
+    bool                genericNVRAM;
     bool                nvramAllowed;
-    bool                runningChameleon;
 #endif
 #if NVRAMKEYS_EXCEPTION
     OSDictionary        *exceptionKeys;
