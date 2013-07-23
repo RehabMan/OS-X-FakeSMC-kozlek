@@ -265,6 +265,9 @@ uint32_t FakeSMCDevice::applesmc_io_cmd_readb(void *opaque, uint32_t addr1)
 
 void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 {
+    if (!useNVRAM)
+        return;
+    
     KEYSLOCK;
             
 #if NVRAMKEYS_EXCEPTION
@@ -273,6 +276,7 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
         return;
     }
 #endif
+    
     if (IORegistryEntry *nvram = OSDynamicCast(IORegistryEntry, fromPath("/options", gIODTPlane))) {
         char name[32];
         
@@ -294,13 +298,14 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 
 UInt32 FakeSMCDevice::loadKeysFromNVRAM()
 {
-    if (!nvramAllowed)
+    if (!useNVRAM)
         return 0;
     
     UInt32 count = 0;
     
     // Find driver and load keys from NVRAM
     // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
+    useNVRAM = false;
     IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     OSDictionary* matching = 0;
     if (!nvram) {
@@ -311,7 +316,9 @@ UInt32 FakeSMCDevice::loadKeysFromNVRAM()
     if (1) { //REVIEW: just to reduce diffs
         if (nvram) {
             
-            if ((genericNVRAM = (0 == strncmp(nvram->getName(), "AppleNVRAM", strlen("AppleNVRAM")))))
+            useNVRAM = true;
+            
+            if ((genericNVRAM = (0 == strncmp(nvram->getName(), "AppleNVRAM", sizeof("AppleNVRAM")))))
                 HWSensorsInfoLog("fallback to generic NVRAM methods");
             
             OSSerialize *s = OSSerialize::withCapacity(0); // Workaround for IODTNVRAM->getPropertyTable returns IOKitPersonalities instead of NVRAM properties dictionary
@@ -608,10 +615,11 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
 */
     
     //REVIEW: a bit of hack for testing...
-    nvramAllowed = false;
     int arg_value = 1;
-    if (!PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value)))
-        nvramAllowed = true; //PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon;
+    if (PE_parse_boot_argn("-fakesmc-use-nvram", &arg_value, sizeof(arg_value)))
+        useNVRAM = true;
+    if (PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value)))
+        useNVRAM = false; //PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon;
 #endif
     
     // Load preconfigured keys

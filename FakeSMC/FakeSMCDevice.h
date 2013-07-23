@@ -71,8 +71,8 @@ private:
 #endif
     
 #if NVRAMKEYS
+    bool                useNVRAM;
     bool                genericNVRAM;
-    bool                nvramAllowed;
 #endif
 #if NVRAMKEYS_EXCEPTION
     OSDictionary        *exceptionKeys;

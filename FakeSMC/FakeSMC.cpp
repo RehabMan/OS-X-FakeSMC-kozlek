@@ -117,13 +117,11 @@ bool FakeSMC::start(IOService *provider)
     
 #if NVRAMKEYS
     // Load keys from NVRAM
-    
-    if (PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value))) {
-        HWSensorsInfoLog("ignoring NVRAM...");
-    }
-    else {
-        UInt32 count = smcDevice->loadKeysFromNVRAM();
-        if (count) HWSensorsInfoLog("%d key%s loaded from NVRAM", count, count == 1 ? "" : "s");
+    if (PE_parse_boot_argn("-fakesmc-use-nvram", &arg_value, sizeof(arg_value))) {
+        if (UInt32 count = smcDevice->loadKeysFromNVRAM())
+            HWSensorsInfoLog("%d key%s loaded from NVRAM", count, count == 1 ? "" : "s");
+        else
+            HWSensorsInfoLog("NVRAM will be used to store system written keys...");
     }
 #endif
 
