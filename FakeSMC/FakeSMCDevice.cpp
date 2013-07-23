@@ -298,14 +298,10 @@ void FakeSMCDevice::saveKeyToNVRAM(FakeSMCKey *key)
 
 UInt32 FakeSMCDevice::loadKeysFromNVRAM()
 {
-    if (!useNVRAM)
-        return 0;
-    
     UInt32 count = 0;
     
     // Find driver and load keys from NVRAM
     // check for Chameleon NVRAM key first (because waiting for IODTNVRAM hangs)
-    useNVRAM = false;
     IORegistryEntry* nvram = IORegistryEntry::fromPath("/chosen/nvram", gIODTPlane);
     OSDictionary* matching = 0;
     if (!nvram) {
@@ -605,7 +601,12 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     keysLock = IORecursiveLockAlloc();
     if (!keysLock)
         return false;
+    
+#if NVRAMKEYS
+    useNVRAM = false;
+#endif
 
+#if 0
 #if NVRAMKEYS
 /*
     OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
@@ -620,6 +621,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         useNVRAM = true;
     if (PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value)))
         useNVRAM = false; //PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon;
+#endif
 #endif
     
     // Load preconfigured keys
