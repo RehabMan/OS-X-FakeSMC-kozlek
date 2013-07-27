@@ -125,7 +125,7 @@
 "%1.3fW" = "%1.3fВт";
 
 "Downloading %@" = "Загрузка %@";
-"%1.1f Mbytes" = "%1.1f МБайт";
+"%1.2f Mbytes" = "%1.2f МБайт";
 
 "CPUFan" = "Вентилятор ЦП";
 "CPUFan2" = "Вентилятор ЦП 2";
@@ -165,8 +165,12 @@
 "CPU Proximity" = "Процессор, Датчик";
 "CPU %X Proximity" = "Процессор %X, Датчик";
 
-"CPU Package" = "Процессор, Упаковка";
-"CPU Package Total" = "Процессор, Упаковка";
+"CPU Die" = "Процессор, Подложка";
+"CPU %X Die" = "Процессор %X, Подложка";
+"CPU %X Core" = "Процессор %X, Ядро";
+"CPU %X Graphics" = "Процессор %X, Видео";
+"CPU %X Heatsink" = "Процессор %X, Радиатор";
+"CPU Package Total" = "Процессор, Суммарно";
 "CPU Package Cores" = "Процессор, Ядра";
 "CPU Package Graphics" = "Процессор, Графика";
 "CPU Package DRAM" = "Контроллер памяти";
@@ -212,9 +216,10 @@
 
 "Thermal Zone %X" = "Термальная зона %X";
 
-"CPU Core" = "Ядро процессора";
-"CPU Core %X" = "Ядро процессора %X";
+"CPU Core" = "Процессор, Ядро";
+"CPU Core %X" = "Процессор, Ядро %X";
 "CPU Package Multiplier" = "Процессор, Множитель";
+"CPU Package" = "Процессор, Частота";
 
 "GPU Core" = "Видеокарта, Ядро";
 "GPU %X Core" = "Видеокарта %X, Ядро";
@@ -234,8 +239,10 @@
 "Power Supply 12V" = "Источник питания 12V";
 //"DC In S0 Rail" = "";
 //"DC In S5 Rail" = "";
-"GPU Rail" = "Шина видеокарты";
-"GPU %X Rail" = "Шина видеокарты %X";
+"GPU Rail" = "Видеокарта, Шина";
+"GPU %X Rail" = "Видеокарта, Шина %X";
+"CPU VRM" = "Процессор, Регулятор";
+"CPU VRM %X" = "Процессор, Регулятор %X";
 
 "CMOS Battery" = "Батарея CMOS";
 

@@ -31,7 +31,7 @@
 			<key>IOClass</key>
 			<string>F718xxSensors</string>
 			<key>IOMatchCategory</key>
-			<string>SuperIOPlugin</string>
+			<string>LPCSensors</string>
 			<key>IONameMatch</key>
 			<array>
 				<string>Fintek,F71858</string>
@@ -818,7 +818,7 @@
 			<key>IOClass</key>
 			<string>IT87xxSensors</string>
 			<key>IOMatchCategory</key>
-			<string>SuperIOPlugin</string>
+			<string>LPCSensors</string>
 			<key>IONameMatch</key>
 			<array>
 				<string>ITE,IT8512F</string>
@@ -1411,7 +1411,7 @@
 						<key>VIN1</key>
 						<dict>
 							<key>gain</key>
-							<integer>1350</integer>
+							<integer>1442</integer>
 							<key>name</key>
 							<string>Main 5V</string>
 							<key>offset</key>
@@ -1433,7 +1433,7 @@
 						<key>VIN3</key>
 						<dict>
 							<key>gain</key>
-							<integer>680</integer>
+							<integer>688</integer>
 							<key>name</key>
 							<string>Main 3V</string>
 							<key>offset</key>
@@ -2572,7 +2572,7 @@
 			<key>IOClass</key>
 			<string>NCT677xSensors</string>
 			<key>IOMatchCategory</key>
-			<string>SuperIOPlugin</string>
+			<string>LPCSensors</string>
 			<key>IONameMatch</key>
 			<array>
 				<string>Nuvoton,NCT6771F</string>
@@ -3533,7 +3533,7 @@
 			<key>IOClass</key>
 			<string>W836xxSensors</string>
 			<key>IOMatchCategory</key>
-			<string>SuperIOPlugin</string>
+			<string>LPCSensors</string>
 			<key>IONameMatch</key>
 			<array>
 				<string>Winbond,W83627DHG</string>

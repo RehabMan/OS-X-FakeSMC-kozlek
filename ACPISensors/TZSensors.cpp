@@ -59,15 +59,16 @@ bool TZSensors::start(IOService * provider)
     
     OSObject *object = NULL;
 
-    // Tachometers
     if(kIOReturnSuccess == acpiDevice->evaluateObject("_TMP", &object) && object) {
         for (UInt8 i = 0; i < 0xf; i++) {
             char key[5];
             
             snprintf(key, 5, KEY_FORMAT_THERMALZONE_TEMPERATURE, i);
             
-            if (addSensor(key, TYPE_SP78, TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, 0)) {
-                break;
+            if (!isKeyHandled(key)) {
+                if (addSensor(key, TYPE_SP78, TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, 0)) {
+                    break;
+                }
             }
         }
     }

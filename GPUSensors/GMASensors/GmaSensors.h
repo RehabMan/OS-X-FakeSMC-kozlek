@@ -11,9 +11,9 @@
 #include <IOKit/IOTimerEventSource.h>
 #include <IOKit/pci/IOPCIDevice.h>
 
-#include "FakeSMCPlugin.h"
+#include "GPUSensors.h"
 
-class EXPORT GmaSensors : public FakeSMCPlugin
+class EXPORT GmaSensors : public GPUSensors
 {
     OSDeclareDefaultStructors(GmaSensors) 
     

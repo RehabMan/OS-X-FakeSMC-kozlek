@@ -31,12 +31,12 @@
  */
 
 #include <IOKit/IOService.h>
-
-#include "FakeSMCPlugin.h"
 #include "nouveau.h"
 #include "xf86i2c.h"
 
-class EXPORT GeforceSensors : public FakeSMCPlugin
+#include "GPUSensors.h"
+
+class EXPORT GeforceSensors : public GPUSensors
 {
     OSDeclareDefaultStructors(GeforceSensors)    
 	

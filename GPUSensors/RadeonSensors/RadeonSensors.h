@@ -8,10 +8,10 @@
  *
  */
 
-#include "FakeSMCPlugin.h"
+#include "GPUSensors.h"
 #include "radeon.h"
 
-class EXPORT RadeonSensors : public FakeSMCPlugin
+class EXPORT RadeonSensors : public GPUSensors
 {
     OSDeclareDefaultStructors(RadeonSensors)    
 	

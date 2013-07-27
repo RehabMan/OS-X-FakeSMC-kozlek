@@ -28,10 +28,10 @@
 		7E2D3D5F178A6413009EF014 /* 37-circle-x@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E2D3D5D178A6413009EF014 /* 37-circle-x@2x.png */; };
 		7E44D95E1710433A00D06387 /* WindowFilter.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E44D95D1710433A00D06387 /* WindowFilter.m */; };
 		7E7B9B3F1786A732003ACB61 /* OBMenuBarWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E7B9B3E1786A732003ACB61 /* OBMenuBarWindow.m */; };
-		7E7C70AE1703019D004E344D /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EA2494E16D8EBC0002231B2 /* IOKit.framework */; };
 		7E7D61FB1704453B00F7222F /* FadingButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E7D61FA1704453B00F7222F /* FadingButton.m */; };
 		7E9060E51708951800BF5BBF /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EA248F016D8E93A002231B2 /* Foundation.framework */; };
 		7E9060E81708951800BF5BBF /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E9060E71708951800BF5BBF /* main.m */; };
+		7E9060EC1708951800BF5BBF /* smcutil.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7E9060EB1708951800BF5BBF /* smcutil.1 */; };
 		7E9060F517089A7100BF5BBF /* smc.c in Sources */ = {isa = PBXBuildFile; fileRef = 7EA2493F16D8EA95002231B2 /* smc.c */; };
 		7E9060F617089A8000BF5BBF /* HWMonitorSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EA2493E16D8EA95002231B2 /* HWMonitorSensor.m */; };
 		7E9060F917089C0B00BF5BBF /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EA2494E16D8EBC0002231B2 /* IOKit.framework */; };
@@ -93,21 +93,7 @@
 		7EF2A0F61730379C00D8641C /* AboutController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EF2A0F41730379C00D8641C /* AboutController.m */; };
 		7EF2A0FC17303B9100D8641C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7EF2A0FB17303B9100D8641C /* MainMenu.xib */; };
 		7EF2A10017303EA600D8641C /* AboutController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7EF2A0FD17303B9C00D8641C /* AboutController.xib */; };
-		7EFAE91A16EBC8ED00F4DA72 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EFAE8E516EBC81500F4DA72 /* SenTestingKit.framework */; };
-		7EFAE91B16EBC8ED00F4DA72 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EA248EB16D8E93A002231B2 /* Cocoa.framework */; };
-		7EFAE92116EBC8ED00F4DA72 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7EFAE91F16EBC8ED00F4DA72 /* InfoPlist.strings */; };
-		7EFAE92416EBC8ED00F4DA72 /* DefaultTestingPlatform.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EFAE92316EBC8ED00F4DA72 /* DefaultTestingPlatform.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		842BE1CA17931EF300531799 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7EA248E016D8E93A002231B2 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 842BE1C617931E9E00531799;
-			remoteInfo = PreBuild;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		7E9060E21708951800BF5BBF /* CopyFiles */ = {
@@ -116,6 +102,7 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
+				7E9060EC1708951800BF5BBF /* smcutil.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -221,7 +208,6 @@
 		7EA394B216E0A1B600823109 /* ColorTheme.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ColorTheme.m; sourceTree = "<group>"; };
 		7EA68B8917341ECD00B5B998 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		7EA68B8A17341ECD00B5B998 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		7EA68B8C17341ECE00B5B998 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7EB7E702178340710071B3F0 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = Shared/version.h; sourceTree = "<group>"; };
 		7EB7E707178341D20071B3F0 /* HWMonitorVersion.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HWMonitorVersion.pch; path = Shared/HWMonitorVersion.pch; sourceTree = "<group>"; };
 		7ECDDE3016DD680E00085FFF /* 04-eye.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "04-eye.png"; sourceTree = "<group>"; };
@@ -259,12 +245,6 @@
 		7EF2A0FB17303B9100D8641C /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
 		7EF2A0FD17303B9C00D8641C /* AboutController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AboutController.xib; sourceTree = "<group>"; };
 		7EFAE8E516EBC81500F4DA72 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
-		7EFAE91916EBC8ED00F4DA72 /* DefaultTestingPlatform.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DefaultTestingPlatform.octest; sourceTree = BUILT_PRODUCTS_DIR; };
-		7EFAE91E16EBC8ED00F4DA72 /* SMC Value Decoder-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SMC Value Decoder-Info.plist"; sourceTree = "<group>"; };
-		7EFAE92016EBC8ED00F4DA72 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		7EFAE92216EBC8ED00F4DA72 /* DefaultTestingPlatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DefaultTestingPlatform.h; sourceTree = "<group>"; };
-		7EFAE92316EBC8ED00F4DA72 /* DefaultTestingPlatform.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DefaultTestingPlatform.m; sourceTree = "<group>"; };
-		7EFAE92516EBC8ED00F4DA72 /* SMC Value Decoder-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SMC Value Decoder-Prefix.pch"; sourceTree = "<group>"; };
 		A32FB4F217676DF300F27ADB /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -284,16 +264,6 @@
 			files = (
 				7EA2494F16D8EBC1002231B2 /* IOKit.framework in Frameworks */,
 				7EA248EC16D8E93A002231B2 /* Cocoa.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		7EFAE91516EBC8ED00F4DA72 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7E7C70AE1703019D004E344D /* IOKit.framework in Frameworks */,
-				7EFAE91B16EBC8ED00F4DA72 /* Cocoa.framework in Frameworks */,
-				7EFAE91A16EBC8ED00F4DA72 /* SenTestingKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,7 +341,6 @@
 				7E1261D216E008FE00622F92 /* Shared */,
 				7EA248F116D8E93A002231B2 /* HWMonitor */,
 				7E9060E61708951800BF5BBF /* smcutil */,
-				7EFAE91C16EBC8ED00F4DA72 /* DefaultTestingPlatform */,
 				7EA248EA16D8E93A002231B2 /* Frameworks */,
 				7EA248E916D8E93A002231B2 /* Products */,
 			);
@@ -381,7 +350,6 @@
 			isa = PBXGroup;
 			children = (
 				7EA248E816D8E93A002231B2 /* HWMonitor.app */,
-				7EFAE91916EBC8ED00F4DA72 /* DefaultTestingPlatform.octest */,
 				7E9060E41708951800BF5BBF /* smcutil */,
 			);
 			name = Products;
@@ -629,45 +597,7 @@
 			name = "App Controller";
 			sourceTree = "<group>";
 		};
-		7EFAE91C16EBC8ED00F4DA72 /* DefaultTestingPlatform */ = {
-			isa = PBXGroup;
-			children = (
-				7EFAE92216EBC8ED00F4DA72 /* DefaultTestingPlatform.h */,
-				7EFAE92316EBC8ED00F4DA72 /* DefaultTestingPlatform.m */,
-				7EFAE91D16EBC8ED00F4DA72 /* Supporting Files */,
-			);
-			name = DefaultTestingPlatform;
-			path = "SMC Value Decoder";
-			sourceTree = "<group>";
-		};
-		7EFAE91D16EBC8ED00F4DA72 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				7EFAE91E16EBC8ED00F4DA72 /* SMC Value Decoder-Info.plist */,
-				7EFAE91F16EBC8ED00F4DA72 /* InfoPlist.strings */,
-				7EFAE92516EBC8ED00F4DA72 /* SMC Value Decoder-Prefix.pch */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
-
-/* Begin PBXLegacyTarget section */
-		842BE1C617931E9E00531799 /* PreBuild */ = {
-			isa = PBXLegacyTarget;
-			buildArgumentsString = "${SOURCE_ROOT}/Scripts/PreBuild.sh ${ACTION}";
-			buildConfigurationList = 842BE1C917931E9E00531799 /* Build configuration list for PBXLegacyTarget "PreBuild" */;
-			buildPhases = (
-			);
-			buildToolPath = /bin/sh;
-			buildWorkingDirectory = "${SOURCE_ROOT}";
-			dependencies = (
-			);
-			name = PreBuild;
-			passBuildSettingsInEnvironment = 0;
-			productName = PreBuild;
-		};
-/* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
 		7E9060E31708951800BF5BBF /* smcutil */ = {
@@ -698,30 +628,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				842BE1CB17931EF300531799 /* PBXTargetDependency */,
 			);
 			name = HWMonitor;
 			productName = HWMonitor;
 			productReference = 7EA248E816D8E93A002231B2 /* HWMonitor.app */;
 			productType = "com.apple.product-type.application";
-		};
-		7EFAE91816EBC8ED00F4DA72 /* DefaultTestingPlatform */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 7EFAE92616EBC8ED00F4DA72 /* Build configuration list for PBXNativeTarget "DefaultTestingPlatform" */;
-			buildPhases = (
-				7EFAE91416EBC8ED00F4DA72 /* Sources */,
-				7EFAE91516EBC8ED00F4DA72 /* Frameworks */,
-				7EFAE91616EBC8ED00F4DA72 /* Resources */,
-				7EFAE91716EBC8ED00F4DA72 /* ShellScript */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = DefaultTestingPlatform;
-			productName = "SMC Value Decoder";
-			productReference = 7EFAE91916EBC8ED00F4DA72 /* DefaultTestingPlatform.octest */;
-			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
 
@@ -754,10 +665,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				842BE1C617931E9E00531799 /* PreBuild */,
 				7EA248E716D8E93A002231B2 /* HWMonitor */,
 				7E9060E31708951800BF5BBF /* smcutil */,
-				7EFAE91816EBC8ED00F4DA72 /* DefaultTestingPlatform */,
 			);
 		};
 /* End PBXProject section */
@@ -815,32 +724,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7EFAE91616EBC8ED00F4DA72 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7EFAE92116EBC8ED00F4DA72 /* InfoPlist.strings in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		7EFAE91716EBC8ED00F4DA72 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/sh;
-			shellScript = "# Run the unit tests in this test bundle.\nexit 0\n\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		7E9060E01708951800BF5BBF /* Sources */ = {
@@ -893,23 +777,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7EFAE91416EBC8ED00F4DA72 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7EFAE92416EBC8ED00F4DA72 /* DefaultTestingPlatform.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		842BE1CB17931EF300531799 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 842BE1C617931E9E00531799 /* PreBuild */;
-			targetProxy = 842BE1CA17931EF300531799 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		7EA248F416D8E93A002231B2 /* InfoPlist.strings */ = {
@@ -942,15 +810,6 @@
 				7E2FE0A3178D18CA00802D38 /* nl */,
 			);
 			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-		7EFAE91F16EBC8ED00F4DA72 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				7EFAE92016EBC8ED00F4DA72 /* en */,
-				7EA68B8C17341ECE00B5B998 /* it */,
-			);
-			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -987,8 +846,9 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				DEAD_CODE_STRIPPING = YES;
-				DEPLOYMENT_POSTPROCESSING = YES;
+				CODE_SIGN_IDENTITY = "";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -1004,8 +864,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_PREFIX_HEADER = Shared/HWMonitorVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
-				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx10.8;
 			};
 			name = Debug;
@@ -1023,8 +883,9 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				DEAD_CODE_STRIPPING = YES;
-				DEPLOYMENT_POSTPROCESSING = YES;
+				CODE_SIGN_IDENTITY = "";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1033,7 +894,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_PREFIX_HEADER = Shared/HWMonitorVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
-				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				SDKROOT = macosx10.8;
 			};
@@ -1047,7 +907,6 @@
 				GCC_PREFIX_HEADER = "HWMonitor/HWMonitor-Prefix.pch";
 				INFOPLIST_FILE = "HWMonitor/HWMonitor-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRIP_INSTALLED_PRODUCT = YES;
 				TARGET_DIR = HWMonitor;
 				WRAPPER_EXTENSION = app;
 			};
@@ -1061,66 +920,8 @@
 				GCC_PREFIX_HEADER = "HWMonitor/HWMonitor-Prefix.pch";
 				INFOPLIST_FILE = "HWMonitor/HWMonitor-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRIP_INSTALLED_PRODUCT = YES;
 				TARGET_DIR = HWMonitor;
 				WRAPPER_EXTENSION = app;
-			};
-			name = Release;
-		};
-		7EFAE92716EBC8ED00F4DA72 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "SMC Value Decoder/SMC Value Decoder-Prefix.pch";
-				INFOPLIST_FILE = "SMC Value Decoder/SMC Value Decoder-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = octest;
-			};
-			name = Debug;
-		};
-		7EFAE92816EBC8ED00F4DA72 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "SMC Value Decoder/SMC Value Decoder-Prefix.pch";
-				INFOPLIST_FILE = "SMC Value Decoder/SMC Value Decoder-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = octest;
-			};
-			name = Release;
-		};
-		842BE1C717931E9E00531799 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				DEBUGGING_SYMBOLS = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-			};
-			name = Debug;
-		};
-		842BE1C817931E9E00531799 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -1150,24 +951,6 @@
 			buildConfigurations = (
 				7EA2490616D8E93A002231B2 /* Debug */,
 				7EA2490716D8E93A002231B2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		7EFAE92616EBC8ED00F4DA72 /* Build configuration list for PBXNativeTarget "DefaultTestingPlatform" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				7EFAE92716EBC8ED00F4DA72 /* Debug */,
-				7EFAE92816EBC8ED00F4DA72 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		842BE1C917931E9E00531799 /* Build configuration list for PBXLegacyTarget "PreBuild" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				842BE1C717931E9E00531799 /* Debug */,
-				842BE1C817931E9E00531799 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

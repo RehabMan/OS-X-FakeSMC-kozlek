@@ -742,12 +742,14 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
         trace = false;
 #endif
     
-	IODeviceMemory::InitElement	rangeList[1];
+	IODeviceMemory::InitElement	rangeList[2];
     
 	rangeList[0].start = 0x300;
 	rangeList[0].length = 0x20;
+    rangeList[1].start = 0xfef00000;
+	rangeList[1].length = 0x10000;
     
-	if(OSArray *array = IODeviceMemory::arrayFromList(rangeList, 1)) {
+	if(OSArray *array = IODeviceMemory::arrayFromList(rangeList, 2)) {
 		this->setDeviceMemory(array);
 		OSSafeRelease(array);
 	}
@@ -1011,13 +1013,16 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
             result = kIOReturnError;
             
             if (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, getKey(name))) {
+                
+                result = kIOReturnSuccess;
+                
                 if (key->getHandler()) {
                     
                     result = kIOReturnBadArgument;
                     
                     if (param2) {
-                        IOService *handler = (IOService *)param2;
-                        bcopy(key->getHandler(), handler, sizeof(handler));
+                        IOService **handler = (IOService**)param2;
+                        *handler = key->getHandler();
                         result = kIOReturnSuccess;
                     }
                 }

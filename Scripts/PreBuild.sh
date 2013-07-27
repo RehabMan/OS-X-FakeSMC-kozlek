@@ -14,10 +14,8 @@ version_file="/tmp/org_fakesmc_prebuild_version.h"
 
 if [ "$1" == "clean" ]
 then
-    rm -f ${real_version_file}
-    echo "-" > ${real_version_file}
+    rm -f ${version_file}
     rm -f ${revision_file}
-    echo "-" > ${revision_file}
     #exit 0
 fi
 
@@ -25,7 +23,12 @@ project_name=$(/usr/libexec/PlistBuddy -c "Print 'Project Name'" "./version.plis
 uppercased_name=$(echo $project_name | tr [[:lower:]] [[:upper:]])
 project_version=$(/usr/libexec/PlistBuddy -c "Print 'Project Version'" "./version.plist")
 
-last_revision=$(<$revision_file)
+if [ -f $revision_file ]
+then
+    last_revision=$(<$revision_file)
+else
+    last_revision="-"
+fi
 
 echo Last project revision: ${last_revision}
 
