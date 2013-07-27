@@ -30,7 +30,7 @@
 #include "FakeSMCPlugin.h"
 
 
-class TZSensors : public FakeSMCPlugin
+class EXPORT TZSensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(TZSensors)
     

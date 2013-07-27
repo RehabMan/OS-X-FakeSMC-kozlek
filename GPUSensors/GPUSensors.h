@@ -11,7 +11,7 @@
 
 #include "FakeSMCPlugin.h"
 
-class GPUSensors : public FakeSMCPlugin {
+class EXPORT GPUSensors : public FakeSMCPlugin {
 	OSDeclareAbstractStructors(GPUSensors)
 	
 private:
