@@ -67,6 +67,10 @@ bool ACPISensors::start(IOService * provider)
     
     if (OSDictionary *configuration = getConfigurationNode())
     {
+        OSBoolean* disable = OSDynamicCast(OSBoolean, configuration->getObject("DisableDevice"));
+        if (disable && disable->isTrue())
+            return false;
+
         // Temperatures
         if (OSDictionary *temps = OSDynamicCast(OSDictionary, configuration->getObject("Temperatures"))) {
             

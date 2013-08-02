@@ -43,6 +43,22 @@
 			<string>PTIDSensors</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
+			<key>Platform Profile</key>
+			<dict>
+				<key>Default</key>
+				<dict>
+					<key>DisableDevice</key>
+					<false/>
+				</dict>
+				<key>HP</key>
+				<dict>
+					<key>Default</key>
+					<dict>
+						<key>DisableDevice</key>
+						<true/>
+					</dict>
+				</dict>
+			</dict>
 			<key>IONameMatch</key>
 			<array>
 				<string>PTID</string>
@@ -63,6 +79,22 @@
 			<string>TZSensors</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
+			<key>Platform Profile</key>
+			<dict>
+				<key>Default</key>
+				<dict>
+					<key>DisableDevice</key>
+					<false/>
+				</dict>
+				<key>HP</key>
+				<dict>
+					<key>Default</key>
+					<dict>
+						<key>DisableDevice</key>
+						<true/>
+					</dict>
+				</dict>
+			</dict>
 		</dict>
 		<key>ACPI Customizable Monitoring Plugin</key>
 		<dict>
@@ -78,6 +110,8 @@
 			<dict>
 				<key>Default</key>
 				<dict>
+					<key>DisableDevice</key>
+					<false/>
 					<key>Temperatures</key>
 					<dict>
 						<key>System</key>

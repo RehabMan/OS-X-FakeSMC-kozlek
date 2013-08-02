@@ -57,6 +57,25 @@ bool TZSensors::start(IOService * provider)
         return false;
     }
     
+    if (OSDictionary *configuration = getConfigurationNode()) {
+        OSBoolean* disable = OSDynamicCast(OSBoolean, configuration->getObject("DisableDevice"));
+        if (disable && disable->isTrue())
+            return false;
+    }
+
+    // On some computers (eg. RehabMan's ProBook 4530s), the system will hang on startup
+    // if kernel cache is used, because of the early call to updateTemperatures and/or
+    // updateTachometers.  At least that is the case with an SSD and a valid pre-linked
+    // kernel, along with kernel cache enabled.  This 1000ms sleep seems to fix the problem,
+    // enabling a clean boot with TZSensors enabled.
+    //
+    // On the ProBook this is the case with both TZSensors and PTIDSensors, although
+    // PTIDSensors can be avoided by using DropSSDT=Yes (because PTID device is in an SSDT)
+    //
+    // And in the case of TZSensors it even happens (intermittently) without kernel cache.
+
+    IOSleep(1000);
+
     OSObject *object = NULL;
 
     if(kIOReturnSuccess == acpiDevice->evaluateObject("_TMP", &object) && object) {
