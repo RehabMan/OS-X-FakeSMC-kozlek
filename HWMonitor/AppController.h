@@ -79,5 +79,6 @@
 - (IBAction)toggleGraphSmoothing:(id)sender;
 - (IBAction)graphsBackgroundMonitorChanged:(id)sender;
 - (IBAction)graphsWindowTopmostChanged:(id)sender;
+- (IBAction)graphsScaleChangedChanged:(id)sender;
 
 @end
