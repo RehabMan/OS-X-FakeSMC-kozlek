@@ -1113,6 +1113,8 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         
         result = kIOReturnBadArgument;
         
+        KEYSLOCK;
+        
         if (SInt8 *index = (SInt8*)param1) {
             for (UInt8 i = 0; i <= 0xf; i++) {
                 if (!bit_get(vacantGPUIndex, BIT(i))) {
@@ -1126,10 +1128,14 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
             if (result != kIOReturnSuccess)
                 result = kIOReturnError;
         }
+        
+        KEYSUNLOCK;
     }
     else if (functionName->isEqualTo(kFakeSMCTakeGPUIndex)) {
         
         result = kIOReturnBadArgument;
+        
+        KEYSLOCK;
         
         if (UInt8 *index = (UInt8*)param1) {
             if (*index < 0xf && !bit_get(vacantGPUIndex, BIT(*index))) {
@@ -1140,10 +1146,14 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
             if (result != kIOReturnSuccess)
                 result = kIOReturnError;
         }
+        
+        KEYSUNLOCK;
     }
     else if (functionName->isEqualTo(kFakeSMCReleaseGPUIndex)) {
         
         result = kIOReturnBadArgument;
+        
+        KEYSLOCK;
         
         if (UInt8 *index = (UInt8*)param1) {
             if (*index <= 0xf) {
@@ -1151,10 +1161,14 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                 result = kIOReturnSuccess;
             }
         }
+        
+        KEYSUNLOCK;
     }
     else if (functionName->isEqualTo(kFakeSMCTakeVacantFanIndex)) {
         
         result = kIOReturnBadArgument;
+        
+        KEYSLOCK;
         
         if (SInt8 *index = (SInt8*)param1) {
             for (UInt8 i = 0; i <= 0xf; i++) {
@@ -1170,10 +1184,14 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
             if (result != kIOReturnSuccess)
                 result = kIOReturnError;
         }
+        
+        KEYSUNLOCK;
     }
     else if (functionName->isEqualTo(kFakeSMCReleaseFanIndex)) {
         
         result = kIOReturnBadArgument;
+        
+        KEYSLOCK;
         
         if (UInt8 *index = (UInt8*)param1) {
             if (*index <= 0xf) {
@@ -1182,6 +1200,8 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
                 result = kIOReturnSuccess;
             }
         }
+        
+        KEYSUNLOCK;
     }
     else {
         KEYSUNLOCK;
