@@ -2086,6 +2086,8 @@
 							<integer>0</integer>
 						</dict>
 					</dict>
+					<key>H77N-WIFI</key>
+					<string>Z77N-WIFI</string>
 					<key>P55-UD4</key>
 					<dict>
 						<key>FANIN0</key>
