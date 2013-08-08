@@ -396,38 +396,38 @@
 
 - (void)addSensorsFromGroup:(HWSensorGroup)group withKeysList:(NSArray*)keys
 {
+    NSString *prefix = nil;
+    
+    switch (group) {
+        case kHWSensorGroupTemperature:
+            prefix = @"T";
+            break;
+            
+        case kHWSensorGroupMultiplier:
+            prefix = @"M";
+            break;
+            
+        case kHWSensorGroupFrequency:
+            prefix = @"C";
+            break;
+            
+        case kHWSensorGroupVoltage:
+            prefix = @"V";
+            break;
+            
+        case kHWSensorGroupCurrent:
+            prefix = @"I";
+            break;
+            
+        case kHWSensorGroupPower:
+            prefix = @"P";
+            break;
+            
+        default:
+            return;
+    }
+    
     [_currentProfile enumerateObjectsUsingBlock:^(id item, NSUInteger index, BOOL *stop) {
-        NSString *prefix = nil;
-        
-        switch (group) {
-            case kHWSensorGroupTemperature:
-                prefix = @"T";
-                break;
-                
-            case kHWSensorGroupMultiplier:
-                prefix = @"M";
-                break;
-                
-            case kHWSensorGroupFrequency:
-                prefix = @"C";
-                break;
-                
-            case kHWSensorGroupVoltage:
-                prefix = @"V";
-                break;
-                
-            case kHWSensorGroupCurrent:
-                prefix = @"I";
-                break;
-                
-            case kHWSensorGroupPower:
-                prefix = @"P";
-                break;
-                
-            default:
-                *stop = YES;
-                break;
-        }
         
         NSString *key = [item objectAtIndex:0];
         
@@ -451,11 +451,13 @@
                     NSString *formattedKey = [NSString stringWithFormat:keyFormat, start + index];
 
                     if ([keys indexOfObject:formattedKey] != NSNotFound) {
+                        ////NSLog(@"adding_g %@='%@'", formattedKey, [NSString stringWithFormat:GetLocalizedString(title), shift + index]);
                         [self addSensorWithKey:formattedKey title:[NSString stringWithFormat:GetLocalizedString(title), shift + index] group:group];
                     }
                 }
             }
             else if ([keys indexOfObject:key] != NSNotFound) {
+                ////NSLog(@"adding %@='%@'", key, GetLocalizedString(title));
                 [self addSensorWithKey:key title:GetLocalizedString(title) group:group];
             }
         }

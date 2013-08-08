@@ -105,6 +105,7 @@
 #define KEY_AUXILIARY_3V3V_VOLTAGE              "VV7S"
 #define KEY_MAIN_5V_VOLTAGE                     "VV1S"
 #define KEY_STANDBY_5V_VOLTAGE                  "VV8S"
+#define KEY_STANDBY_3V3V_VOLTAGE                "VV3S"
 
 #define KEY_MEMORY_VOLTAGE                      "VM0R" // Memory
 #define KEY_POWERSUPPLY_VOLTAGE                 "Vp0C" // Power Supply X

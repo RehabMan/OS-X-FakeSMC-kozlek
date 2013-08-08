@@ -257,6 +257,7 @@
              [NSArray arrayWithObjects:@"VM0R",       @"Memory Modules", nil],
              [NSArray arrayWithObjects:@"VN0C",       @"MCH Core", nil],
              [NSArray arrayWithObjects:@"VV2S",       @"Main 3.3V", nil],
+             [NSArray arrayWithObjects:@"VV3S",       @"Standby 3.3V", nil],
              [NSArray arrayWithObjects:@"VV1S",       @"Main 5V", nil],
              [NSArray arrayWithObjects:@"VV9S",       @"Main 12V", nil],
              [NSArray arrayWithObjects:@"VV7S",       @"Auxiliary 3.3V", nil],
