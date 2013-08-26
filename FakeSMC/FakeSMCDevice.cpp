@@ -28,7 +28,6 @@
 #define KEYSLOCK    IORecursiveLockLock(keysLock)
 #define KEYSUNLOCK  IORecursiveLockUnlock(keysLock)
 
-
 #define super IOACPIPlatformDevice
 OSDefineMetaClassAndStructors (FakeSMCDevice, IOACPIPlatformDevice)
 
@@ -601,6 +600,9 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     keysLock = IORecursiveLockAlloc();
     if (!keysLock)
         return false;
+    platformLock = IORecursiveLockAlloc();
+    if (!platformLock)
+        return false;
     
 #if NVRAMKEYS
     useNVRAM = false;
@@ -982,7 +984,7 @@ IOReturn FakeSMCDevice::causeInterrupt(int source)
 
 IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 )
 {
-    KEYSLOCK;
+    IORecursiveLockLock(platformLock);
     
     IOReturn result = kIOReturnUnsupported;
     
@@ -1204,12 +1206,12 @@ IOReturn FakeSMCDevice::callPlatformFunction(const OSSymbol *functionName, bool 
         KEYSUNLOCK;
     }
     else {
-        KEYSUNLOCK;
+        IORecursiveLockUnlock(platformLock);
         
         return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
     }
     
-    KEYSUNLOCK;
+    IORecursiveLockUnlock(platformLock);
     
 	return result;
 }

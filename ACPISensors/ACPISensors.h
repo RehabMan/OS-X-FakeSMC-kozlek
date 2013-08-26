@@ -10,7 +10,6 @@
 #include <IOKit/IOService.h>
 #include "IOKit/acpi/IOACPIPlatformDevice.h"
 
-#define DEFINE_FAKESMC_SENSOR_PARAMS
 #include "FakeSMCPlugin.h"
 
 class EXPORT ACPISensors : public FakeSMCPlugin
@@ -19,12 +18,7 @@ class EXPORT ACPISensors : public FakeSMCPlugin
     
 private:
 	IOACPIPlatformDevice    *acpiDevice;
-    
-    OSDictionary            *temperatures;
-    OSDictionary            *voltages;
-    OSDictionary            *tachometers;
-    
-    bool                    addSensorToList(OSDictionary *list, OSString *configKey, OSString *acpiMethod, const char *refName, const char* smcKey, const char *type, UInt8 size, UInt32 group, UInt32 index);
+    OSArray                 *methods;
     
 protected:
     virtual float           getSensorValue(FakeSMCSensor *sensor);
