@@ -75,7 +75,7 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, temps->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    if (FakeSMCSensor *sensor = addSensor(key, kFakeSMCCategoryTemperature, kFakeSMCTemperatureSensor, methods->getCount())) {
+                    if (addSensor(key, kFakeSMCCategoryTemperature, kFakeSMCTemperatureSensor, methods->getCount())) {
                         methods->setObject(method);//sensor->getKey(), method);
                     }
                     else {
@@ -95,7 +95,7 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, volts->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    if (FakeSMCSensor *sensor = addSensor(key, kFakeSMCCategoryVoltage, kFakeSMCVoltageSensor, methods->getCount())) {
+                    if (addSensor(key, kFakeSMCCategoryVoltage, kFakeSMCVoltageSensor, methods->getCount())) {
                         methods->setObject(method);//sensor->getKey(), method);
                     }
                     else {
@@ -115,7 +115,7 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, currents->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    if (FakeSMCSensor *sensor = addSensor(key, kFakeSMCCategoryCurrent, kFakeSMCCurrentSensor, methods->getCount())) {
+                    if (addSensor(key, kFakeSMCCategoryCurrent, kFakeSMCCurrentSensor, methods->getCount())) {
                         methods->setObject(method);//sensor->getKey(), method);
                     }
                     else {
@@ -135,7 +135,7 @@ bool ACPISensors::start(IOService * provider)
                 OSString *method = OSDynamicCast(OSString, powers->getObject(key));
                 
                 if (method && kIOReturnSuccess == acpiDevice->validateObject(method->getCStringNoCopy())) {
-                    if (FakeSMCSensor *sensor = addSensor(key, kFakeSMCCategoryPower, kFakeSMCPowerSensor, methods->getCount())) {
+                    if (addSensor(key, kFakeSMCCategoryPower, kFakeSMCPowerSensor, methods->getCount())) {
                         methods->setObject(method);//sensor->getKey(), method);
                     }
                     else {
@@ -162,7 +162,7 @@ bool ACPISensors::start(IOService * provider)
                     if (fanNames)
                         name = OSDynamicCast(OSString, fanNames->getObject(key));
                     
-                    if (FakeSMCSensor *sensor = addTachometer(methods->getCount(), name ? name->getCStringNoCopy() : 0)) {
+                    if (addTachometer(methods->getCount(), name ? name->getCStringNoCopy() : 0)) {
                         methods->setObject(method);//sensor->getKey(), method);
                     }
                     else {

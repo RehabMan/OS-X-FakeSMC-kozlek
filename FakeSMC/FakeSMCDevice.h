@@ -78,9 +78,6 @@ private:
     OSDictionary        *exceptionKeys;
 #endif
     
-    IORecursiveLock     *keysLock;
-    IORecursiveLock     *platformLock;
-    
     UInt16              vacantGPUIndex;
     UInt16              vacantFanIndex;
 	
@@ -108,9 +105,9 @@ public:
 #endif
     bool                initAndStart(IOService *platform, IOService *provider);
     
-    virtual void		ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );
-    virtual void		ioWrite16( UInt16 offset, UInt16 value, IOMemoryMap * map = 0 );
-    virtual void		ioWrite8(  UInt16 offset, UInt8 value, IOMemoryMap * map = 0 );
+    virtual void        ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );
+    virtual void        ioWrite16( UInt16 offset, UInt16 value, IOMemoryMap * map = 0 );
+    virtual void        ioWrite8(  UInt16 offset, UInt8 value, IOMemoryMap * map = 0 );
     virtual UInt32		ioRead32( UInt16 offset, IOMemoryMap * map = 0 );
     virtual UInt16		ioRead16( UInt16 offset, IOMemoryMap * map = 0 );
     virtual UInt8		ioRead8(  UInt16 offset, IOMemoryMap * map = 0 );

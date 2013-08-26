@@ -175,7 +175,7 @@ class FakeSMCPlugin;
 
 class EXPORT FakeSMCSensor : public OSObject {
     OSDeclareDefaultStructors(FakeSMCSensor)
-	
+    	
 protected:
 	FakeSMCPlugin       *owner;
     char                key[5];

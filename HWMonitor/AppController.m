@@ -255,22 +255,22 @@
         
         if ([self.window isVisible] || [_popupController.window isVisible] || [_graphsController.window isVisible] || [_graphsController backgroundMonitoring]) {
             if ([_smcSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
-                [NSThread detachNewThreadSelector:@selector(updateSmcSensors) toTarget:self withObject:nil];
-                //[self performSelectorInBackground:@selector(updateSmcSensors) withObject:nil];
+                //[NSThread detachNewThreadSelector:@selector(updateSmcSensors) toTarget:self withObject:nil];
+                [self performSelectorInBackground:@selector(updateSmcSensors) withObject:nil];
                 _smcSensorsLastUpdated = now;
                 return TRUE;
             }
         }
-        else if ([_favoritesSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
-            [NSThread detachNewThreadSelector:@selector(updateFavoritesSensors) toTarget:self withObject:nil];
-            //[self performSelectorInBackground:@selector(updateFavoritesSensors) withObject:nil];
+        else if ([_favorites count] && [_favoritesSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
+            //[NSThread detachNewThreadSelector:@selector(updateFavoritesSensors) toTarget:self withObject:nil];
+            [self performSelectorInBackground:@selector(updateFavoritesSensors) withObject:nil];
             _favoritesSensorsLastUpdated = now;
             return TRUE;
         }
     
         if ([_smartSensorsLastUpdated timeIntervalSinceNow] < (- _smartSensorsUpdateInterval)) {
-            [NSThread detachNewThreadSelector:@selector(updateSmartSensors) toTarget:self withObject:nil];
-            //[self performSelectorInBackground:@selector(updateSmartSensors) withObject:nil];
+            //[NSThread detachNewThreadSelector:@selector(updateSmartSensors) toTarget:self withObject:nil];
+            [self performSelectorInBackground:@selector(updateSmartSensors) withObject:nil];
             _smartSensorsLastUpdated = now;
             return TRUE;
         }
@@ -536,10 +536,10 @@
 -(void)updateRateChanged:(NSNotification *)aNotification
 {
     _smcSensorsUpdateInterval = [self getSmcSensorsUpdateRate];
-    _smcSensorsLastUpdated = [NSDate dateWithTimeIntervalSince1970:0.0];
+    _smcSensorsLastUpdated = [NSDate dateWithTimeIntervalSinceNow:0];
     _favoritesSensorsLastUpdated = _smcSensorsLastUpdated;
-     _smartSensorsUpdateInterval = [self getSmartSensorsUpdateRate] * 60;
-    _smartSensorsLastUpdated = [NSDate dateWithTimeIntervalSince1970:0.0];
+    _smartSensorsUpdateInterval = [self getSmartSensorsUpdateRate] * 60;
+    _smartSensorsLastUpdated = [NSDate dateWithTimeIntervalSinceNow:0];
 }
 
 - (void)toggleGraphSmoothing:(id)sender
