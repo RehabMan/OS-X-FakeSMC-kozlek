@@ -83,13 +83,13 @@
 
 -(void)setGraphsScale:(float)graphsScale
 {
-    if (graphsScale != _graphsScale) {
+    //if (graphsScale != _graphsScale) {
         _graphsScale = graphsScale;
         
         for (GraphsView *graphView in _graphViews) {
             [graphView setGraphScale:_graphsScale];
         }
-    }
+    //}
 }
 
 -(NSArray *)colorsList
@@ -142,7 +142,7 @@
     [self setUseSmoothing:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsUseDataSmoothing]];
     [self setBackgroundMonitoring:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsBackgroundMonitor]];
     [self setIsTopmost:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorWindowTopmost]];
-    [self setGraphsScale:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsScale]];
+    [self setGraphsScale:[[NSUserDefaults standardUserDefaults] floatForKey:kHWMonitorGraphsScale]];
 }
 
 -(void)dealloc
