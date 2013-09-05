@@ -98,6 +98,10 @@ bool ACPIPoller::start(IOService * provider)
     // Try to load configuration from info.plist first
     if (OSDictionary *configuration = getConfigurationNode())
     {
+        OSBoolean* disable = OSDynamicCast(OSBoolean, configuration->getObject("DisableDevice"));
+        if (disable && disable->isTrue())
+            return false;
+        
         if (OSNumber *interval = OSDynamicCast(OSNumber, configuration->getObject("PollingInterval"))) {
             pollingInterval = (double)interval->unsigned64BitValue() / (double)1000.0;
         }
@@ -125,6 +129,10 @@ bool ACPIPoller::start(IOService * provider)
         }
     }
     
+//REVIEW_REHABMAN: just bail if no methods to call... no need to stick around...
+    if (!methods->getCount())
+        return false;
+
     if (methods->getCount()) {
         // woorkloop
         if (!(workloop = getWorkLoop())) {
