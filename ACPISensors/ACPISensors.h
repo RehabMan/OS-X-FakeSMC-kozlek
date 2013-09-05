@@ -7,10 +7,24 @@
  *
  */
 
-#include <IOKit/IOService.h>
-#include "IOKit/acpi/IOACPIPlatformDevice.h"
+#ifndef __HWSensors__ACPISensors__
+#define __HWSensors__ACPISensors__
 
 #include "FakeSMCPlugin.h"
+
+#include "IOKit/acpi/IOACPIPlatformDevice.h"
+
+#ifdef DEBUG
+#define kACPISensorsDebug   1
+#else
+#define kACPISensorsDebug   0
+#endif
+
+#define ACPISensorsDebugLog(string, args...)	do { if (kACPISensorsDebug) { IOLog ("%s (%s): [Debug] " string "\n",getName(), acpiDevice->getName() , ## args); } } while(0)
+#define ACPISensorsWarningLog(string, args...) do { IOLog ("%s (%s): [Warning] " string "\n",getName(), acpiDevice->getName(), ## args); } while(0)
+#define ACPISensorsErrorLog(string, args...) do { IOLog ("%s (%s): [Error] " string "\n",getName(), acpiDevice->getName() , ## args); } while(0)
+#define ACPISensorsFatalLog(string, args...) do { IOLog ("%s (%s): [Fatal] " string "\n",getName(), acpiDevice->getName() , ## args); } while(0)
+#define ACPISensorsInfoLog(string, args...)	do { IOLog ("%s (%s): " string "\n",getName(), acpiDevice->getName() , ## args); } while(0)
 
 class EXPORT ACPISensors : public FakeSMCPlugin
 {
@@ -19,6 +33,10 @@ class EXPORT ACPISensors : public FakeSMCPlugin
 private:
 	IOACPIPlatformDevice    *acpiDevice;
     OSArray                 *methods;
+    bool                    useKelvins;
+    
+    void                    addSensorsFromDictionary(OSDictionary *dictionary, kFakeSMCCategory category);
+    void                    addSensorsFromArray(OSArray *array, kFakeSMCCategory category);
     
 protected:
     virtual float           getSensorValue(FakeSMCSensor *sensor);
@@ -26,3 +44,5 @@ protected:
 public:
     virtual bool			start(IOService *provider);
 };
+
+#endif /* defined(__HWSensors__ACPISensors__) */

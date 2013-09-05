@@ -33,6 +33,48 @@
 	<string>????</string>
 	<key>IOKitPersonalities</key>
 	<dict>
+		<key>ACPI Debugging Plugin</key>
+		<dict>
+			<key>IOProbeScore</key>
+			<integer>1000</integer>
+			<key>IOMatchCategory</key>
+			<string>FakeSMCPlugin</string>
+			<key>IOClass</key>
+			<string>ACPIPoller</string>
+			<key>IOProviderClass</key>
+			<string>IOACPIPlatformDevice</string>
+			<key>Platform Profile</key>
+			<dict>
+				<key>Default</key>
+				<dict>
+					<key>DisableDevice</key>
+					<false/>
+					<key>PollingInterval</key>
+					<integer>2000</integer>
+					<key>PollingTimeout</key>
+					<integer>5000</integer>
+					<key>LoggingEnabled</key>
+					<true/>
+					<key>Methods</key>
+					<array>
+						<string>XCNT</string>
+						<string>OSYS</string>
+					</array>
+				</dict>
+				<key>HP</key>
+				<dict>
+					<key>Default</key>
+					<dict>
+						<key>DisableDevice</key>
+						<true/>
+					</dict>
+				</dict>
+			</dict>
+			<key>IONameMatch</key>
+			<array>
+				<string>POLL0000</string>
+			</array>
+		</dict>
 		<key>Thermal Zone Monitoring Plugin</key>
 		<dict>
 			<key>IOProbeScore</key>
@@ -45,22 +87,24 @@
 			<string>IOACPIPlatformDevice</string>
 			<key>Platform Profile</key>
 			<dict>
-				<key>HP</key>
-				<dict>
-					<key>Default</key>
-					<dict>
-						<key>DisableDevice</key>
-						<true/>
-					</dict>
-				</dict>
 				<key>Default</key>
 				<dict>
 					<key>DisableDevice</key>
 					<false/>
 					<key>Temperatures</key>
 					<dict>
+						<key>UseKelvins</key>
+						<true/>
 						<key>Thermal Zone</key>
 						<string>_TMP</string>
+					</dict>
+				</dict>
+				<key>HP</key>
+				<dict>
+					<key>Default</key>
+					<dict>
+						<key>DisableDevice</key>
+						<true/>
 					</dict>
 				</dict>
 			</dict>
@@ -119,6 +163,8 @@
 					<false/>
 					<key>Temperatures</key>
 					<dict>
+						<key>UseKelvins</key>
+						<false/>
 						<key>Mainboard</key>
 						<string>TSYS</string>
 						<key>CPU Heatsink</key>
@@ -135,54 +181,29 @@
 						<key>CPU Core</key>
 						<string>VCPU</string>
 					</dict>
-					<key>Fan Names</key>
-					<dict>
-						<key>FAN7</key>
-						<string>Fan 8</string>
-						<key>FAN4</key>
-						<string>ExhaustFan</string>
-						<key>FAN1</key>
-						<string>CPU Fan</string>
-						<key>FANA</key>
-						<string>Fan 11</string>
-						<key>FAN8</key>
-						<string>Fan 9</string>
-						<key>FAN5</key>
-						<string>Fan 6</string>
-						<key>FAN2</key>
-						<string>Power Fan</string>
-						<key>FAN9</key>
-						<string>Fan 10</string>
-						<key>FAN6</key>
-						<string>Fan 7</string>
-						<key>FAN3</key>
-						<string>Intake Fan</string>
-						<key>FAN0</key>
-						<string>System Fan</string>
-					</dict>
 					<key>Tachometers</key>
 					<dict>
-						<key>FAN7</key>
+						<key>Fan 7</key>
 						<string>FAN7</string>
-						<key>FAN4</key>
+						<key>ExhaustFan</key>
 						<string>FAN4</string>
-						<key>FAN1</key>
+						<key>CPUFan</key>
 						<string>FAN1</string>
-						<key>FANA</key>
+						<key>Fan 10</key>
 						<string>FANA</string>
-						<key>FAN8</key>
+						<key>Fan 8</key>
 						<string>FAN8</string>
 						<key>FAN5</key>
 						<string>FAN5</string>
-						<key>FAN2</key>
+						<key>PowerFan</key>
 						<string>FAN2</string>
-						<key>FAN9</key>
+						<key>Fan 9</key>
 						<string>FAN9</string>
-						<key>FAN6</key>
+						<key>Fan 6</key>
 						<string>FAN6</string>
-						<key>FAN3</key>
+						<key>IntakeFan</key>
 						<string>FAN3</string>
-						<key>FAN0</key>
+						<key>SystemFan</key>
 						<string>FAN0</string>
 					</dict>
 				</dict>

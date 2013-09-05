@@ -28,7 +28,7 @@ class EXPORT FakeSMCKey : public OSObject
     OSDeclareDefaultStructors(FakeSMCKey)
     
 private:
-    UInt64              lastUpdated;
+    double              lastUpdated;
 	
 protected:
     char *              key;

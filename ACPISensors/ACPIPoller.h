@@ -1,10 +1,10 @@
 //
-//  PTIDSensors.h
+//  ACPIPoller.h
 //  HWSensors
 //
-//  Created by kozlek on 24.08.12.
+//  Created by Kozlek on 04/09/13.
 //
-//  Copyright (c) 2012 Natan Zalkin <natan.zalkin@me.com>. All rights reserved.
+//  Copyright (c) 2013 Natan Zalkin <natan.zalkin@me.com>. All rights reserved.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -21,44 +21,39 @@
 //  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef __HWSensors__PTID__
-#define __HWSensors__PTID__
-
-#include <IOKit/IOService.h>
-#include "IOKit/acpi/IOACPIPlatformDevice.h"
+#ifndef __HWSensors__ACPIPoller__
+#define __HWSensors__ACPIPoller__
 
 #include "FakeSMCPlugin.h"
 
-#include <kern/clock.h>
+#include "IOKit/acpi/IOACPIPlatformDevice.h"
+#include <IOKit/IOTimerEventSource.h>
 
-class EXPORT PTIDSensors : public FakeSMCPlugin
+class ACPIPoller : public FakeSMCPlugin
 {
-    OSDeclareDefaultStructors(PTIDSensors)
+    OSDeclareDefaultStructors(ACPIPoller)
     
 private:
 	IOACPIPlatformDevice    *acpiDevice;
-    UInt64                  version;
+    OSArray                 *methods;
+    IOWorkLoop*             workloop;
+    IOTimerEventSource*     timerEventSource;
     
-    OSArray                 *temperatures;
-    OSArray                 *tachometers;
+    double                  startTime;
+    double                  pollingTimeout;
+    double                  pollingInterval;
     
-    double                  temperaturesLastUpdated;
-    double                  tachometersLastUpdated;
+    bool                    loggingEnabled;
     
-    bool                    updateTemperatures();
-    bool                    updateTachometers();
-    
-    float                   readTemperature(UInt32 index);
-    float                   readTachometer(UInt32 index);
-    
-    void                    parseTemperatureName(OSString *name, UInt32 index);
-    void                    parseTachometerName(OSString *name, OSString *title, UInt32 index);
-    
+    IOReturn                woorkloopTimerEvent(void);
+    void                    logValue(const char* method, OSObject *value);
 protected:
-    virtual float           getSensorValue(FakeSMCSensor *sensor);
+    
     
 public:
     virtual bool			start(IOService *provider);
+    virtual void            stop(IOService* provider);
 };
 
-#endif /* defined(__HWSensors__PTID__) */
+
+#endif /* defined(__HWSensors__ACPIPoller__) */
