@@ -216,19 +216,21 @@ static void processSMBIOSStructureType2(IOService *provider, const SMBBaseBoard 
     strings->setStringProperty(provider, kOEMInfoProduct, baseBoard->product);
 }
 
+union SMBStructUnion {
+    SMBBIOSInformation      bios;
+    SMBSystemInformation    system;
+    SMBBaseBoard			baseBoard;
+    SMBMemoryModule         memoryModule;
+    SMBSystemSlot           slot;
+    SMBPhysicalMemoryArray  memoryArray;
+    SMBMemoryDevice         memoryDevice;
+    SMBFirmwareVolume       fv;
+    SMBMemorySPD            spd;
+};
+
 static void decodeSMBIOSStructure(IOService *provider, const SMBStructHeader *structureHeader, const void *tableBoundary)
 {
-    const union SMBStructUnion {
-        SMBBIOSInformation      bios;
-        SMBSystemInformation    system;
-		SMBBaseBoard			baseBoard;
-        SMBMemoryModule         memoryModule;
-        SMBSystemSlot           slot;
-        SMBPhysicalMemoryArray  memoryArray;
-        SMBMemoryDevice         memoryDevice;
-		SMBFirmwareVolume       fv;
-		SMBMemorySPD            spd;
-    } * u = (const SMBStructUnion *) structureHeader;
+    SMBStructUnion * u = (union SMBStructUnion *) structureHeader;
     
     SMBPackedStrings strings = SMBPackedStrings( structureHeader,
                                                 tableBoundary );
