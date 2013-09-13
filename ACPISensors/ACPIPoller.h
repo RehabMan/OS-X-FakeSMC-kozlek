@@ -54,7 +54,7 @@ protected:
     
     
 public:
-    virtual bool            init(OSDictionary* dict);
+    //REVIEW_REHABMAN: virtual bool            init(OSDictionary* dict);
     virtual bool			start(IOService *provider);
     virtual void            stop(IOService* provider);
 };
