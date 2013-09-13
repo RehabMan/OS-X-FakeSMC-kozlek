@@ -218,6 +218,8 @@ bool PTIDSensors::start(IOService * provider)
     
     setProperty("version", version, 64);
     
+    enableExclusiveAccessMode();
+    
     // Parse sensors
     switch (version) {
         case 0x30000: {
@@ -281,8 +283,10 @@ bool PTIDSensors::start(IOService * provider)
             
         default:
             HWSensorsFatalLog("usupported interface version: 0x%x", (unsigned int)version);
-            return false;
+            break;
     }
+    
+    disableExclusiveAccessMode();
     
     registerService();
     

@@ -143,11 +143,6 @@
 		6AA2D0D2150B4B99004757C5 /* FakeSMC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FakeSMC.cpp; sourceTree = "<group>"; };
 		6AA2D0D3150B4B99004757C5 /* FakeSMC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FakeSMC.h; sourceTree = "<group>"; };
 		6AA710B9152B7D180006E62C /* SMBIOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMBIOS.h; sourceTree = "<group>"; };
-		7E0A2BA4167C73F50060C153 /* GPUSensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GPUSensors-Info.plist"; path = "Plists/GPUSensors-Info.plist"; sourceTree = SOURCE_ROOT; };
-		7E0A2BA6167C741A0060C153 /* SuperIOSensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "SuperIOSensors-Info.plist"; path = "Plists/SuperIOSensors-Info.plist"; sourceTree = SOURCE_ROOT; };
-		7E0A2BA8167C746D0060C153 /* CPUSensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "CPUSensors-Info.plist"; path = "Plists/CPUSensors-Info.plist"; sourceTree = SOURCE_ROOT; };
-		7E0A2BAA167C74A80060C153 /* ACPISensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "ACPISensors-Info.plist"; path = "Plists/ACPISensors-Info.plist"; sourceTree = SOURCE_ROOT; };
-		7E0A2BAC167C74DF0060C153 /* FakeSMC-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "FakeSMC-Info.plist"; path = "Plists/FakeSMC-Info.plist"; sourceTree = SOURCE_ROOT; };
 		7E0EB890169A9A9A000DF2B1 /* evergreen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = evergreen.cpp; sourceTree = "<group>"; };
 		7E0EB893169A9C4D000DF2B1 /* evergreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = evergreen.h; sourceTree = "<group>"; };
 		7E0EB895169A9D3C000DF2B1 /* r600.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = r600.cpp; sourceTree = "<group>"; };
@@ -164,6 +159,7 @@
 		7E17E16E169C422600E40FC7 /* radeon_definitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = radeon_definitions.h; sourceTree = "<group>"; };
 		7E17E16F169C532000E40FC7 /* si.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = si.cpp; sourceTree = "<group>"; };
 		7E17E170169C532100E40FC7 /* si.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = si.h; sourceTree = "<group>"; };
+		7E18E3EB17DD19DF0069FF52 /* Readme.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Readme.rtf; sourceTree = "<group>"; };
 		7E20CCDD17D6DAD400CE769C /* ACPIPoller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ACPIPoller.cpp; sourceTree = "<group>"; };
 		7E20CCDE17D6DAD400CE769C /* ACPIPoller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACPIPoller.h; sourceTree = "<group>"; };
 		7E24AF81169CBB9700040AF4 /* atom-names.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "atom-names.h"; sourceTree = "<group>"; };
@@ -181,6 +177,11 @@
 		7E79B82115BA99350079AAE8 /* CPUSensors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CPUSensors.h; sourceTree = "<group>"; };
 		7E79B82215BA99350079AAE8 /* CPUSensors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CPUSensors.cpp; sourceTree = "<group>"; };
 		7E79B82415BA99350079AAE8 /* CPUSensors-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CPUSensors-Prefix.pch"; sourceTree = "<group>"; };
+		7E7C5BFC17D995EA00D3265A /* FakeSMC-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FakeSMC-Info.plist"; sourceTree = "<group>"; };
+		7E7C5BFE17D9962F00D3265A /* ACPISensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ACPISensors-Info.plist"; sourceTree = "<group>"; };
+		7E7C5C0017D9964C00D3265A /* CPUSensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "CPUSensors-Info.plist"; sourceTree = "<group>"; };
+		7E7C5C0217D9966700D3265A /* GPUSensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GPUSensors-Info.plist"; sourceTree = "<group>"; };
+		7E7C5C0417D9968D00D3265A /* LPCSensors-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "LPCSensors-Info.plist"; sourceTree = "<group>"; };
 		7E9060D41708950500BF5BBF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7E93890015945B450005316D /* FakeSMCDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakeSMCDefinitions.h; sourceTree = "<group>"; };
 		7E9F544E167C71D1006E907B /* radeon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = radeon.h; sourceTree = "<group>"; };
@@ -350,7 +351,7 @@
 		1D05ABEA13ED0DAD00EADBF6 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				7E0A2BAC167C74DF0060C153 /* FakeSMC-Info.plist */,
+				7E7C5BFC17D995EA00D3265A /* FakeSMC-Info.plist */,
 				1D05AC0713ED0E9600EADBF6 /* InfoPlist.strings */,
 				1D05AC0513ED0E8D00EADBF6 /* FakeSMC-Prefix.pch */,
 			);
@@ -372,7 +373,7 @@
 		1D6FE3F013FEBFF200376E64 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				7E0A2BAA167C74A80060C153 /* ACPISensors-Info.plist */,
+				7E7C5BFE17D9962F00D3265A /* ACPISensors-Info.plist */,
 				1D6FE3F213FEBFF200376E64 /* InfoPlist.strings */,
 				1D6FE3F913FEBFF200376E64 /* ACPISensors-Prefix.pch */,
 			);
@@ -452,7 +453,7 @@
 		6A4E473B152178A00038C5DE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				7E0A2BA6167C741A0060C153 /* SuperIOSensors-Info.plist */,
+				7E7C5C0417D9968D00D3265A /* LPCSensors-Info.plist */,
 				6A4E473D152178A00038C5DE /* InfoPlist.strings */,
 				6A4E4743152178A00038C5DE /* SuperIOSensors-Prefix.pch */,
 			);
@@ -553,6 +554,7 @@
 			children = (
 				7E20CCDE17D6DAD400CE769C /* ACPIPoller.h */,
 				7E20CCDD17D6DAD400CE769C /* ACPIPoller.cpp */,
+				7E18E3EB17DD19DF0069FF52 /* Readme.rtf */,
 			);
 			name = ACPIPoller;
 			sourceTree = "<group>";
@@ -610,7 +612,7 @@
 		7E79B81C15BA99350079AAE8 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				7E0A2BA8167C746D0060C153 /* CPUSensors-Info.plist */,
+				7E7C5C0017D9964C00D3265A /* CPUSensors-Info.plist */,
 				7E79B81E15BA99350079AAE8 /* InfoPlist.strings */,
 				7E79B82415BA99350079AAE8 /* CPUSensors-Prefix.pch */,
 			);
@@ -682,7 +684,7 @@
 		7EADE20915E5602F00FD117C /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				7E0A2BA4167C73F50060C153 /* GPUSensors-Info.plist */,
+				7E7C5C0217D9966700D3265A /* GPUSensors-Info.plist */,
 				7EADE20B15E5602F00FD117C /* InfoPlist.strings */,
 				7EADE21115E5602F00FD117C /* GPUSensors-Prefix.pch */,
 			);
@@ -1196,7 +1198,7 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
+				INFOPLIST_FILE = "FakeSMC/FakeSMC-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1215,7 +1217,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FakeSMC/FakeSMC-Prefix.pch";
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/FakeSMC-Info.plist";
+				INFOPLIST_FILE = "FakeSMC/FakeSMC-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				MODULE_NAME = "org.netkas.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1238,7 +1240,7 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/ACPISensors-Info.plist";
+				INFOPLIST_FILE = "ACPISensors/ACPISensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1257,7 +1259,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ACPISensors/ACPISensors-Prefix.pch";
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/ACPISensors-Info.plist";
+				INFOPLIST_FILE = "ACPISensors/ACPISensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1280,7 +1282,7 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/SuperIOSensors-Info.plist";
+				INFOPLIST_FILE = "SuperIOSensors/LPCSensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1299,7 +1301,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SuperIOSensors/SuperIOSensors-Prefix.pch";
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/SuperIOSensors-Info.plist";
+				INFOPLIST_FILE = "SuperIOSensors/LPCSensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = "org.hwsensors.${PRODUCT_NAME}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1322,7 +1324,7 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/CPUSensors-Info.plist";
+				INFOPLIST_FILE = "CPUSensors/CPUSensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.CPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1341,7 +1343,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CPUSensors/CPUSensors-Prefix.pch";
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/CPUSensors-Info.plist";
+				INFOPLIST_FILE = "CPUSensors/CPUSensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.CPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1364,7 +1366,7 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/GPUSensors-Info.plist";
+				INFOPLIST_FILE = "GPUSensors/GPUSensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.GPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1383,7 +1385,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GPUSensors/GPUSensors-Prefix.pch";
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "Plists/GPUSensors-Info.plist";
+				INFOPLIST_FILE = "GPUSensors/GPUSensors-Info.plist";
 				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
 				MODULE_NAME = org.hwsensors.GPUSensors;
 				PRODUCT_NAME = "$(TARGET_NAME)";

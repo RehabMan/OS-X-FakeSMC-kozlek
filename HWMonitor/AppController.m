@@ -56,6 +56,7 @@
     
     [self loadIconNamed:kHWMonitorIconDefault];
     [self loadIconNamed:kHWMonitorIconThermometer];
+    [self loadIconNamed:kHWMonitorIconScale];
     [self loadIconNamed:kHWMonitorIconDevice];
     [self loadIconNamed:kHWMonitorIconTemperatures];
     [self loadIconNamed:kHWMonitorIconHddTemperatures];
@@ -91,6 +92,7 @@
     [_sensorsTableView setDraggingSourceOperationMask:NSDragOperationMove forLocal:YES];
     
     [self updateRateChanged:nil];
+    [self graphsScaleChanged:nil];
     
     //[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(drivesChanged:) name:NSWorkspaceDidMountNotification object:nil];
 	//[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(drivesChanged:) name:NSWorkspaceDidUnmountNotification object:nil];
@@ -296,6 +298,7 @@
     
     HWMonitorIcon *icon = [self getIconByName:kHWMonitorIconDefault]; [self addItem:icon forKey:icon.name];
     icon = [self getIconByName:kHWMonitorIconThermometer]; [self addItem:icon forKey:icon.name];
+    icon = [self getIconByName:kHWMonitorIconScale]; [self addItem:icon forKey:icon.name];
     icon = [self getIconByName:kHWMonitorIconDevice]; [self addItem:icon forKey:icon.name];
     icon = [self getIconByName:kHWMonitorIconTemperatures]; [self addItem:icon forKey:icon.name];
     icon = [self getIconByName:kHWMonitorIconHddTemperatures]; [self addItem:icon forKey:icon.name];

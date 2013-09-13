@@ -368,8 +368,10 @@
     else if ([item isKindOfClass:[HWMonitorItem class]]) {
         HWMonitorSensor *sensor = [item sensor];
         
-        if ((_showVolumeNames && [sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) ||
-            ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[GenericBatteryDevice class]] && [[sensor genericDevice] productName])) {
+        if ((_showVolumeNames &&
+             sensor.genericDevice &&
+             [sensor.genericDevice isKindOfClass:[ATAGenericDrive class]]) ||
+            ([sensor.genericDevice isKindOfClass:[GenericBatteryDevice class]] && [sensor.genericDevice deviceType] != kInternalBatteryType && [sensor.genericDevice productName])) {
             return 27;
         }
         else {
@@ -534,7 +536,9 @@
             [[cell subtitleField] setHidden:NO];
         }
         else if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[GenericBatteryDevice class]]) {
-            if ([[sensor genericDevice] productName]) {
+            // Hide subtitle for internal battery
+            if ([sensor.genericDevice deviceType] != kInternalBatteryType &&
+                [sensor.genericDevice productName]) {
                 [[cell subtitleField] setStringValue:[[sensor genericDevice] productName]];
                 [[cell subtitleField] setHidden:NO];
             }
