@@ -40,7 +40,7 @@
 			<key>IOMatchCategory</key>
 			<string>FakeSMCPlugin</string>
 			<key>IOClass</key>
-			<string>ACPIPoller</string>
+			<string>ACPIPoller2</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
 			<key>Platform Profile</key>
@@ -203,7 +203,7 @@
 						<string>FAN6</string>
 						<key>IntakeFan</key>
 						<string>FAN3</string>
-						<key>SystemFan</key>
+						<key>System Fan</key>
 						<string>FAN0</string>
 					</dict>
 				</dict>

@@ -14,8 +14,8 @@
 
 #include "IOKit/acpi/IOACPIPlatformDevice.h"
 
-#ifdef DEBUG
-#define kACPISensorsDebug   1
+#if DEBUG
+#define kACPISensorsDebug   0
 #else
 #define kACPISensorsDebug   0
 #endif

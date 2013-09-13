@@ -571,7 +571,7 @@ bool FakeSMCPlugin::init(OSDictionary *properties)
     if (!super::init(properties))
         return false;
     
-    sensors = OSDictionary::withCapacity(8);
+g    sensors = OSDictionary::withCapacity(8);
     
     if (!sensors)
         return false;
@@ -632,7 +632,7 @@ void FakeSMCPlugin::stop(IOService* provider)
     
     HWSensorsDebugLog("[stop] releasing sensors collection");
     sensors->flushCollection();
-	
+
 	super::stop(provider);
 }
 

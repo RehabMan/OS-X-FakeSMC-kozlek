@@ -167,6 +167,6 @@ void ACPIPoller::stop(IOService *provider)
 {
     timerEventSource->cancelTimeout();
     workloop->removeEventSource(timerEventSource);
-    
+
     super::stop(provider);
 }

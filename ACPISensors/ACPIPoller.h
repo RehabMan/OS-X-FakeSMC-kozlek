@@ -29,7 +29,10 @@
 #include "IOKit/acpi/IOACPIPlatformDevice.h"
 #include <IOKit/IOTimerEventSource.h>
 
-class ACPIPoller : public FakeSMCPlugin
+//REVIEW_REHABMAN: rename ACPIPoller to ACPIPoller2 for compatibility with ACPIPoller.kext
+#define ACPIPoller ACPIPoller2
+
+class EXPORT ACPIPoller : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(ACPIPoller)
     
@@ -51,6 +54,7 @@ protected:
     
     
 public:
+    virtual bool            init(OSDictionary* dict);
     virtual bool			start(IOService *provider);
     virtual void            stop(IOService* provider);
 };

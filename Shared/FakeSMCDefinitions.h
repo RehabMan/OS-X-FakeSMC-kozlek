@@ -205,7 +205,7 @@
 #define kFakeSMCKeyPropertyPrefix               "fakesmc-key"
 
 #ifdef DEBUG
-#define kHWSensorsDebug TRUE
+#define kHWSensorsDebug FALSE
 #else
 #define kHWSensorsDebug FALSE
 #endif

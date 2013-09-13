@@ -192,7 +192,7 @@ bool ACPISensors::start(IOService * provider)
     }
     
     methods = OSArray::withCapacity(0);
-    
+
     // Try to load configuration from info.plist first
     if (OSDictionary *configuration = getConfigurationNode())
     {
