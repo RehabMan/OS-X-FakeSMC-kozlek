@@ -199,9 +199,11 @@ bool ACPISensors::start(IOService * provider)
     if (OSDictionary *configuration = getConfigurationNode())
     {
         OSBoolean* disable = OSDynamicCast(OSBoolean, configuration->getObject("DisableDevice"));
-        if (disable && disable->isTrue())
+        if (disable && disable->isTrue()) {
+            disableExclusiveAccessMode();
             return false;
-            
+        }
+
         if (OSDictionary *temperatures = OSDynamicCast(OSDictionary, configuration->getObject("Temperatures"))) {
             
             if (OSBoolean *kelvins = OSDynamicCast(OSBoolean, temperatures->getObject("UseKelvins"))) {

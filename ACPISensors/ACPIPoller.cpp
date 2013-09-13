@@ -28,9 +28,9 @@
 #include "timer.h"
 
 #define super FakeSMCPlugin
-OSDefineMetaClassAndStructors(ACPIPoller, FakeSMCPlugin)
+OSDefineMetaClassAndStructors(ACPIPoller2, FakeSMCPlugin)
 
-void ACPIPoller::logValue(const char* method, OSObject *value)
+void ACPIPoller2::logValue(const char* method, OSObject *value)
 {
     if (OSNumber *number = OSDynamicCast(OSNumber, value)) {
         ACPISensorsInfoLog("%s = %lld", method, number->unsigned64BitValue());
@@ -46,7 +46,7 @@ void ACPIPoller::logValue(const char* method, OSObject *value)
     }
 }
 
-IOReturn ACPIPoller::woorkloopTimerEvent(void)
+IOReturn ACPIPoller2::woorkloopTimerEvent(void)
 {
     if (pollingTimeout > 0 && !startTime)
         startTime = ptimer_read_seconds();
@@ -81,7 +81,7 @@ IOReturn ACPIPoller::woorkloopTimerEvent(void)
     return kIOReturnSuccess;
 }
 
-bool ACPIPoller::start(IOService * provider)
+bool ACPIPoller2::start(IOService * provider)
 {
     ACPISensorsDebugLog("starting...");
     
@@ -176,7 +176,7 @@ bool ACPIPoller::start(IOService * provider)
             return false;
         }
         
-        if (!(timerEventSource = IOTimerEventSource::timerEventSource( this, OSMemberFunctionCast(IOTimerEventSource::Action, this, &ACPIPoller::woorkloopTimerEvent)))) {
+        if (!(timerEventSource = IOTimerEventSource::timerEventSource( this, OSMemberFunctionCast(IOTimerEventSource::Action, this, &ACPIPoller2::woorkloopTimerEvent)))) {
             ACPISensorsFatalLog("failed to initialize timer event source");
             return false;
         }
@@ -199,7 +199,7 @@ bool ACPIPoller::start(IOService * provider)
 	return true;
 }
 
-void ACPIPoller::stop(IOService *provider)
+void ACPIPoller2::stop(IOService *provider)
 {
     timerEventSource->cancelTimeout();
     workloop->removeEventSource(timerEventSource);
