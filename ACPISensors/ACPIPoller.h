@@ -29,9 +29,9 @@
 #include "IOKit/acpi/IOACPIPlatformDevice.h"
 #include <IOKit/IOTimerEventSource.h>
 
-class EXPORT ACPIPoller2 : public FakeSMCPlugin
+class EXPORT ACPIProbe : public FakeSMCPlugin
 {
-    OSDeclareDefaultStructors(ACPIPoller2)
+    OSDeclareDefaultStructors(ACPIProbe)
     
 private:
 	IOACPIPlatformDevice    *acpiDevice;

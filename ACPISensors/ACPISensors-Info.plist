@@ -40,7 +40,7 @@
 			<key>IOMatchCategory</key>
 			<string>FakeSMCPlugin</string>
 			<key>IOClass</key>
-			<string>ACPIPoller2</string>
+			<string>ACPIProbe</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
 			<key>Platform Profile - DISABLED</key>
