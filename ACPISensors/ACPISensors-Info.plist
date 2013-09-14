@@ -72,6 +72,7 @@
 			</dict>
 			<key>IONameMatch</key>
 			<array>
+				<string>PROB0000</string>
 				<string>POLL0000</string>
 			</array>
 		</dict>

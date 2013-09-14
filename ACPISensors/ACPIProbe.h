@@ -1,5 +1,5 @@
 //
-//  ACPIPoller.h
+//  ACPIProbe.h
 //  HWSensors
 //
 //  Created by Kozlek on 04/09/13.

@@ -1,5 +1,5 @@
 //
-//  ACPIPoller.cpp
+//  ACPIProbe.cpp
 //  HWSensors
 //
 //  Created by Kozlek on 04/09/13.
@@ -22,7 +22,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#include "ACPIPoller.h"
+#include "ACPIProbe.h"
 #include "ACPISensors.h"
 
 #include "timer.h"
