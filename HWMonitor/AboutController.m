@@ -56,14 +56,4 @@
     }
 }
 
-- (void)openGitHubLink:(id)sender
-{
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/RehabMan/OS-X-FakeSMC-kozlek"]];
-}
-
-- (void)openBitbucketLink:(id)sender
-{
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://bitbucket.org/kozlek/hwsensors"]];
-}
-
 @end
