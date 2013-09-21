@@ -21,7 +21,7 @@
         
         switch (index) {
             case 1:
-                matching = IOServiceMatching("AppleSmartBattery");
+                matching = IOServiceMatching("IOPMPowerSource");
                 type = kInternalBatteryType;
                 break;
                 
