@@ -11,6 +11,6 @@ DistributeSL
 smcutil
 version.h
 revision.txt
-
-
-HWSensors.xcworkspace/xcshareddata/HWSensors.xccheckout
+*.xccheckout
+dsa_priv.pem
+Appcast/*.*
