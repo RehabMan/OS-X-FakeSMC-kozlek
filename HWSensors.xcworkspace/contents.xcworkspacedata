@@ -2,12 +2,15 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Versioning.xcodeproj">
+      location = "group:Versioning &amp; Destribution.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:HWSensors.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:HWMonitor.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Sparkle/Sparkle.xcodeproj">
    </FileRef>
 </Workspace>
