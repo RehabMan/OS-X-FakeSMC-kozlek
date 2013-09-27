@@ -81,7 +81,8 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
             sharedUpdaters = [[NSMutableDictionary alloc] init];
         [sharedUpdaters setObject:self forKey:[NSValue valueWithNonretainedObject:bundle]];
         host = [[SUHost alloc] initWithBundle:bundle];
-		
+
+#if 0 //REVIEW_REHABMAN: what the hell is this stuff?
 #if !ENDANGER_USERS_WITH_INSECURE_UPDATES
 		// Saving-the-developer-from-a-stupid-mistake-check:
         BOOL hasPublicDSAKey = [host publicDSAKey] != nil;
@@ -96,6 +97,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
             NSRunAlertPanel(@"Insecure update error!", @"For security reasons, you need to code sign your application or sign your updates with a DSA key. See Sparkle's documentation for more information.", @"OK", nil, nil);
             [self notifyDidShowModalAlert];
         }
+#endif
 #endif
         // This runs the permission prompt if needed, but never before the app has finished launching because the runloop won't run before that
         [self performSelector:@selector(startUpdateCycle) withObject:nil afterDelay:0];
