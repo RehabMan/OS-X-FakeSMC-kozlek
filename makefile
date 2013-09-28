@@ -12,15 +12,15 @@ endif
 
 .PHONY: all
 all:
-	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Drivers" -configuration Debug
-	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Drivers" -configuration Release
+	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Only Drivers" -configuration Debug
+	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Only Drivers" -configuration Release
 	xcodebuild build -workspace HWSensors.xcworkspace -scheme "Build Only Apps" -configuration Debug
 	xcodebuild build -workspace HWSensors.xcworkspace -scheme "Build Only Apps" -configuration Release
 
 .PHONY: clean
 clean:
-	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Drivers" -configuration Debug
-	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Drivers" -configuration Release
+	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Only Drivers" -configuration Debug
+	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Only Drivers" -configuration Release
 	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Only Apps" -configuration Debug
 	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Only Apps" -configuration Release
 
