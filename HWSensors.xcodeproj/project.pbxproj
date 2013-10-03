@@ -65,35 +65,35 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		842BE1BC17931C1E00531799 /* PBXContainerItemProxy */ = {
+		84442D9517FDCFFB0064B503 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 842BE1B817931BEE00531799;
 			remoteInfo = PreBuild;
 		};
-		842BE1BE17931C2400531799 /* PBXContainerItemProxy */ = {
+		84442D9717FDD0080064B503 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 842BE1B817931BEE00531799;
 			remoteInfo = PreBuild;
 		};
-		842BE1C017931C2800531799 /* PBXContainerItemProxy */ = {
+		84442D9917FDD0210064B503 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 842BE1B817931BEE00531799;
 			remoteInfo = PreBuild;
 		};
-		842BE1C217931C2C00531799 /* PBXContainerItemProxy */ = {
+		84442D9B17FDD0270064B503 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 842BE1B817931BEE00531799;
 			remoteInfo = PreBuild;
 		};
-		842BE1C417931C3000531799 /* PBXContainerItemProxy */ = {
+		84442D9D17FDD02D0064B503 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1D05ABAF13ED0D7000EADBF6 /* Project object */;
 			proxyType = 1;
@@ -752,7 +752,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				842BE1BD17931C1E00531799 /* PBXTargetDependency */,
+				84442D9617FDCFFB0064B503 /* PBXTargetDependency */,
 			);
 			name = FakeSMC;
 			productName = FakeSMC;
@@ -770,7 +770,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				842BE1BF17931C2400531799 /* PBXTargetDependency */,
+				84442D9817FDD0080064B503 /* PBXTargetDependency */,
 			);
 			name = ACPISensors;
 			productName = ACPISensors;
@@ -788,7 +788,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				842BE1C517931C3000531799 /* PBXTargetDependency */,
+				84442D9E17FDD02D0064B503 /* PBXTargetDependency */,
 			);
 			name = LPCSensors;
 			productName = SuperIOSensors;
@@ -806,7 +806,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				842BE1C117931C2800531799 /* PBXTargetDependency */,
+				84442D9A17FDD0210064B503 /* PBXTargetDependency */,
 			);
 			name = CPUSensors;
 			productName = CPUSensors;
@@ -824,7 +824,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				842BE1C317931C2C00531799 /* PBXTargetDependency */,
+				84442D9C17FDD0270064B503 /* PBXTargetDependency */,
 			);
 			name = GPUSensors;
 			productName = GPUSensors;
@@ -996,6 +996,34 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		84442D9617FDCFFB0064B503 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 84442D9517FDCFFB0064B503 /* PBXContainerItemProxy */;
+		};
+		84442D9817FDD0080064B503 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 84442D9717FDD0080064B503 /* PBXContainerItemProxy */;
+		};
+		84442D9A17FDD0210064B503 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 84442D9917FDD0210064B503 /* PBXContainerItemProxy */;
+		};
+		84442D9C17FDD0270064B503 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 84442D9B17FDD0270064B503 /* PBXContainerItemProxy */;
+		};
+		84442D9E17FDD02D0064B503 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 842BE1B817931BEE00531799 /* PreBuild */;
+			targetProxy = 84442D9D17FDD02D0064B503 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1D05ABB413ED0D7000EADBF6 /* Debug */ = {

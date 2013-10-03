@@ -72,21 +72,21 @@ install_probook_debug:
 distribute:
 	if [ -e ./Distribute ]; then rm -r ./Distribute; fi
 	mkdir ./Distribute
-	mkdir ./Distribute/Release
-	mkdir ./Distribute/Debug
-	cp -R ./Build/Products/Release/FakeSMC.kext ./Distribute/Release
-	mkdir ./Distribute/Release/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Release/CPUSensors.kext ./Distribute/Release/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Release/ACPISensors.kext ./Distribute/Release/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Release/LPCSensors.kext ./Distribute/Release/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Release/GPUSensors.kext ./Distribute/Release/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Release/HWMonitor.app ./Distribute/Release
-	cp -R ./Build/Products/Debug/FakeSMC.kext ./Distribute/Debug
-	mkdir ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Debug/CPUSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Debug/ACPISensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Debug/LPCSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Debug/GPUSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
+	#mkdir ./Distribute/Release
+	cp -R ./Build/Products/Release/FakeSMC.kext ./Distribute
+	mkdir ./Distribute/FakeSMC.kext/Contents/PlugIns
+	cp -R ./Build/Products/Release/CPUSensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
+	cp -R ./Build/Products/Release/ACPISensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
+	cp -R ./Build/Products/Release/LPCSensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
+	cp -R ./Build/Products/Release/GPUSensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
+	cp -R ./Build/Products/Release/HWMonitor.app ./Distribute
+	#mkdir ./Distribute/Debug
+	#cp -R ./Build/Products/Debug/FakeSMC.kext ./Distribute/Debug
+	#mkdir ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
+	#cp -R ./Build/Products/Debug/CPUSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
+	#cp -R ./Build/Products/Debug/ACPISensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
+	#cp -R ./Build/Products/Debug/LPCSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
+	#cp -R ./Build/Products/Debug/GPUSensors.kext ./Distribute/Debug/FakeSMC.kext/Contents/PlugIns
 	#cp -R ./Build/Products/Debug/HWMonitor.app ./Distribute/Debug
 	find ./Distribute -path *.DS_Store -delete
 	find ./Distribute -path *.dSYM -exec echo rm -r {} \; >/tmp/org.kozlek.rm.dsym.sh

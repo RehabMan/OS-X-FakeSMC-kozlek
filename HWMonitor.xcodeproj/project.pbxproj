@@ -105,6 +105,16 @@
 		7EF2A10017303EA600D8641C /* AboutController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7EF2A0FD17303B9C00D8641C /* AboutController.xib */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		84442DA317FDD1560064B503 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7EA248E016D8E93A002231B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 84442D9F17FDD1330064B503;
+			remoteInfo = PreBuild;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		7E9060E21708951800BF5BBF /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -634,6 +644,23 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXLegacyTarget section */
+		84442D9F17FDD1330064B503 /* PreBuild */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "${SOURCE_ROOT}/Scripts/PreBuild.sh ${ACTION}";
+			buildConfigurationList = 84442DA217FDD1330064B503 /* Build configuration list for PBXLegacyTarget "PreBuild" */;
+			buildPhases = (
+			);
+			buildToolPath = /bin/sh;
+			buildWorkingDirectory = "${SOURCE_ROOT}";
+			dependencies = (
+			);
+			name = PreBuild;
+			passBuildSettingsInEnvironment = 0;
+			productName = PreBuild;
+		};
+/* End PBXLegacyTarget section */
+
 /* Begin PBXNativeTarget section */
 		7E9060E31708951800BF5BBF /* smcutil */ = {
 			isa = PBXNativeTarget;
@@ -664,6 +691,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				84442DA417FDD1560064B503 /* PBXTargetDependency */,
 			);
 			name = HWMonitor;
 			productName = HWMonitor;
@@ -712,6 +740,7 @@
 			targets = (
 				7EA248E716D8E93A002231B2 /* HWMonitor */,
 				7E9060E31708951800BF5BBF /* smcutil */,
+				84442D9F17FDD1330064B503 /* PreBuild */,
 			);
 		};
 /* End PBXProject section */
@@ -831,6 +860,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		84442DA417FDD1560064B503 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 84442D9F17FDD1330064B503 /* PreBuild */;
+			targetProxy = 84442DA317FDD1560064B503 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		7EA248F416D8E93A002231B2 /* InfoPlist.strings */ = {
@@ -996,6 +1033,47 @@
 			};
 			name = Release;
 		};
+		84442DA017FDD1330064B503 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		84442DA117FDD1330064B503 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1025,6 +1103,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		84442DA217FDD1330064B503 /* Build configuration list for PBXLegacyTarget "PreBuild" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84442DA017FDD1330064B503 /* Debug */,
+				84442DA117FDD1330064B503 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
