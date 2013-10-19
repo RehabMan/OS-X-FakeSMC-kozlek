@@ -42,17 +42,13 @@
     NSMutableArray *_groups;
     NSMutableDictionary *_items;
     NSMutableArray *_ordering;
-    
-    float _smcSensorsUpdateInterval;
-    float _smartSensorsUpdateInterval;
-    NSDate *_favoritesSensorsLastUpdated;
-    NSDate *_smcSensorsLastUpdated;
-    NSDate *_smartSensorsLastUpdated;
-    BOOL _scheduleRebuildSensors;
-    
+
+    NSTimer *_smcSensorsLoopTimer;
+    NSDate *_smcSensorsLastUdated;
+    NSTimer *_smartSensorsloopTimer;
+    NSDate *_smartSensorsLastUdated;
+
     NSArray *_colorThemes;
-    
-    ////NSLock *_sensorsLock;
 }
 
 @property (assign) IBOutlet PopupController *popupController;

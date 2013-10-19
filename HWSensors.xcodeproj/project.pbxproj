@@ -1060,10 +1060,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_PREFIX_HEADER = Shared/HWSensorsVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
-				INSTALL_GROUP = wheel;
-				INSTALL_MODE_FLAG = "a-w,u+w,a+rX";
-				INSTALL_OWNER = root;
-				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-fno-stack-protector";
@@ -1107,10 +1103,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_PREFIX_HEADER = Shared/HWSensorsVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
-				INSTALL_GROUP = wheel;
-				INSTALL_MODE_FLAG = "a-w,u+w,a+rX";
-				INSTALL_OWNER = root;
-				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/";
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-fno-stack-protector";

@@ -34,6 +34,8 @@
 // Notifications
 extern NSString * const OBMenuBarWindowDidAttachToMenuBar;
 extern NSString * const OBMenuBarWindowDidDetachFromMenuBar;
+extern NSString * const OBMenuBarWindowDidBecomeKey;
+extern NSString * const OBMenuBarWindowDidResignKey;
 
 // Constants
 //extern CGFloat OBMenuBarWindowTitleBarHeight;
@@ -90,7 +92,6 @@ enum  {
     NSRect dragStartFrame;
     NSRect resizeStartFrame;
     NSTextField *titleTextField;
-    NSImage *noiseImage;
 }
 
 /** Whether the window is attached to its icon in the menu bar (default is

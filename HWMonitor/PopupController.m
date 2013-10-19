@@ -16,6 +16,8 @@
 #import "ATASensorCell.h"
 #import "BatteryCell.h"
 
+#import "JLNFadingScrollView.h"
+
 @implementation PopupController
 
 @synthesize statusItem = _statusItem;
@@ -26,6 +28,7 @@
     _colorTheme = colorTheme;
     
     [(OBMenuBarWindow*)self.window setColorTheme:colorTheme];
+    [(JLNFadingScrollView *)_scrollView setFadeColor:_colorTheme.listBackgroundColor];
     [_tableView reloadData];
 }
 
@@ -44,8 +47,10 @@
         
         [_statusItemView setAction:@selector(togglePanel:)];
         [_statusItemView setTarget:self];
-        
-        [self performSelector:@selector(initialSetup) withObject:nil afterDelay:0.0];
+
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [self initialSetup];
+        }];
     }
     
     return self;
@@ -65,9 +70,11 @@
 
 -(void)showWindow:(id)sender
 {
-    if (self.window.isVisible)
+    OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
+
+    if (menubarWindow.isVisible)
         return;
-    
+
     if (self.delegate && [self.delegate respondsToSelector:@selector(popupWillOpen:)]) {
         [self.delegate popupWillOpen:self];
     }
@@ -75,7 +82,7 @@
     // Update values
     for (id item in _items) {
         if ([item isKindOfClass:[HWMonitorItem class]]) {
-            [self updateValueForItem:item];
+            [self updateValueOfItem:item];
         }
     }
 
@@ -87,7 +94,7 @@
 //    else {
 //        [_windowFilter setFilterOptions:[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:1.5] forKey:@"inputRadius"]];
 //    }
-    
+
     self.statusItemView.isHighlighted = YES;
     
     if (self.delegate && [self.delegate respondsToSelector:@selector(popupDidOpen:)]) {
@@ -126,7 +133,47 @@
 #pragma mark -
 #pragma mark Events
 
+- (void)windowDidAttachToStatusBar:(id)sender
+{
+    OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
 
+    [menubarWindow setMaxSize:NSMakeSize(menubarWindow.maxSize.width, menubarWindow.frame.size.height)];
+    [menubarWindow setMinSize:NSMakeSize(menubarWindow.minSize.width, menubarWindow.toolbarHeight + 6)];
+
+    //[NSApp deactivate];
+}
+
+- (void)windowDidDetachFromStatusBar:(id)sender
+{
+    OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
+
+    [menubarWindow setMaxSize:NSMakeSize(menubarWindow.maxSize.width, menubarWindow.frame.size.height)];
+    [menubarWindow setMinSize:NSMakeSize(menubarWindow.minSize.width, menubarWindow.toolbarHeight + 6)];
+
+    if (menubarWindow.isKeyWindow) {
+        [NSApp activateIgnoringOtherApps:YES];
+    }
+}
+
+- (void)windowDidBecomeKey:(id)sender
+{
+    for (id subveiw in _toolbarView.subviews)
+    {
+        if ([subveiw respondsToSelector:@selector(setEnabled:)]) {
+            [subveiw setEnabled:YES];
+        }
+    }
+}
+
+- (void)windowDidResignKey:(id)sender
+{
+    for (id subveiw in _toolbarView.subviews)
+    {
+        if ([subveiw respondsToSelector:@selector(setEnabled:)]) {
+            [subveiw setEnabled:NO];
+        }
+    }
+}
 
 #pragma mark -
 #pragma mark Actions
@@ -269,8 +316,11 @@
     
     height = 6 + (menubarWindow.attachedToMenuBar ? OBMenuBarWindowArrowHeight : 0) + (height ? height : _tableView.frame.size.height);
 
-    [menubarWindow setContentSize:NSMakeSize(menubarWindow.frame.size.width, height)];
-    [menubarWindow setMaxSize:NSMakeSize(menubarWindow.maxSize.width, menubarWindow.frame.size.height)];
+    if (menubarWindow.frame.size.height != height) {
+        [menubarWindow setContentSize:NSMakeSize(menubarWindow.frame.size.width, height)];
+        [menubarWindow setMaxSize:NSMakeSize(menubarWindow.maxSize.width, menubarWindow.frame.size.height)];
+        [menubarWindow setMinSize:NSMakeSize(menubarWindow.minSize.width, menubarWindow.toolbarHeight + 6)];
+    }
     
     // Order front if needed
     if (orderFront) {
@@ -285,7 +335,7 @@
     [_statusItemView setNeedsDisplay:YES];
 }
 
--(void)updateValueForItem:(HWMonitorItem*)item
+-(void)updateValueOfItem:(HWMonitorItem*)item
 {
     if ([item isVisible]) {
         id cell = [_tableView viewAtColumn:0 row:[_items indexOfObject:item] makeIfNecessary:NO];
@@ -305,7 +355,10 @@
                     break;
                     
                 case kHWSensorLevelExceeded:
-                    [[cell textField] setTextColor:[NSColor redColor]];
+                    [[cell textField] performSelectorOnMainThread:@selector(setTextColor:)
+                                                        withObject:[NSColor redColor]
+                                                     waitUntilDone:YES];
+
                 case kHWSensorLevelHigh:
                     valueColor = [NSColor redColor];
                     break;
@@ -315,24 +368,31 @@
                     break;
             }
             
-            [[cell valueField] takeStringValueFrom:item.sensor];
-            
+            [[cell valueField] performSelectorOnMainThread:@selector(takeStringValueFrom:)
+                                               withObject:item.sensor
+                                            waitUntilDone:YES];
+
             if (![[[cell valueField] textColor] isEqualTo:valueColor]) {
-                [[cell valueField] setTextColor:valueColor];
+                [[cell valueField] performSelectorOnMainThread:@selector(setTextColor:)
+                                                    withObject:valueColor
+                                                 waitUntilDone:YES];
             }
             
             if ([item.sensor genericDevice] && [[item.sensor genericDevice] isKindOfClass:[GenericBatteryDevice class]]) {
-                [cell setGaugeLevel:[item.sensor intValue]];
+                //[cell setGaugeLevel:[item.sensor intValue]];
+                [cell performSelectorOnMainThread:@selector(setGaugeLevel:)
+                                                    withObject:[NSNumber numberWithInteger:[item.sensor intValue]]
+                                                 waitUntilDone:YES];
             }
         }
     }
 }
 
--(void)updateValuesForSensors:(NSArray *)sensors
+-(void)captureValuesOfSensorsInArray:(NSArray *)sensors
 {
     if ([self.window isVisible]) {
         for (HWMonitorSensor *sensor in sensors) {
-            [self updateValueForItem:[sensor representedObject]];
+            [self updateValueOfItem:[sensor representedObject]];
         }
     }
     
@@ -540,7 +600,7 @@
                 [[cell subtitleField] setHidden:YES];
             }
             
-            [cell setGaugeLevel:[sensor intValue]];
+            [cell setGaugeLevel:[NSNumber numberWithInteger:[sensor intValue]]];
         }
         else {
             [[cell subtitleField] setHidden:YES];

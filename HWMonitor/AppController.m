@@ -36,120 +36,24 @@
 
 #import "Localizer.h"
 
+@interface AppController (Private)
+
+@property (readonly) BOOL shouldUpdateOnlyFavoritesSensors;
+
+@end
+
 @implementation AppController
 
-- (id)init
+#pragma mark
+#pragma mark Properties:
+
+- (BOOL)shouldUpdateOnlyFavoritesSensors
 {
-    self = [super initWithWindowNibName:@"AppController"];
-    if (self != nil)
-    {
-        //REVIEW_REHABMAN: might eventually need this lock
-        ////_sensorsLock = [[NSLock alloc] init];
-    }
-    return self;
+    return !([self.window isVisible] || [_popupController.window isVisible] || [_graphsController.window isVisible] || [_graphsController backgroundMonitoring]);
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
-{
-    [Localizer localizeView:self.window];
-    [Localizer localizeView:_graphsController.window];
-    
-    [self loadIconNamed:kHWMonitorIconDefault];
-    [self loadIconNamed:kHWMonitorIconThermometer];
-    [self loadIconNamed:kHWMonitorIconScale];
-    [self loadIconNamed:kHWMonitorIconDevice];
-    [self loadIconNamed:kHWMonitorIconTemperatures];
-    [self loadIconNamed:kHWMonitorIconHddTemperatures];
-    [self loadIconNamed:kHWMonitorIconSsdLife];
-    [self loadIconNamed:kHWMonitorIconMultipliers];
-    [self loadIconNamed:kHWMonitorIconFrequencies];
-    [self loadIconNamed:kHWMonitorIconTachometers];
-    [self loadIconNamed:kHWMonitorIconVoltages];
-    [self loadIconNamed:kHWMonitorIconBattery];
-    
-    _colorThemes = [ColorTheme createColorThemes];
-    
-    _engine = [[HWMonitorEngine alloc] initWithBundle:[NSBundle mainBundle]];
-    
-    [_engine setUseFahrenheit:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseFahrenheitKey]];
-    [_engine setUseBsdNames:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseBSDNames]];
-    
-    [[_popupController statusItemView] setEngine:_engine];
-//    [[_popupController statusItemView] setUseBigFont:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseBigStatusMenuFont]];
-//    [[_popupController statusItemView] setUseShadowEffect:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseShadowEffect]];
-//    [_popupController setShowVolumeNames:[[NSUserDefaults standardUserDefaults] integerForKey:kHWMonitorShowVolumeNames]];
-    [_popupController setColorTheme:[_colorThemes objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:kHWMonitorColorThemeIndex]]];
-    
-//    [_graphsController setUseFahrenheit:[_engine useFahrenheit]];
-//    [_graphsController setUseSmoothing:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsUseDataSmoothing]];
-//    [_graphsController setBackgroundMonitoring:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsBackgroundMonitor]];
-//    [_graphsController setIsTopmost:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorWindowTopmost]];
-//    [_graphsController setGraphsScale:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsScale]];
-    
-    [_favoritesTableView registerForDraggedTypes:[NSArray arrayWithObject:kHWMonitorTableViewDataType]];
-    [_favoritesTableView setDraggingSourceOperationMask:NSDragOperationMove | NSDragOperationDelete forLocal:YES];
-    [_sensorsTableView registerForDraggedTypes:[NSArray arrayWithObject:kHWMonitorTableViewDataType]];
-    [_sensorsTableView setDraggingSourceOperationMask:NSDragOperationMove forLocal:YES];
-    
-    [self updateRateChanged:nil];
-    [self graphsScaleChanged:nil];
-    
-    //[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(drivesChanged:) name:NSWorkspaceDidMountNotification object:nil];
-	//[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(drivesChanged:) name:NSWorkspaceDidUnmountNotification object:nil];
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(wakeFromSleep:) name:NSWorkspaceDidWakeNotification object:nil];
-    
-    [self performSelector:@selector(rebuildSensorsList) withObject:nil afterDelay:0.0];
-    
-    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[self methodSignatureForSelector:@selector(updateLoop)]];
-    [invocation setTarget:self];
-    [invocation setSelector:@selector(updateLoop)];
-    
-    [[NSRunLoop mainRunLoop] addTimer:[NSTimer timerWithTimeInterval:0.05 invocation:invocation repeats:YES] forMode:NSRunLoopCommonModes];
-    
-//    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"SUHasLaunchedBefore"] || [[NSUserDefaults standardUserDefaults] integerForKey:@"SUScheduledCheckInterval"] != 3600) {
-//        _sharedUpdater.updateCheckInterval = 3600;
-//    }
-}
-
--(void)applicationWillTerminate:(NSNotification *)notification
-{
-    //[[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver: self name: NSWorkspaceDidMountNotification object:nil];
-	//[[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver: self name: NSWorkspaceDidUnmountNotification object:nil];
-}
-
--(void)wakeFromSleep:(id)sender
-{
-    
-}
-
--(void)checkForUpdates:(id)sender
-{
-    if ([sender isKindOfClass:[NSButton class]]) {
-        NSButton *button = (NSButton*)sender;
-        
-        if ([button state]) {
-            _sharedUpdater.automaticallyChecksForUpdates = YES;
-            [_sharedUpdater checkForUpdatesInBackground];
-        }
-    }
-    else {
-        [_sharedUpdater checkForUpdates:sender];
-    }
-}
-
--(void)showWindow:(id)sender
-{
-    for (HWMonitorSensor *sensor in [_engine sensors]) {
-        id cell = [_sensorsTableView viewAtColumn:0 row:[self getIndexOfItem:[sensor name]] makeIfNecessary:NO];
-        
-        if (cell && [cell isKindOfClass:[PrefsSensorCell class]]) {
-            [[cell valueField] takeStringValueFrom:sensor];
-        }
-    }
-    
-    [NSApp activateIgnoringOtherApps:YES];
-    [super showWindow:sender];
-}
+#pragma mark
+#pragma mark Methods:
 
 - (void)loadIconNamed:(NSString*)name
 {
@@ -217,89 +121,6 @@
     return [_ordering indexOfObject:key];
 }
 
-- (void)updateSmartSensors;
-{
-    ////[_sensorsLock lock];
-    NSArray *sensors = [_engine updateSmartSensors];
-    [self updateValuesForSensors:sensors];
-    ////[_sensorsLock unlock];
-}
-
-- (void)updateSmcSensors
-{
-    ////[_sensorsLock lock];
-    NSArray *sensors = [_engine updateSensors];
-    [self updateValuesForSensors:sensors];
-    ////[_sensorsLock unlock];
-}
-
-- (void)updateFavoritesSensors
-{
-    ////[_sensorsLock lock];
-    NSArray *sensors = [_engine updateSensorsList:_favorites];
-    [self updateValuesForSensors:sensors];
-    ////[_sensorsLock unlock];
-}
-
-- (void)updateValuesForSensors:(NSArray*)sensors
-{
-    if ([self.window isVisible]) {
-        for (HWMonitorSensor *sensor in sensors) {
-            id cell = [_sensorsTableView viewAtColumn:0 row:[self getIndexOfItem:[sensor name]] makeIfNecessary:NO];
-            
-            if (cell && [cell isKindOfClass:[PrefsSensorCell class]]) {
-                [[cell valueField] takeStringValueFrom:sensor];
-            }
-        }
-        
-        [_favorites enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            id cell = [_favoritesTableView viewAtColumn:0 row:idx + 1 makeIfNecessary:NO];
-            
-            if (cell && [cell isKindOfClass:[PrefsSensorCell class]]) {
-                [[cell valueField] takeStringValueFrom:obj];
-            }
-        }];
-    }
-    
-    [_popupController updateValuesForSensors:sensors];
-    [_graphsController captureDataToHistoryNow];
-}
-
-- (BOOL)updateLoop
-{
-    if (_scheduleRebuildSensors) {
-        [self rebuildSensorsList];
-        _scheduleRebuildSensors = FALSE;
-    }
-    else {
-        NSDate *now = [NSDate dateWithTimeIntervalSinceNow:0.0];
-        
-        if ([self.window isVisible] || [_popupController.window isVisible] || [_graphsController.window isVisible] || [_graphsController backgroundMonitoring]) {
-            if ([_smcSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
-                //[NSThread detachNewThreadSelector:@selector(updateSmcSensors) toTarget:self withObject:nil];
-                [self performSelectorInBackground:@selector(updateSmcSensors) withObject:nil];
-                _smcSensorsLastUpdated = now;
-                return TRUE;
-            }
-        }
-        else if ([_favorites count] && [_favoritesSensorsLastUpdated timeIntervalSinceNow] < (- _smcSensorsUpdateInterval)) {
-            //[NSThread detachNewThreadSelector:@selector(updateFavoritesSensors) toTarget:self withObject:nil];
-            [self performSelectorInBackground:@selector(updateFavoritesSensors) withObject:nil];
-            _favoritesSensorsLastUpdated = now;
-            return TRUE;
-        }
-    
-        if ([_smartSensorsLastUpdated timeIntervalSinceNow] < (- _smartSensorsUpdateInterval)) {
-            //[NSThread detachNewThreadSelector:@selector(updateSmartSensors) toTarget:self withObject:nil];
-            [self performSelectorInBackground:@selector(updateSmartSensors) withObject:nil];
-            _smartSensorsLastUpdated = now;
-            return TRUE;
-        }
-    }
-    
-    return FALSE;
-}
-
 - (void)rebuildSensorsTableView
 {
     if (!_ordering)
@@ -349,10 +170,8 @@
     [_sensorsTableView reloadData];
 }
 
-- (void)rebuildSensorsList
-{
-    ////    [_sensorsLock lock];
-    
+- (void)rebuildSensorsListOnlySmartSensors:(BOOL)onlySmartSensors
+{    
     if (!_favorites) {
         _favorites = [[NSMutableArray alloc] init];
     }
@@ -364,8 +183,13 @@
         _groups = [[NSMutableArray alloc] init];
     else
         [_groups removeAllObjects];
-    
-    [_engine rebuildSensorsList];
+
+    if (onlySmartSensors) {
+        [_engine rebuildSmartSensorsListOnly];
+    }
+    else {
+        [_engine rebuildSensorsList];
+    }
     
     if ([[_engine sensors] count] > 0) {
         
@@ -424,11 +248,206 @@
     [_graphsController setupWithGroups:_groups];
     
     [self rebuildSensorsTableView];
-    
-////    [_sensorsLock unlock];
 }
 
-#pragma mark Events
+- (void)captureValuesOfSensorsInArray:(NSArray*)sensors
+{
+    if ([self.window isVisible]) {
+        for (HWMonitorSensor *sensor in sensors) {
+            id cell = [_sensorsTableView viewAtColumn:0 row:[self getIndexOfItem:[sensor name]] makeIfNecessary:NO];
+
+            if (cell && [cell isKindOfClass:[PrefsSensorCell class]]) {
+                [[cell valueField] performSelectorOnMainThread:@selector(takeStringValueFrom:)
+                                                    withObject:sensor
+                                                 waitUntilDone:YES];
+            }
+        }
+
+        [_favorites enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            id cell = [_favoritesTableView viewAtColumn:0 row:idx + 1 makeIfNecessary:NO];
+
+            if (cell && [cell isKindOfClass:[PrefsSensorCell class]]) {
+                [[cell valueField] performSelectorOnMainThread:@selector(takeStringValueFrom:)
+                                                    withObject:obj
+                                                 waitUntilDone:YES];
+            }
+        }];
+    }
+
+    [_popupController captureValuesOfSensorsInArray:sensors];
+    [_graphsController captureDataToHistoryNow];
+}
+
+- (void)smcSensorsUpdateLoop
+{
+    if ([_smcSensorsLastUdated timeIntervalSinceNow] < -_smcSensorsLoopTimer.timeInterval * 0.7f) {
+
+        _smcSensorsLastUdated = [NSDate dateWithTimeIntervalSinceNow:0];
+
+        if (!self.shouldUpdateOnlyFavoritesSensors) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                NSArray *sensors = [_engine updateSmcSensors];
+                [self captureValuesOfSensorsInArray:sensors];
+            }];
+        }
+        else if ([_favorites count]) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                NSArray *sensors = [_engine updateSmcSensorsInArray:_favorites];
+                [self captureValuesOfSensorsInArray:sensors];
+            }];
+        }
+    }
+}
+
+- (void)smartSensorsUpdateLoop
+{
+    if ([_smartSensorsLastUdated timeIntervalSinceNow] < -_smartSensorsloopTimer.timeInterval * 0.7f) {
+
+        _smartSensorsLastUdated = [NSDate dateWithTimeIntervalSinceNow:0];
+
+        if (!self.shouldUpdateOnlyFavoritesSensors) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                NSArray *sensors = [_engine updateSmartSensors];
+                [self captureValuesOfSensorsInArray:sensors];
+            }];
+        }
+        else if ([_favorites count]) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                NSArray *sensors = [_engine updateSmartSensorsInArray:_favorites];
+                [self captureValuesOfSensorsInArray:sensors];
+            }];
+        }
+    }
+}
+
+-(void)checkForUpdates:(id)sender
+{
+    if ([sender isKindOfClass:[NSButton class]]) {
+        NSButton *button = (NSButton*)sender;
+
+        if ([button state]) {
+            _sharedUpdater.automaticallyChecksForUpdates = YES;
+            [_sharedUpdater checkForUpdatesInBackground];
+        }
+    }
+    else {
+        [_sharedUpdater checkForUpdates:sender];
+    }
+}
+
+#pragma mark
+#pragma mark Overrides:
+
+- (id)init
+{
+    self = [super initWithWindowNibName:@"AppController"];
+
+    if (self != nil)
+    {
+
+    }
+
+    return self;
+}
+
+-(void)showWindow:(id)sender
+{
+    for (HWMonitorSensor *sensor in [_engine sensors]) {
+        id cell = [_sensorsTableView viewAtColumn:0 row:[self getIndexOfItem:[sensor name]] makeIfNecessary:NO];
+
+        if (cell && [cell isKindOfClass:[PrefsSensorCell class]]) {
+            [[cell valueField] takeStringValueFrom:sensor];
+        }
+    }
+
+    [NSApp activateIgnoringOtherApps:YES];
+    [super showWindow:sender];
+}
+
+#pragma mark
+#pragma mark Events:
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    [Localizer localizeView:self.window];
+    [Localizer localizeView:_graphsController.window];
+
+    [self loadIconNamed:kHWMonitorIconDefault];
+    [self loadIconNamed:kHWMonitorIconThermometer];
+    [self loadIconNamed:kHWMonitorIconScale];
+    [self loadIconNamed:kHWMonitorIconDevice];
+    [self loadIconNamed:kHWMonitorIconTemperatures];
+    [self loadIconNamed:kHWMonitorIconHddTemperatures];
+    [self loadIconNamed:kHWMonitorIconSsdLife];
+    [self loadIconNamed:kHWMonitorIconMultipliers];
+    [self loadIconNamed:kHWMonitorIconFrequencies];
+    [self loadIconNamed:kHWMonitorIconTachometers];
+    [self loadIconNamed:kHWMonitorIconVoltages];
+    [self loadIconNamed:kHWMonitorIconBattery];
+
+    _colorThemes = [ColorTheme createColorThemes];
+
+    _engine = [[HWMonitorEngine alloc] initWithBundle:[NSBundle mainBundle]];
+
+    [_engine setUseFahrenheit:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseFahrenheitKey]];
+    [_engine setUseBsdNames:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseBSDNames]];
+
+    [[_popupController statusItemView] setEngine:_engine];
+    //    [[_popupController statusItemView] setUseBigFont:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseBigStatusMenuFont]];
+    //    [[_popupController statusItemView] setUseShadowEffect:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorUseShadowEffect]];
+    //    [_popupController setShowVolumeNames:[[NSUserDefaults standardUserDefaults] integerForKey:kHWMonitorShowVolumeNames]];
+    [_popupController setColorTheme:[_colorThemes objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:kHWMonitorColorThemeIndex]]];
+
+    //    [_graphsController setUseFahrenheit:[_engine useFahrenheit]];
+    //    [_graphsController setUseSmoothing:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsUseDataSmoothing]];
+    //    [_graphsController setBackgroundMonitoring:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsBackgroundMonitor]];
+    //    [_graphsController setIsTopmost:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorWindowTopmost]];
+    //    [_graphsController setGraphsScale:[[NSUserDefaults standardUserDefaults] boolForKey:kHWMonitorGraphsScale]];
+
+    [_favoritesTableView registerForDraggedTypes:[NSArray arrayWithObject:kHWMonitorTableViewDataType]];
+    [_favoritesTableView setDraggingSourceOperationMask:NSDragOperationMove | NSDragOperationDelete forLocal:YES];
+    [_sensorsTableView registerForDraggedTypes:[NSArray arrayWithObject:kHWMonitorTableViewDataType]];
+    [_sensorsTableView setDraggingSourceOperationMask:NSDragOperationMove forLocal:YES];
+
+
+    [self rebuildSensorsListOnlySmartSensors: NO];
+
+    _smcSensorsLastUdated = [NSDate dateWithTimeIntervalSinceNow:0];
+
+    [self updateRateChanged:nil];
+    [self graphsScaleChanged:nil];
+
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidMountNotification object:nil];
+	[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceWillSleep:) name:NSWorkspaceWillSleepNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceDidWake:) name:NSWorkspaceDidWakeNotification object:nil];
+}
+
+-(void)applicationWillTerminate:(NSNotification *)notification
+{
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver: self name: NSWorkspaceDidMountNotification object:nil];
+	[[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver: self name: NSWorkspaceDidUnmountNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver: self name: NSWorkspaceWillSleepNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver: self name: NSWorkspaceDidWakeNotification object:nil];
+}
+
+-(void)workspaceDidMountOrUnmount:(id)sender
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        [self rebuildSensorsListOnlySmartSensors:YES];
+    }];
+}
+
+-(void)workspaceWillSleep:(id)sender
+{
+    if (_smcSensorsLoopTimer) [_smcSensorsLoopTimer invalidate];
+    if (_smartSensorsloopTimer) [_smartSensorsloopTimer invalidate];
+}
+
+-(void)workspaceDidWake:(id)sender
+{
+    [self updateRateChanged:sender];
+}
 
 - (IBAction)toggleSensorVisibility:(id)sender
 {
@@ -557,11 +576,29 @@
 
 -(void)updateRateChanged:(NSNotification *)aNotification
 {
-    _smcSensorsUpdateInterval = [self getSmcSensorsUpdateRate];
-    _smcSensorsLastUpdated = [NSDate dateWithTimeIntervalSinceNow:0];
-    _favoritesSensorsLastUpdated = _smcSensorsLastUpdated;
-    _smartSensorsUpdateInterval = [self getSmartSensorsUpdateRate] * 60;
-    _smartSensorsLastUpdated = [NSDate dateWithTimeIntervalSinceNow:0];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[self methodSignatureForSelector:@selector(smcSensorsUpdateLoop)]];
+    [invocation setTarget:self];
+    [invocation setSelector:@selector(smcSensorsUpdateLoop)];
+
+    if (_smcSensorsLoopTimer) {
+        [_smcSensorsLoopTimer invalidate];
+    }
+
+    _smcSensorsLoopTimer = [NSTimer timerWithTimeInterval:[self getSmcSensorsUpdateRate] invocation:invocation repeats:YES];
+
+    [[NSRunLoop mainRunLoop] addTimer:_smcSensorsLoopTimer forMode:NSRunLoopCommonModes];
+
+    invocation = [NSInvocation invocationWithMethodSignature:[self methodSignatureForSelector:@selector(smartSensorsUpdateLoop)]];
+    [invocation setTarget:self];
+    [invocation setSelector:@selector(smartSensorsUpdateLoop)];
+
+    if (_smartSensorsloopTimer) {
+        [_smartSensorsloopTimer invalidate];
+    }
+
+    _smartSensorsloopTimer = [NSTimer timerWithTimeInterval:[self getSmartSensorsUpdateRate] * 60 invocation:invocation repeats:YES];
+
+    [[NSRunLoop mainRunLoop] addTimer:_smartSensorsloopTimer forMode:NSRunLoopCommonModes];
 }
 
 - (void)toggleGraphSmoothing:(id)sender
@@ -588,14 +625,17 @@
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-#pragma mark PopupControllerDelegate
+#pragma mark
+#pragma mark PopupControllerDelegate:
 
 - (void) popupWillOpen:(id)sender
 {
-    [self updateLoop];
+    [self smcSensorsUpdateLoop];
+    [self smartSensorsUpdateLoop];
 }
 
-#pragma mark  NSTableViewDelegate
+#pragma mark
+#pragma mark  NSTableViewDelegate:
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
 {

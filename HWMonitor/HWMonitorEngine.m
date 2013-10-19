@@ -114,7 +114,7 @@
     return [NSData dataWithBytes:&result length:sizeof(result)];
 }
 
-- (HWMonitorSensor*)addSensorWithKey:(NSString*)key title:(NSString*)title group:(NSUInteger)group
+- (HWMonitorSensor*)addSensorWithKey:(NSString*)key andTitle:(NSString*)title andGroup:(NSUInteger)group
 {
     HWMonitorSensor *sensor = nil;
     NSString *type = nil;
@@ -237,7 +237,7 @@
     }
     
     if (value) {
-        HWMonitorSensor *sensor = [self addSensorWithKey:[NSString stringWithFormat:@"%@%lx", [disk serialNumber], group] title:_useBsdNames ? [disk bsdName] : [[disk productName] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] group:group];
+        HWMonitorSensor *sensor = [self addSensorWithKey:[NSString stringWithFormat:@"%@%lx", [disk serialNumber], group] andTitle:_useBsdNames ? [disk bsdName] : [[disk productName] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] andGroup:group];
         
         [sensor setData:value];
         [sensor setGenericDevice:disk];
@@ -279,7 +279,7 @@
             [device setSerialNumber:device.productName];
         }
         
-        sensor = [self addSensorWithKey:[device serialNumber] title:GetLocalizedString(title) group:group];
+        sensor = [self addSensorWithKey:[device serialNumber] andTitle:GetLocalizedString(title) andGroup:group];
         
         [sensor setGenericDevice:device];
         [sensor setData:[device getBatteryLevel]];
@@ -394,7 +394,7 @@
     
 }
 
-- (void)addSensorsFromGroup:(HWSensorGroup)group withKeysList:(NSArray*)keys
+- (void)addSensorsWithGroup:(HWSensorGroup)group andKeysInArray:(NSArray*)keys
 {
     NSString *prefix = nil;
     
@@ -451,18 +451,52 @@
                     NSString *formattedKey = [NSString stringWithFormat:keyFormat, start + index];
 
                     if ([keys indexOfObject:formattedKey] != NSNotFound) {
-                        ////NSLog(@"adding_g %@='%@'", formattedKey, [NSString stringWithFormat:GetLocalizedString(title), shift + index]);
-                        [self addSensorWithKey:formattedKey title:[NSString stringWithFormat:GetLocalizedString(title), shift + index] group:group];
+                        [self addSensorWithKey:formattedKey andTitle:[NSString stringWithFormat:GetLocalizedString(title), shift + index] andGroup:group];
                     }
                 }
             }
             else if ([keys indexOfObject:key] != NSNotFound) {
-                ////NSLog(@"adding %@='%@'", key, GetLocalizedString(title));
-                [self addSensorWithKey:key title:GetLocalizedString(title) group:group];
+                [self addSensorWithKey:key andTitle:GetLocalizedString(title) andGroup:group];
             }
         }
         
     }];
+}
+
+- (void)rebuildSmartSensorsListOnly
+{
+    [_sensorsLock lock];
+
+    __block NSMutableArray *objectsToRemove = [[NSMutableArray alloc] init];
+    __block NSMutableArray *keysToRemove = [[NSMutableArray alloc] init];
+
+    [_sensors enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        HWMonitorSensor *sensor = (HWMonitorSensor *)obj;
+
+        if (sensor.genericDevice && [sensor.genericDevice isKindOfClass:[ATAGenericDrive class]]) {
+            [objectsToRemove addObject:sensor];
+            [keysToRemove addObject:sensor.name];
+        }
+    }];
+
+    [_sensors removeObjectsInArray:objectsToRemove];
+    [_keys removeObjectsForKeys:keysToRemove];
+
+    if ((_smartDrives = [ATAGenericDrive discoverDrives])) {
+        for (ATAGenericDrive * drive in _smartDrives) {
+            // Hard Drive Temperatures
+            [self addSmartSensorWithGenericDisk:drive group:kSMARTGroupTemperature];
+
+            if (![drive isRotational]) {
+                // SSD Remaining Life
+                [self addSmartSensorWithGenericDisk:drive group:kSMARTGroupRemainingLife];
+                // SSD Remaining Blocks
+                [self addSmartSensorWithGenericDisk:drive group:kSMARTGroupRemainingBlocks];
+            }
+        }
+    }
+
+    [_sensorsLock unlock];
 }
 
 - (void)rebuildSensorsList
@@ -509,8 +543,9 @@
 //        }];
         
         //Temperatures
-        [self addSensorsFromGroup:kHWSensorGroupTemperature withKeysList:list];
-        
+        [self addSensorsWithGroup:kHWSensorGroupTemperature andKeysInArray:list];
+
+        // SMART
         if ((_smartDrives = [ATAGenericDrive discoverDrives])) {
             for (ATAGenericDrive * drive in _smartDrives) {
                 // Hard Drive Temperatures
@@ -526,10 +561,10 @@
         }
         
         // Multipliers
-        [self addSensorsFromGroup:kHWSensorGroupMultiplier withKeysList:list];
+        [self addSensorsWithGroup:kHWSensorGroupMultiplier andKeysInArray:list];
         
         // Frequency
-        [self addSensorsFromGroup:kHWSensorGroupFrequency withKeysList:list];
+        [self addSensorsWithGroup:kHWSensorGroupFrequency andKeysInArray:list];
         
         // Fans
         for (int i=0; i<0xf; i++) {
@@ -546,7 +581,7 @@
                         caption = [[NSString alloc] initWithFormat:GetLocalizedString(@"Fan %X"),i + 1];
                     
                     if (![caption hasPrefix:@"GPU "])
-                        [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i] title:GetLocalizedString(caption) group:kHWSensorGroupTachometer];
+                        [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i] andTitle:GetLocalizedString(caption) andGroup:kHWSensorGroupTachometer];
                 }
                 else if ([type isEqualToString:@TYPE_FDS]) {
                     FanTypeDescStruct *fds = (FanTypeDescStruct*)[[HWMonitorEngine getValueDataFromSmcKeyInfo:info] bytes];
@@ -564,7 +599,7 @@
                                 break;
                                 
                             default:
-                                [self addSensorWithKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_SPEED,i] title:GetLocalizedString(caption) group:kHWSensorGroupTachometer];
+                                [self addSensorWithKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_SPEED,i] andTitle:GetLocalizedString(caption) andGroup:kHWSensorGroupTachometer];
                                 break;
                         }
                     }
@@ -586,7 +621,7 @@
                     if ([caption hasPrefix:@"GPU "]) {
                         UInt8 cardIndex = [[caption substringFromIndex:4] intValue] - 1;
                         NSString *title = cardIndex == 0 ? GetLocalizedString(@"GPU Fan") : [NSString stringWithFormat:GetLocalizedString(@"GPU %X Fan"), cardIndex + 1];
-                        [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i] title:title group:kHWSensorGroupTachometer];
+                        [self addSensorWithKey:[[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i] andTitle:title andGroup:kHWSensorGroupTachometer];
                     }
                 }
                 else if ([type isEqualToString:@TYPE_FDS]) {
@@ -595,13 +630,13 @@
                     switch (fds->type) {
                         case GPU_FAN_RPM: {
                             NSString *title = fds->ui8Zone == 0 ? GetLocalizedString(@"GPU Fan") : [NSString stringWithFormat:GetLocalizedString(@"GPU %X Fan"), fds->ui8Zone + 1];
-                            [self addSensorWithKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_SPEED, i] title:title group:kHWSensorGroupTachometer];
+                            [self addSensorWithKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_SPEED, i] andTitle:title andGroup:kHWSensorGroupTachometer];
                             break;
                         }
                             
                         case GPU_FAN_PWM_CYCLE: {
                             NSString *title = fds->ui8Zone == 0 ? GetLocalizedString(@"GPU PWM") : [NSString stringWithFormat:GetLocalizedString(@"GPU %X PWM"), fds->ui8Zone + 1];
-                            [self addSensorWithKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_SPEED, i] title:title group:kHWSensorGroupPWM];
+                            [self addSensorWithKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_SPEED, i] andTitle:title andGroup:kHWSensorGroupPWM];
                             break;
                         }
                     }
@@ -610,13 +645,13 @@
         }
         
         // Voltages
-        [self addSensorsFromGroup:kHWSensorGroupVoltage withKeysList:list];
+        [self addSensorsWithGroup:kHWSensorGroupVoltage andKeysInArray:list];
         
         // Currents
-        [self addSensorsFromGroup:kHWSensorGroupCurrent withKeysList:list];
+        [self addSensorsWithGroup:kHWSensorGroupCurrent andKeysInArray:list];
         
         // Powers
-        [self addSensorsFromGroup:kHWSensorGroupPower withKeysList:list];
+        [self addSensorsWithGroup:kHWSensorGroupPower andKeysInArray:list];
         
         // Batteries
         if ((_bluetoothDevices = [GenericBatteryDevice discoverDevices])) {
@@ -630,6 +665,32 @@
     [_sensorsLock unlock];
 }
 
+- (void)updateSmartSensor:(HWMonitorSensor*)sensor addToArray:(NSMutableArray*)updated
+{
+    if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
+        switch ([sensor group]) {
+            case kSMARTGroupTemperature:
+                [sensor setData:[[sensor genericDevice] getTemperature]];
+                break;
+
+            case kSMARTGroupRemainingLife:
+                [sensor setData:[[sensor genericDevice] getRemainingLife]];
+                break;
+
+            case kSMARTGroupRemainingBlocks:
+                [sensor setData:[[sensor genericDevice] getRemainingBlocks]];
+                break;
+
+            default:
+                break;
+        }
+
+        if ([sensor valueHasBeenChanged]) {
+            [updated addObject:sensor];
+        }
+    }
+}
+
 - (NSArray*)updateSmartSensors
 {
     [_sensorsLock lock];
@@ -637,28 +698,7 @@
     NSMutableArray *updated = [[NSMutableArray alloc] init];
     
     for (HWMonitorSensor *sensor in _sensors) {
-        if ([sensor genericDevice] && [[sensor genericDevice] isKindOfClass:[ATAGenericDrive class]]) {
-            switch ([sensor group]) {
-                case kSMARTGroupTemperature:
-                    [sensor setData:[[sensor genericDevice] getTemperature]];
-                    break;
-                    
-                case kSMARTGroupRemainingLife:
-                    [sensor setData:[[sensor genericDevice] getRemainingLife]];
-                    break;
-                    
-                case kSMARTGroupRemainingBlocks:
-                    [sensor setData:[[sensor genericDevice] getRemainingBlocks]];
-                    break;
-                        
-                default:
-                    break;
-            }
-            
-            if ([sensor valueHasBeenChanged]) {
-                [updated addObject:sensor];
-            }
-        }
+        [self updateSmartSensor:sensor addToArray:updated];
     }
     
     [_sensorsLock unlock];
@@ -666,15 +706,31 @@
     return updated;
 }
 
-- (void)updateSensor:(HWMonitorSensor*)sensor addToArray:(NSMutableArray*)updated
+-(NSArray*)updateSmartSensorsInArray:(NSArray *)sensors
+{
+    if (!sensors) return nil;
+
+    [_sensorsLock lock];
+
+    NSMutableArray *updated = [[NSMutableArray alloc] init];
+
+    for (id object in _sensors) {
+        if ([object isKindOfClass:[HWMonitorSensor class]]) {
+            [self updateSmartSensor:object addToArray:updated];
+        }
+    }
+
+    [_sensorsLock unlock];
+
+    return updated;
+}
+
+- (void)updateSmcSensor:(HWMonitorSensor*)sensor addToArray:(NSMutableArray*)updated
 {
     if (![sensor genericDevice]) {
         SMCVal_t val;
-        UInt32Char_t name;
-        
-        strncpy(name, [[sensor name] cStringUsingEncoding:NSASCIIStringEncoding], 5);
-        
-        if (kIOReturnSuccess == SMCReadKey(_connection, name, &val)) {
+
+        if (kIOReturnSuccess == SMCReadKey(_connection, sensor.rawKey, &val)) {
             
             //[sensor setType:[NSString stringWithCString:val.dataType encoding:NSASCIIStringEncoding]];
             [sensor setData:[NSData dataWithBytes:val.bytes length:val.dataSize]];
@@ -693,7 +749,7 @@
     }
 }
 
-- (NSArray*)updateSensors
+- (NSArray*)updateSmcSensors
 {
     [_sensorsLock lock];
     
@@ -702,7 +758,7 @@
     if (_connection || kIOReturnSuccess == SMCOpen(&_connection)) {
         //NSTimeInterval sleepInterval = 1.0f / (float)[_sensors count];
         for (HWMonitorSensor *sensor in _sensors) {
-            [self updateSensor:sensor addToArray:updated];
+            [self updateSmcSensor:sensor addToArray:updated];
             //[NSThread sleepForTimeInterval:sleepInterval];
         }
     }
@@ -716,7 +772,7 @@
     return updated;
 }
 
--(NSArray*)updateSensorsList:(NSArray *)sensors
+-(NSArray*)updateSmcSensorsInArray:(NSArray *)sensors
 {
     if (!sensors) return nil; // [self updateSmcSensors];
     
@@ -727,7 +783,7 @@
     if (_connection || kIOReturnSuccess == SMCOpen(&_connection)) {
         for (id object in _sensors) {
             if ([object isKindOfClass:[HWMonitorSensor class]] /*&& [_sensors containsObject:object]*/) {
-                [self updateSensor:object addToArray:updated];
+                [self updateSmcSensor:object addToArray:updated];
             }
         }
     }

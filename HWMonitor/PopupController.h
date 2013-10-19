@@ -19,8 +19,6 @@
 - (void)popupDidClose:(id)sender;
 @end
 
-@class WindowFilter;
-
 @interface PopupController : NSWindowController <NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource>
 {
     BOOL _hasActivePanel;
@@ -39,6 +37,7 @@
 
 @property (assign) IBOutlet NSMenu *mainMenu;
 @property (assign) IBOutlet NSView *toolbarView;
+@property (assign) IBOutlet NSScrollView *scrollView;
 @property (assign) IBOutlet NSTableView *tableView;
 
 @property (assign) IBOutlet NSWindowController *appController;
@@ -54,6 +53,6 @@
 
 - (void) setupWithGroups:(NSArray*)groups;
 - (void) reloadData;
-- (void) updateValuesForSensors:(NSArray*)sensors;
+- (void) captureValuesOfSensorsInArray:(NSArray*)sensors;
 
 @end
