@@ -8,7 +8,7 @@
  */
 
 #include "FakeSMCDevice.h"
-
+#include "FakeSMCPlugin.h"
 #include "FakeSMCDefinitions.h"
 
 #include <IOKit/IODeviceTreeSupport.h>
@@ -493,26 +493,38 @@ FakeSMCKey *FakeSMCDevice::addKeyWithValue(const char *name, const char *type, u
 	return key;
 }
 
+inline UInt32 getHandlingPriority(IOService *service)
+{
+    if (service != NULL) {
+        if (OSNumber *priority = OSDynamicCast(OSNumber, service->getProperty("Handling Priority"))) {
+            return priority->unsigned32BitValue();
+        }
+    }
+
+    return -1;
+}
+
 FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type, unsigned char size, IOService *handler)
 {
     KEYSLOCK;
     
-    FakeSMCKey* key;
-	if ((key = getKey(name))) {
-		HWSensorsErrorLog("key %s already handled", name);
-        if (key->getHandler() != NULL) {
-            // TODO: check priority?
-            
-            HWSensorsErrorLog("key %s already handled", name);
+    FakeSMCKey *key;
+    if ((key = getKey(name))) {
+        
+        IOService *existedHandler = key->getHandler();
+        
+        if (getHandlingPriority(handler) < getHandlingPriority(existedHandler)) {
+            HWSensorsErrorLog("key %s already handled with prioritized handler %s", name, existedHandler ? existedHandler->getName() : "*Unreferenced*");
             key = 0;
         }
         else {
+            HWSensorsInfoLog("key %s handler %s has been replaced with new prioritized handler %s", name, existedHandler ? existedHandler->getName() : "*Unreferenced*", handler ? handler->getName() : "*Unreferenced*");
+            
             key->setType(type);
             key->setSize(size);
             key->setHandler(handler);
         }
-        
-	}
+    }
     else {
         
         FakeSMCDebugLog("adding key %s with handler, type: %s, size: %d", name, type, size);
@@ -521,13 +533,13 @@ FakeSMCKey *FakeSMCDevice::addKeyWithHandler(const char *name, const char *type,
             keys->setObject(key);
             updateKeyCounterKey();
         }
-	}
+        else {
+            HWSensorsErrorLog("failed to create key %s", name);
+        }
+    }
     KEYSUNLOCK;
     
-    if (!key)
-        HWSensorsErrorLog("failed to create key %s", name);
-    
-	return key;
+    return key;
 }
 
 FakeSMCKey *FakeSMCDevice::getKey(const char *name)
