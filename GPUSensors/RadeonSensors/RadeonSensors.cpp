@@ -43,6 +43,28 @@ bool RadeonSensors::shouldWaitForAccelerator()
     return true;
 }
 
+bool RadeonSensors::acceleratorLoadedCheck()
+{
+    bool acceleratorFound = false;
+
+    if (OSDictionary *matching = serviceMatching("IOAccelerator")) {
+        if (OSIterator *iterator = getMatchingServices(matching)) {
+            while (IOService *service = (IOService*)iterator->getNextObject()) {
+                if (pciDevice == service->getParentEntry(gIOServicePlane)) {
+                    acceleratorFound = true;
+                    break;
+                }
+            }
+
+            OSSafeRelease(iterator);
+        }
+        
+        OSSafeRelease(matching);
+    }
+
+    return acceleratorFound;
+}
+
 bool RadeonSensors::managedStart(IOService *provider)
 {
     if (!(card.pdev = pciDevice)) {
@@ -324,10 +346,8 @@ void RadeonSensors::stop(IOService *provider)
         card.bios = 0;
     }
     
-    if (card.card_index >= 0) {
-        if (!releaseGPUIndex(card.card_index))
-            HWSensorsFatalLog("failed to release GPU index");
-    }
+    if (card.card_index >= 0)
+        releaseGPUIndex(card.card_index);
     
     super::stop(provider);
 }

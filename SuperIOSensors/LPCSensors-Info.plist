@@ -47,8 +47,10 @@
 			</array>
 			<key>IOProviderClass</key>
 			<string>SuperIODevice</string>
-			<key>Handling Priority</key>
-			<integer>1000</integer>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
+			<key>IOProbeScore</key>
+			<string>1000</string>
 			<key>Platform Profile</key>
 			<dict>
 				<key>Default</key>
@@ -838,8 +840,10 @@
 			</array>
 			<key>IOProviderClass</key>
 			<string>SuperIODevice</string>
-			<key>Handling Priority</key>
-			<integer>1000</integer>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
+			<key>IOProbeScore</key>
+			<string>2000</string>
 			<key>Platform Profile</key>
 			<dict>
 				<key>ASRock</key>
@@ -2653,8 +2657,10 @@
 			</array>
 			<key>IOProviderClass</key>
 			<string>SuperIODevice</string>
-			<key>Handling Priority</key>
-			<integer>1000</integer>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
+			<key>IOProbeScore</key>
+			<string>3000</string>
 			<key>Platform Profile</key>
 			<dict>
 				<key>Intel</key>
@@ -3763,8 +3769,10 @@
 			</array>
 			<key>IOProviderClass</key>
 			<string>SuperIODevice</string>
-			<key>Handling Priority</key>
-			<integer>1000</integer>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
+			<key>IOProbeScore</key>
+			<string>4000</string>
 			<key>Platform Profile</key>
 			<dict>
 				<key>ASRock</key>

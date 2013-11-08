@@ -32,7 +32,8 @@
 @interface HWMonitorEngine : NSObject
 {
 @private
-    io_connect_t _connection;
+    io_connect_t _fakeSmcConnection;
+    io_connect_t _smcConnection;
     NSArray *_smartDrives;
     NSArray *_bluetoothDevices;
     NSMutableArray *_sensors;
@@ -51,14 +52,14 @@
 
 + (HWMonitorEngine*)engineWithBundle:(NSBundle*)bundle;
 
-- (HWMonitorSensor*)addSensorWithKey:(NSString*)key andTitle:(NSString*)title andGroup:(NSUInteger)group;
+- (HWMonitorSensor*)addSensorWithKey:(NSString*)key title:(NSString*)title group:(NSUInteger)group;
+- (HWMonitorSensor*)addSmcSensorWithConnection:(io_connect_t)connection key:(NSString*)key title:(NSString*)title group:(NSUInteger)group;
 - (HWMonitorSensor*)addSmartSensorWithGenericDisk:(ATAGenericDrive*)disk group:(NSUInteger)group;
-- (HWMonitorSensor*)addBluetoothSensorWithGenericDevice:(GenericBatteryDevice*)device group:(NSUInteger)group;
+- (HWMonitorSensor*)addBatterySensorWithGenericDevice:(GenericBatteryDevice*)device group:(NSUInteger)group;
 
 - (id)init;
 - (id)initWithBundle:(NSBundle*)mainBundle;
 
-- (NSData*)getSmcKeyInfoForKey:(NSString*)key;
 - (void)rebuildSmartSensorsListOnly;
 - (void)rebuildSensorsList;
 - (NSArray*)updateSmartSensors;

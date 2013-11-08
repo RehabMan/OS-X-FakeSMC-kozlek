@@ -3,21 +3,35 @@
    LastUpgradeVersion = "0500"
    version = "1.3">
    <BuildAction
-      parallelizeBuildables = "YES"
+      parallelizeBuildables = "NO"
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "NO"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7E2ACD8B1791B4510061C677"
                BuildableName = "Pre-Build"
                BlueprintName = "Pre-Build"
                ReferencedContainer = "container:Versioning &amp; Destribution.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "8DC2EF4F0486A6940098B216"
+               BuildableName = "Sparkle.framework"
+               BlueprintName = "Sparkle"
+               ReferencedContainer = "container:Sparkle/Sparkle.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -98,10 +112,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8DC2EF4F0486A6940098B216"
-               BuildableName = "Sparkle.framework"
-               BlueprintName = "Sparkle"
-               ReferencedContainer = "container:Sparkle/Sparkle.xcodeproj">
+               BlueprintIdentifier = "7EFF9524182AD5C200C637C8"
+               BuildableName = "FakeSMCKeyStore.kext"
+               BlueprintName = "FakeSMCKeyStore"
+               ReferencedContainer = "container:HWSensors.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -140,6 +154,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Debug">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7E420F9A1820E04900331D2B"
+               BuildableName = "HWMonitor Tests.xctest"
+               BlueprintName = "HWMonitor Tests"
+               ReferencedContainer = "container:HWMonitor.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

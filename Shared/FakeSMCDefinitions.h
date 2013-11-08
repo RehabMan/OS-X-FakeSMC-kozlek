@@ -179,6 +179,9 @@
 // Services
 #define kFakeSMCService                         "FakeSMC"
 #define kFakeSMCDeviceService                   "FakeSMCDevice"
+#define kFakeSMCKeyStoreService                 "FakeSMCKeyStore"
+
+#define kFakeSMCDefaultWaitTimeout              1000000000ull * 5
 
 // I/O Registry
 #define kFakeSMCDeviceValues                    "Values"
@@ -201,16 +204,16 @@
 #define kFakeSMCSetValueCallback                "kFakeSMCSetValueCallback"
 
 // NVRAM
-#define kFakeSMCFirmwareVendor                  "fw-vendor"
+#define kFakeSMCFirmwareVendor                  "firmware-vendor"
 #define kFakeSMCKeyPropertyPrefix               "fakesmc-key"
 
 #ifdef DEBUG
-#define kHWSensorsDebug FALSE
+#define kHWSensorsDebug 0
 #else
-#define kHWSensorsDebug FALSE
+#define kHWSensorsDebug 0
 #endif
 
-#define HWSensorsDebugLog(string, args...)	do { if (kHWSensorsDebug) { IOLog ("%s: [Debug] " string "\n",getName() , ## args); } } while(0)
+#define HWSensorsDebugLog(string, args...)	do { if (kHWSensorsDebug) { IOLog ("%s: [Debug] " string "\n", getName(), ## args); } } while(0)
 #define HWSensorsWarningLog(string, args...) do { IOLog ("%s: [Warning] " string "\n",getName() , ## args); } while(0)
 #define HWSensorsErrorLog(string, args...) do { IOLog ("%s: [Error] " string "\n",getName() , ## args); } while(0)
 #define HWSensorsFatalLog(string, args...) do { IOLog ("%s: [Fatal] " string "\n",getName() , ## args); } while(0)

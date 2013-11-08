@@ -26,7 +26,7 @@
  *
  */
 
-#import <Sparkle/SUUpdater.h>
+#import "../Sparkle/SUUpdater.h"
 
 #import "PopupController.h"
 #import "GraphsController.h"

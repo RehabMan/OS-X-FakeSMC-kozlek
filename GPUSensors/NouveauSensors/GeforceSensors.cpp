@@ -89,10 +89,30 @@ float GeforceSensors::getSensorValue(FakeSMCSensor *sensor)
     return 0;
 }
 
+bool GeforceSensors::shouldWaitForAccelerator()
+{
+    return true;
+}
+
+bool GeforceSensors::acceleratorLoadedCheck()
+{
+    OSData *kernelLoaded = OSDynamicCast(OSData, pciDevice->getProperty("NVKernelLoaded"));
+
+    if (kernelLoaded && kernelLoaded->getLength()) {
+        UInt8 flag;
+
+        memcpy(&flag, kernelLoaded->getBytesNoCopy(0, 1), 1);
+
+        return flag;
+    }
+
+    return false;
+}
+
 bool GeforceSensors::managedStart(IOService *provider)
 {
     HWSensorsDebugLog("Starting...");
-	
+
     struct nouveau_device *device = &card;
     
     if ((card.card_index = takeVacantGPUIndex()) < 0) {
@@ -267,10 +287,8 @@ void GeforceSensors::stop(IOService * provider)
         card.bios.data = 0;
     }
     
-    if (card.card_index >= 0) {
-        if (!releaseGPUIndex(card.card_index))
-            HWSensorsFatalLog("failed to release GPU index");
-    }
+    if (card.card_index >= 0)
+        releaseGPUIndex(card.card_index);
     
     super::stop(provider);
 }

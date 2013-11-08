@@ -5,7 +5,7 @@
 //  Created by kozlek on 23.02.13.
 //
 
-#import <Sparkle/SUUpdater.h>
+#import "../Sparkle/SUUpdater.h"
 
 #import "StatusItemView.h"
 #import "ColorTheme.h"

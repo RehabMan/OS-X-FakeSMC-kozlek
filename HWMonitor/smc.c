@@ -28,32 +28,7 @@ cc ./smc.c  -o smcutil -framework IOKit -framework CoreFoundation -Wno-four-char
 #include <IOKit/IOKitLib.h>
 #include "smc.h"
 
-static UInt32 _strtoul(const char *str, int size, int base)
-{
-    UInt32 total = 0;
-    int i;
-
-    for (i = 0; i < size; i++)
-    {
-        if (base == 16)
-            total += str[i] << (size - 1 - i) * 8;
-        else
-           total += (unsigned char) (str[i] << (size - 1 - i) * 8);
-    }
-    return total;
-}
-
-static void _ultostr(char *str, UInt32 val)
-{
-    str[0] = '\0';
-    snprintf(str, 5, "%c%c%c%c", 
-            (unsigned int) val >> 24,
-            (unsigned int) val >> 16,
-            (unsigned int) val >> 8,
-            (unsigned int) val);
-}
-
-kern_return_t SMCOpen(io_connect_t *conn)
+kern_return_t SMCOpen(io_connect_t *conn, const char *serviceName)
 {
     kern_return_t result;
     mach_port_t   masterPort;
@@ -62,7 +37,7 @@ kern_return_t SMCOpen(io_connect_t *conn)
 
     IOMasterPort(MACH_PORT_NULL, &masterPort);
 
-    CFMutableDictionaryRef matchingDictionary = IOServiceMatching("AppleSMC");
+    CFMutableDictionaryRef matchingDictionary = IOServiceMatching(serviceName);
     result = IOServiceGetMatchingServices(masterPort, matchingDictionary, &iterator);
     if (result != kIOReturnSuccess)
     {
@@ -74,7 +49,7 @@ kern_return_t SMCOpen(io_connect_t *conn)
     IOObjectRelease((io_object_t)iterator);
     if (device == 0)
     {
-        printf("Error: no SMC found\n");
+        //printf("Error: no SMC found\n");
         return 1;
     }
 

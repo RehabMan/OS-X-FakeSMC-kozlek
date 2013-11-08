@@ -43,6 +43,8 @@
 			<string>ACPIProbe</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
 			<key>Platform Profile - DISABLED</key>
 			<dict>
 				<key>Default</key>
@@ -86,6 +88,13 @@
 			<string>ACPISensors</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
+			<key>IOPropertyMatch</key>
+			<dict>
+				<key>device_type</key>
+				<string>thermal-zone</string>
+			</dict>
 			<key>Platform Profile</key>
 			<dict>
 				<key>Default</key>
@@ -141,6 +150,8 @@
 					</dict>
 				</dict>
 			</dict>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
 			<key>IONameMatch</key>
 			<array>
 				<string>PTID</string>
@@ -156,6 +167,8 @@
 			<string>ACPISensors</string>
 			<key>IOProviderClass</key>
 			<string>IOACPIPlatformDevice</string>
+			<key>IOResourceMatch</key>
+			<string>FakeSMCKeyStore</string>
 			<key>Platform Profile</key>
 			<dict>
 				<key>Default</key>

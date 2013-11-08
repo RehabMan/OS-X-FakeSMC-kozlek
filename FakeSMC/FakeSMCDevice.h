@@ -10,8 +10,6 @@
 #ifndef _FAKESMCDEVICE_h
 #define _FAKESMCDEVICE_h
 
-#include "FakeSMCKey.h"
-
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
 #include <IOKit/IOLocks.h>
 
@@ -27,10 +25,6 @@
 #define APPLESMC_GET_KEY_BY_INDEX_CMD	0x12
 #define APPLESMC_GET_KEY_TYPE_CMD		0x13
 
-//REVIEW: temporarily to disable NVRAM key writing/loading
-#define NVRAMKEYS 1
-#define NVRAMKEYS_EXCEPTION 0
-
 struct AppleSMCStatus {
 	uint8_t cmd;
 	uint8_t status;
@@ -45,6 +39,8 @@ struct AppleSMCStatus {
 	uint8_t key_info[6];
 };
 
+class FakeSMCKeyStore;
+
 class EXPORT FakeSMCDevice : public IOACPIPlatformDevice
 {
     OSDeclareDefaultStructors( FakeSMCDevice )
@@ -58,29 +54,9 @@ private:
 	struct
     ApleSMCStatus       *status;
 	
-	OSArray             *keys;
-    OSDictionary        *types;
-    OSDictionary        *exposedValues;
-    
-   	FakeSMCKey			*keyCounterKey;
-    FakeSMCKey          *fanCounterKey;
-
-#ifdef DEBUG
     bool				trace;
 	bool				debug;
-#endif
-    
-#if NVRAMKEYS
-    bool                useNVRAM;
-    bool                genericNVRAM;
-#endif
-#if NVRAMKEYS_EXCEPTION
-    OSDictionary        *exceptionKeys;
-#endif
-    
-    UInt16              vacantGPUIndex;
-    UInt16              vacantFanIndex;
-	
+
 	void                applesmc_io_cmd_writeb(void *opaque, uint32_t addr, uint32_t val);
 	void                applesmc_io_data_writeb(void *opaque, uint32_t addr, uint32_t val);
 	uint32_t            applesmc_io_data_readb(void *opaque, uint32_t addr1);
@@ -89,20 +65,9 @@ private:
 	void                applesmc_fill_data(struct AppleSMCStatus *s);
 	void                applesmc_fill_info(struct AppleSMCStatus *s);
 
-public:
-    FakeSMCKey          *addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value);
-	FakeSMCKey          *addKeyWithHandler(const char *name, const char *type, unsigned char size, IOService *handler);
-	FakeSMCKey          *getKey(const char *name);
-	FakeSMCKey          *getKey(unsigned int index);
-	UInt32              getCount(void);
-    
-	void                updateKeyCounterKey(void);
-    void                updateFanCounterKey(void);
-    
-#if NVRAMKEYS
-    void                saveKeyToNVRAM(FakeSMCKey *key);
-    UInt32              loadKeysFromNVRAM();
-#endif
+    FakeSMCKeyStore     *keyStore;
+
+public:    
     bool                initAndStart(IOService *platform, IOService *provider);
     
     virtual void        ioWrite32( UInt16 offset, UInt32 value, IOMemoryMap * map = 0 );
@@ -118,10 +83,6 @@ public:
     virtual IOReturn	enableInterrupt(int source);
     virtual IOReturn	disableInterrupt(int source);
 	virtual IOReturn	causeInterrupt(int source);
-
-    virtual IOReturn	setProperties(OSObject * properties);
-    
-    virtual IOReturn	callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4 ); 
 };
 
 #endif

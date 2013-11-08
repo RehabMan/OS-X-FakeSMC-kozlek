@@ -26,12 +26,9 @@ To install:
 README.TXT from original repo
 ----------------------------------------------------------------------------
 
-Open source SMC device driver/emulator (FakeSMC) by netkas (http://netkas.org/) with 
-hardware monitoring plugins ported from OpenHardwareMonitor for Windows and hwmon sensors drivers from Linux.
+Open source SMC device driver/emulator (FakeSMC) by netkas (http://netkas.org/) with hardware monitoring plugins ported from OpenHardwareMonitor for Windows and hwmon sensors drivers from Linux.
 
-IMPORTANT: Do not install DRIVERS on real mac! This even may work but you are doing
-it at your own risk. On the other side HWMonitor.app is fully compatible with Macs 
-so you can still use it to monitor hardware sensors provided by SMC.
+NOTE: FakeSMC & Plugins starting from v915 provides additional sensors information to HWMonitor then running on Macs. Anyway by installing FakeSMC on real Mac you should consider to know what you do and how to recover your system if something will go wrong.
 
 All repositories:
 
@@ -57,7 +54,7 @@ Mozketo for LaunchAtLoginController
 PHPdev32 for an idea to using NVRAM as storage for kext configuration
 coercion for initial Haswell support
 oswaldini @ www.osx86.org.pl for Polish translation
-Marchrius @ insanelymac.com for Italian translation
+Matteo «Marchrius» Gaggiano for the enhanced about window with credits scroller and Italian translation
 k3nny @ www.insanelymac.com for German translation
 Bruce Allen for smartmontools <http://www.smartmontools.org>
 Michael Robinson for Cocoa Categories <https://github.com/faceleg/Cocoa-Categories>
@@ -67,3 +64,4 @@ Nouveau Project for nouveau linux driver (GeforceSensors base)
 Advanced Micro Devices and all contributors for AMD Radeon linux driver (RadeonSensors base)
 Joshua Nozzi for JLNFadingScrollView <https://github.com/jnozzi/JLNFadingScrollView>
 Rheinfabrik for RFOverlayScrollView <https://github.com/rheinfabrik/RFOverlayScrollView>
+Matteo Gaggiano for the enhanced about window with credits scroller
