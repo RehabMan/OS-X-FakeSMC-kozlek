@@ -275,7 +275,7 @@ static void decodeSMBIOSStructure(IOService *provider, const SMBStructHeader *st
     }
 }
 
-static void decodeSMBIOSTable(IOService *provider, const void *tableData, UInt16 tableLength, UInt16 structureCount)
+void decodeSMBIOSTable(IOService *provider, const void *tableData, UInt16 tableLength, UInt16 structureCount)
 {
     const SMBStructHeader * header;
     const UInt8 *           next = (const UInt8 *) tableData;
@@ -305,6 +305,7 @@ static void decodeSMBIOSTable(IOService *provider, const void *tableData, UInt16
     }
 }
 
+#if 0 //REVIEW_REHABMAN: not used anymore
 bool setOemProperties(IOService *provider)
 {
     SMBEntryPoint* eps = 0;
@@ -316,7 +317,7 @@ bool setOemProperties(IOService *provider)
     IOMemoryDescriptor * biosMemory = 0;
     IOMemoryMap * biosMap = 0;
     
-    biosMemory = IOMemoryDescriptor::withPhysicalAddress( 0xf0000,0xfffff-0xf0000+1,kIODirectionOutIn);
+    biosMemory = IOMemoryDescriptor::withPhysicalAddress( 0xf0000,0xfffff-0xf0000+1,kIODirectionIn);
     
     if(biosMemory)
     {
@@ -357,7 +358,7 @@ bool setOemProperties(IOService *provider)
             
             if (csum == 0 && eps->dmi.tableLength && eps->dmi.structureCount) {
                 dmiStructureCount = eps->dmi.structureCount;
-                dmiMemory = IOMemoryDescriptor::withPhysicalAddress(eps->dmi.tableAddress, eps->dmi.tableLength,kIODirectionOutIn );
+                dmiMemory = IOMemoryDescriptor::withPhysicalAddress(eps->dmi.tableAddress, eps->dmi.tableLength,kIODirectionIn );
             }
             /*else
              {
@@ -384,3 +385,4 @@ bool setOemProperties(IOService *provider)
     
     return true;
 }
+#endif //0

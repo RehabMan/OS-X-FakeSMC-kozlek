@@ -45,7 +45,7 @@ bool FakeSMC::init(OSDictionary *properties)
         
         OSSafeRelease(efi);
     }
-		
+
 	return true;
 }
 
@@ -124,12 +124,15 @@ bool FakeSMC::start(IOService *provider)
         if (count)
             HWSensorsInfoLog("%d key%s exported by Clover EFI", count, count == 1 ? "" : "s");
     }
-
+    
+#if 0
+    //REVIEW_REHABMAN: new way is to read from IODevicePlane:/efi/platform/SMBIOS
     if (!setOemProperties(this)) {
         // Another try after 200 ms spin
         IOSleep(200);
         setOemProperties(this);
     }
+#endif
 
     if (!getProperty(kOEMInfoProduct) || !getProperty(kOEMInfoManufacturer)) {
 
@@ -156,12 +159,30 @@ bool FakeSMC::start(IOService *provider)
                 }
                 //OSSafeReleaseNULL(data);
             }
+            platformNode->release();
         }
-        else {
-            HWSensorsErrorLog("failed to get OEM info from DMI or Clover EFI, specific platform profiles will be unavailable");
-        }
+        //else {
+        //    HWSensorsErrorLog("failed to get OEM info from DMI or Clover EFI, specific platform profiles will be unavailable");
+        //}
     }
     
+    if (!getProperty(kOEMInfoProduct) || !getProperty(kOEMInfoManufacturer)) {
+        // Try to obtain OEM info from Chameleon EFI
+        if (IORegistryEntry* platformNode = fromPath("/efi/platform", gIODTPlane)) {
+            if (OSData *data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS"))) {
+                if (const void *smbios = data->getBytesNoCopy()) {
+                    decodeSMBIOSTable(this, smbios, data->getLength(), 128);  //REVIEW: 128 pulled out of the air!
+                }
+                //OSSafeReleaseNULL(data);
+            }
+            platformNode->release();
+        }
+    }
+
+    if (!getProperty(kOEMInfoProduct) || !getProperty(kOEMInfoManufacturer)) {
+        HWSensorsErrorLog("failed to get OEM info from ioreg, specific platform profiles will be unavailable");
+    }
+
     int arg_value = 1;
     
     // Check if we have SMC already
