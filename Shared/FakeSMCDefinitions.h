@@ -212,7 +212,7 @@
 #define NVRAMKEYS_EXCEPTION 0
 
 #ifdef DEBUG
-#define kHWSensorsDebug 0
+#define kHWSensorsDebug 1
 #else
 #define kHWSensorsDebug 0
 #endif

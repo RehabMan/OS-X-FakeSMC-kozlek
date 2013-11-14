@@ -38,6 +38,7 @@ class FakeSMCKeyStore : public IOService
     OSDeclareDefaultStructors(FakeSMCKeyStore)
 
 private:
+    IORecursiveLock     *keysLock;
     OSArray             *keys;
     OSDictionary        *types;
 

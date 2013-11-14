@@ -37,9 +37,9 @@
 #define super IOService
 OSDefineMetaClassAndStructors(FakeSMCKeyStore, IOService)
 
-//REVIEW: This code *IS NOT* thread safe.  Need locks... TBD later
-#define KEYSLOCK
-#define KEYSUNLOCK
+//REVIEW: This code *IS NOT* thread safe.  Need locks...
+#define KEYSLOCK    IORecursiveLockLock(keysLock)
+#define KEYSUNLOCK  IORecursiveLockUnlock(keysLock)
 
 #pragma mark -
 #pragma mark Key storage engine
@@ -166,7 +166,7 @@ FakeSMCKey *FakeSMCKeyStore::addKeyWithValue(const char *name, const char *type,
     KEYSUNLOCK;
     
     if (!key)
-        HWSensorsErrorLog("failed to create key %s", name);
+        HWSensorsErrorLog("addKeyWithValue: failed to create key %s", name);
     
 	return key;
 }
@@ -207,7 +207,8 @@ FakeSMCKey *FakeSMCKeyStore::addKeyWithHandler(const char *name, const char *typ
     
     KEYSUNLOCK;
     
-    HWSensorsErrorLog("failed to create key %s", name);
+    if (!key)
+        HWSensorsErrorLog("addKeyWithHandler: failed to create key %s", name);
     
     return key;
 }
@@ -487,9 +488,11 @@ bool FakeSMCKeyStore::init(OSDictionary *properties)
 {
 	if (!super::init(properties))
 		return false;
+    
+    keysLock = IORecursiveLockAlloc();
 
-	keys = OSArray::withCapacity(2);
-    types = OSDictionary::withCapacity(0);
+	keys = OSArray::withCapacity(64);
+    types = OSDictionary::withCapacity(16);
 
     keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
     keys->setObject(keyCounterKey);
@@ -515,6 +518,11 @@ bool FakeSMCKeyStore::start(IOService *provider)
 
 void FakeSMCKeyStore::free()
 {
+    if (keysLock) {
+        IORecursiveLockFree(keysLock);
+        keysLock = 0;
+    }
+    
     OSSafeRelease(keys);
     OSSafeRelease(types);
 }
