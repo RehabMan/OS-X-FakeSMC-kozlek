@@ -7,11 +7,11 @@
  *
  */
 
+#include "FakeSMCDefinitions.h"
 #include "FakeSMCKey.h"
 #include "FakeSMC.h"
 #include "FakeSMCDevice.h"
 #include "FakeSMCPlugin.h"
-#include "FakeSMCDefinitions.h"
 
 #include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOKitKeys.h>

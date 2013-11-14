@@ -16,7 +16,6 @@
 		6A2B4E48152179700093A217 /* W836xxSensors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B4E3C152179700093A217 /* W836xxSensors.cpp */; };
 		6AA172CB150B415200A77CF2 /* FakeSMCDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6AA172C4150B415200A77CF2 /* FakeSMCDevice.cpp */; };
 		6AA2D0D4150B4B99004757C5 /* FakeSMC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6AA2D0D2150B4B99004757C5 /* FakeSMC.cpp */; };
-		7E003635182D078900847C4E /* FakeSMCKeyStore.kext in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7EFF9525182AD5C200C637C8 /* FakeSMCKeyStore.kext */; };
 		7E012DAC182D064500D5CD21 /* FakeSMCPlugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E012DAA182D064500D5CD21 /* FakeSMCPlugin.cpp */; };
 		7E0EB891169A9A9A000DF2B1 /* evergreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E0EB890169A9A9A000DF2B1 /* evergreen.cpp */; };
 		7E0EB897169A9D3C000DF2B1 /* r600.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E0EB895169A9D3C000DF2B1 /* r600.cpp */; };
@@ -67,19 +66,6 @@
 		7EFF9536182AD69D00C637C8 /* FakeSMCKeyStore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EFF9517182AD44700C637C8 /* FakeSMCKeyStore.cpp */; };
 		7EFF9537182AD69D00C637C8 /* FakeSMCKeyStoreUserClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EFF9519182AD44700C637C8 /* FakeSMCKeyStoreUserClient.cpp */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		7E003634182D077A00847C4E /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				7E003635182D078900847C4E /* FakeSMCKeyStore.kext in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1D05ABE413ED0DAD00EADBF6 /* FakeSMC.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FakeSMC.kext; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -757,7 +743,6 @@
 				1D05ABDE13ED0DAD00EADBF6 /* Sources */,
 				1D05ABDF13ED0DAD00EADBF6 /* Frameworks */,
 				1D05ABE113ED0DAD00EADBF6 /* Resources */,
-				7E003634182D077A00847C4E /* CopyFiles */,
 			);
 			buildRules = (
 			);

@@ -207,6 +207,10 @@
 #define kFakeSMCFirmwareVendor                  "firmware-vendor"
 #define kFakeSMCKeyPropertyPrefix               "fakesmc-key"
 
+//REVIEW: temporarily to disable NVRAM key writing/loading
+#define NVRAMKEYS 1
+#define NVRAMKEYS_EXCEPTION 0
+
 #ifdef DEBUG
 #define kHWSensorsDebug 0
 #else

@@ -1,12 +1,12 @@
 //REVIEW: including version.h here causes xcode to error about HWSENSORS_LASTYEAR (PCH problem?)
 #include "version.h"
 
+#include "FakeSMCDefinitions.h"
 #include "FakeSMCKey.h"
 #include "FakeSMCKeyStore.h"
 #include "FakeSMCKeyStoreUserClient.h"
 #include "FakeSMC.h"
 #include "FakeSMCDevice.h"
-#include "FakeSMCDefinitions.h"
 
 #include "OEMInfo.h"
 
