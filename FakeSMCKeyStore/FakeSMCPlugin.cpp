@@ -557,7 +557,7 @@ bool FakeSMCPlugin::start(IOService *provider)
 	if (!super::start(provider)) 
         return false;
 
-    if (!(platformProvider = waitForMatchingService(serviceMatching(kFakeSMCService), 0)))
+    if (!(platformProvider = waitForMatchingService(serviceMatching(kFakeSMCService), kFakeSMCDefaultWaitTimeout)))
         platformProvider = waitForMatchingService(serviceMatching("IOPlatformExpertDevice"), 0);
 
     /*if (!(platformProvider = waitForMatchingService(serviceMatching(kFakeSMCService), kFakeSMCDefaultWaitTimeout))) {
