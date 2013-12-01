@@ -214,7 +214,6 @@ class EXPORT FakeSMCPlugin : public FakeSMCKeyHandler {
 	OSDeclareAbstractStructors(FakeSMCPlugin)
 
 private:
-    IOService               *platformProvider;
     OSDictionary            *sensors;
     FakeSMCKeyStore         *keyStore;
 

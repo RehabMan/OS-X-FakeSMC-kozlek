@@ -32,8 +32,10 @@
 
 OSString* getManufacturerNameFromOEMName(OSString *name);
 bool setOemProperties(IOService *provider);
+#if 0 //REVIEW_REHABMAN: not used anymore...
 void decodeSMBIOSTable(IOService *provider, const void *tableData, UInt16 tableLength, UInt16 structureCount);
-/*void decodeSMBIOSStructure(IOService *provider, const SMBStructHeader *structureHeader, const void *tableBoundary);
-void processSMBIOSStructureType2(IOService *provider, const SMBBaseBoard *baseBoard, SMBPackedStrings *strings);*/
+void decodeSMBIOSStructure(IOService *provider, const SMBStructHeader *structureHeader, const void *tableBoundary);
+void processSMBIOSStructureType2(IOService *provider, const SMBBaseBoard *baseBoard, SMBPackedStrings *strings);
+#endif
 
 #endif /* !_OEM_INFO_H */

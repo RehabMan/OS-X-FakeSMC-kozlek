@@ -30,6 +30,7 @@
 
 #import "OBMenuBarWindow.h"
 #import <objc/runtime.h>
+#import "HWMColorTheme.h"
 
 NSString * const OBMenuBarWindowDidAttachToMenuBar = @"OBMenuBarWindowDidAttachToMenuBar";
 NSString * const OBMenuBarWindowDidDetachFromMenuBar = @"OBMenuBarWindowDidDetachFromMenuBar";
@@ -135,7 +136,7 @@ const CGFloat OBMenuBarWindowArrowWidth = 20.0;
     return toolbarView;
 }
 
--(void)setColorTheme:(ColorTheme*)newColorTheme
+-(void)setColorTheme:(HWMColorTheme*)newColorTheme
 {
     if (colorTheme != newColorTheme) {
         activeImage = nil;
@@ -145,7 +146,7 @@ const CGFloat OBMenuBarWindowArrowWidth = 20.0;
     }
 }
 
--(ColorTheme *)colorTheme
+-(HWMColorTheme *)colorTheme
 {
     return colorTheme;
 }
@@ -532,17 +533,23 @@ const CGFloat OBMenuBarWindowArrowWidth = 20.0;
 
 - (NSPoint)originForAttachedState
 {
-    if (statusItemView)
-    {
-        NSRect statusItemFrame = [[statusItemView window] frame];
+    if (statusItemView) {
+        NSRect statusItemFrame = statusItemView.window.frame;
+
         NSPoint midPoint = NSMakePoint(NSMidX(statusItemFrame),
                                        NSMinY(statusItemFrame));
-        return NSMakePoint(midPoint.x - (self.frame.size.width / 2),
-                           midPoint.y - self.frame.size.height - 4);
-    }
-    else
-    {
-        return NSZeroPoint;
+
+        NSPoint endPoint = NSMakePoint(midPoint.x - (self.frame.size.width / 2),
+                                       midPoint.y - self.frame.size.height - 4);
+
+
+        if (statusItemView.window.screen != self.screen)
+        {
+            endPoint = self.frame.origin;
+            endPoint.y += 30;
+        }
+
+        return endPoint;
     }
 }
 
@@ -722,7 +729,7 @@ const CGFloat OBMenuBarWindowArrowWidth = 20.0;
             data[i + 2] = grey;
             data[i + 3] = 6;
         }
-        CGContextRef contextRef = CGBitmapContextCreate(data, dimension, dimension, 8, dimension * 4, colorSpaceRef, kCGImageAlphaPremultipliedLast);
+        CGContextRef contextRef = CGBitmapContextCreate(data, dimension, dimension, 8, dimension * 4, colorSpaceRef,(CGBitmapInfo)kCGImageAlphaPremultipliedLast);
         CGImageRef imageRef = CGBitmapContextCreateImage(contextRef);
         noiseImage = [[NSImage alloc] initWithCGImage:imageRef size:NSMakeSize(dimension, dimension)];
         CGImageRelease(imageRef);
