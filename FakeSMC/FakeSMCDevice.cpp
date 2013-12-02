@@ -160,7 +160,7 @@ void FakeSMCDevice::applesmc_io_data_writeb(void *opaque, uint32_t addr, uint32_
 #if NVRAMKEYS
                     if (key) keyStore->saveKeyToNVRAM(key);
 #else
-                    key=key; //REVIEW: just to avoid warning
+                    key=key; //REVIEW_REHABMAN: just to avoid warning
 #endif
 				}
 			};
@@ -273,132 +273,6 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     if (!status)
         return false;
 	bzero((void*)status, sizeof(struct AppleSMCStatus));
-    
-#ifdef MERGE0
-	keys = OSArray::withCapacity(64);
-    types = OSDictionary::withCapacity(16);
-    exposedValues = OSDictionary::withCapacity(16);
-    
-    // Add fist key - counter key
-    keyCounterKey = FakeSMCKey::withValue(KEY_COUNTER, TYPE_UI32, TYPE_UI32_SIZE, "\0\0\0\1");
-	keys->setObject(keyCounterKey);
-    
-    fanCounterKey = FakeSMCKey::withValue(KEY_FAN_NUMBER, TYPE_UI8, TYPE_UI8_SIZE, "\0");
-    keys->setObject(fanCounterKey);
-    
-    gKeysLock = IORecursiveLockAlloc();
-    if (!gKeysLock)
-        return false;
-    
-#if NVRAMKEYS
-    useNVRAM = false;
-#endif
-
-#if 0
-#if NVRAMKEYS
-/*
-    OSString *vendor = OSDynamicCast(OSString, provider->getProperty(kFakeSMCFirmwareVendor));
-    static const char kChameleonID[] = "Chameleon";
-    static const int kChameleonIDLen = sizeof(kChameleonID)-1;
-    bool runningChameleon = vendor && 0 == strncmp(kChameleonID, vendor->getCStringNoCopy(), kChameleonIDLen);
-*/
-    
-    //REVIEW: a bit of hack for testing...
-    int arg_value = 1;
-    if (PE_parse_boot_argn("-fakesmc-use-nvram", &arg_value, sizeof(arg_value)))
-        useNVRAM = true;
-    if (PE_parse_boot_argn("-fakesmc-no-nvram", &arg_value, sizeof(arg_value)))
-        useNVRAM = false; //PE_parse_boot_argn("-fakesmc-force-nvram", &arg_value, sizeof(arg_value)) || !runningChameleon;
-#endif
-#endif
-    
-    // Load preconfigured keys
-    FakeSMCDebugLog("loading keys...");
-    
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Keys"))) {
-		if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-			while (const OSSymbol *key = (const OSSymbol *)iterator->getNextObject()) {
-				if (OSArray *array = OSDynamicCast(OSArray, dictionary->getObject(key))) {
-					if (OSIterator *aiterator = OSCollectionIterator::withCollection(array)) {
-                        
-						OSString *type = OSDynamicCast(OSString, aiterator->getNextObject());
-						OSData *value = OSDynamicCast(OSData, aiterator->getNextObject());
-                        
-						if (type && value)
-							addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy());
-                        
-                        OSSafeRelease(aiterator);
-					}
-				}
-				key = 0;
-			}
-            
-			OSSafeRelease(iterator);
-		}
-        
-		HWSensorsInfoLog("%d preconfigured key%s added", keys->getCount(), keys->getCount() == 1 ? "" : "s");
-	}
-	else {
-		HWSensorsWarningLog("no preconfigured keys found");
-	}
-    
-    // Load wellknown type names
-    FakeSMCDebugLog("loading types...");
-    
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Types"))) {
-        if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
-                if (OSString *value = OSDynamicCast(OSString, dictionary->getObject(key))) {
-                    types->setObject(key, value);
-                }
-            }
-            OSSafeRelease(iterator);
-        }
-    }
-    
-#if NVRAMKEYS_EXCEPTION
-    // Load NVRAM exception keys
-    FakeSMCDebugLog("loading NVRAM exceptions...");
-    
-    exceptionKeys = NULL;
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("ExceptionKeys"))) {
-        exceptionKeys = OSDictionary::withCapacity(dictionary->getCount());
-        if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-			while (OSString *key = OSDynamicCast(OSString, iterator->getNextObject())) {
-                if (OSNumber *value = OSDynamicCast(OSNumber, dictionary->getObject(key))) {
-                    if (value->unsigned32BitValue())
-                        exceptionKeys->setObject(key, value);
-                }
-            }
-            OSSafeRelease(iterator);
-        }
-    }
-#endif
-    
-    // Set Clover platform keys
-    if (OSDictionary *dictionary = OSDynamicCast(OSDictionary, properties->getObject("Clover"))) {
-        UInt32 count = 0;
-        if (IORegistryEntry* cloverPlatformNode = fromPath("/efi/platform", gIODTPlane)) {
-            if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
-                while (OSString *name = OSDynamicCast(OSString, iterator->getNextObject())) {
-                    if (OSData *data = OSDynamicCast(OSData, cloverPlatformNode->getProperty(name))) {
-                        if (OSArray *items = OSDynamicCast(OSArray, dictionary->getObject(name))) {
-                            OSString *key = OSDynamicCast(OSString, items->getObject(0));
-                            OSString *type = OSDynamicCast(OSString, items->getObject(1));
-                            
-                            if (addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), data->getLength(), data->getBytesNoCopy()))
-                                count++;
-                        }
-                    }
-                }
-                OSSafeRelease(iterator);
-            }
-        }
-        
-        if (count)
-            HWSensorsInfoLog("%d key%s exported by Clover EFI", count, count == 1 ? "" : "s");
-    }
-#endif //MERGE0
     
     // Start SMC device
     
@@ -577,67 +451,6 @@ void FakeSMCDevice::ioWrite8( UInt16 offset, UInt8 value, IOMemoryMap * map )
     
 	//HWSensorsDebugLog("iowrite8 called");
 }
-
-#ifdef MERGE0
-IOReturn FakeSMCDevice::setProperties(OSObject * properties)
-{
-    KEYSLOCK;
-    
-    IOReturn result = kIOReturnUnsupported;
-    
-    if (OSDictionary * msg = OSDynamicCast(OSDictionary, properties)) {
-        if (OSString * name = OSDynamicCast(OSString, msg->getObject(kFakeSMCDeviceUpdateKeyValue))) {
-            if (FakeSMCKey * key = getKey(name->getCStringNoCopy())) {
-                
-                OSArray *info = OSArray::withCapacity(2);
-                
-                info->setObject(OSString::withCString(key->getType()));
-                info->setObject(OSData::withBytes(key->getValue(), key->getSize()));
-                
-                exposedValues->setObject(key->getKey(), info);
-                
-                OSDictionary *values = OSDictionary::withDictionary(exposedValues);
-                
-                this->setProperty(kFakeSMCDeviceValues, values);
-                
-                OSSafeRelease(values);
-                
-                result = kIOReturnSuccess;
-            }
-        }
-        else if (OSArray* array = OSDynamicCast(OSArray, msg->getObject(kFakeSMCDevicePopulateValues))) {
-            if (OSIterator* iterator = OSCollectionIterator::withCollection(array)) {
-                while (OSString *keyName = OSDynamicCast(OSString, iterator->getNextObject()))
-                    if (FakeSMCKey * key = getKey(keyName->getCStringNoCopy())) {
-                        
-                        OSArray *info = OSArray::withCapacity(2);
-                        
-                        info->setObject(OSString::withCString(key->getType()));
-                        info->setObject(OSData::withBytes(key->getValue(), key->getSize()));
-                        
-                        exposedValues->setObject(key->getKey(), info);
-                        
-                        IOSleep(10);    //REVIEW: what is this for?
-                    }
-                
-                OSDictionary *values = OSDictionary::withDictionary(exposedValues);
-                
-                this->setProperty(kFakeSMCDeviceValues, values);
-                
-                OSSafeRelease(values);
-                OSSafeRelease(iterator);
-                
-                result = kIOReturnSuccess;
-            }
-        }
-    }
-    
-    KEYSUNLOCK;
-    
-	return result;
-}
-
-#endif //MERGE0
 
 IOReturn FakeSMCDevice::registerInterrupt(int source, OSObject *target, IOInterruptAction handler, void *refCon)
 {

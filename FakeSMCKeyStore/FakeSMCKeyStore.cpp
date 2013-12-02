@@ -39,7 +39,7 @@
 #define super IOService
 OSDefineMetaClassAndStructors(FakeSMCKeyStore, IOService)
 
-//REVIEW: This code *IS NOT* thread safe.  Need locks...
+//REVIEW_REHABMAN: This code *IS NOT* thread safe.  Need locks...
 #define KEYSLOCK    IORecursiveLockLock(keysLock)
 #define KEYSUNLOCK  IORecursiveLockUnlock(keysLock)
 
@@ -313,52 +313,62 @@ UInt32 FakeSMCKeyStore::addWellKnownTypesFromDictionary(OSDictionary* dictionary
 
 SInt8 FakeSMCKeyStore::takeVacantGPUIndex()
 {
-    //REVIEW: lock required?
+    //REVIEW_REHABMAN: lock required?
+    KEYSLOCK;
     for (UInt8 i = 0; i <= 0xf; i++) {
         if (!bit_get(vacantGPUIndex, BIT(i))) {
             bit_set(vacantGPUIndex, BIT(i));
+            KEYSUNLOCK;
             return i;
         }
     }
+    KEYSUNLOCK;
 
     return -1;
 }
 
 bool FakeSMCKeyStore::takeGPUIndex(UInt8 index)
 {
-    //REVIEW: lock required?
+    //REVIEW_REHABMAN: lock required?
+    KEYSLOCK;
     if (index < 0xf && !bit_get(vacantGPUIndex, BIT(index))) {
         bit_set(vacantGPUIndex, BIT(index));
+        KEYSUNLOCK;
         return true;
     }
+    KEYSUNLOCK;
 
     return false;
 }
 
 void FakeSMCKeyStore::releaseGPUIndex(UInt8 index)
 {
-    //REVIEW: lock required?
-    if (index <= 0xf)
+    //REVIEW_REHABMAN: lock required?
+    if (index <= 0xf) {
         bit_clear(vacantGPUIndex, BIT(index));
+    }
 }
 
 SInt8 FakeSMCKeyStore::takeVacantFanIndex(void)
 {
-    //REVIEW: lock required?
+    //REVIEW_REHABMAN: lock required?
+    KEYSLOCK;
     for (UInt8 i = 0; i <= 0xf; i++) {
         if (!bit_get(vacantFanIndex, BIT(i))) {
             bit_set(vacantFanIndex, BIT(i));
             updateFanCounterKey();
+            KEYSUNLOCK;
             return i;
         }
     }
+    KEYSUNLOCK;
 
     return -1;
 }
 
 void FakeSMCKeyStore::releaseFanIndex(UInt8 index)
 {
-    //REVIEW: lock required?
+    //REVIEW_REHABMAN: lock required?
     if (index <= 0xf)
         bit_clear(vacantFanIndex, BIT(index));
 }
@@ -492,6 +502,8 @@ bool FakeSMCKeyStore::init(OSDictionary *properties)
 		return false;
     
     keysLock = IORecursiveLockAlloc();
+    if (!keysLock)
+        return false;
 
 	keys = OSArray::withCapacity(64);
     types = OSDictionary::withCapacity(16);
