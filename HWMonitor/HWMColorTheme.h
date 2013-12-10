@@ -33,6 +33,7 @@
 
 @interface HWMColorTheme : NSManagedObject
 
+@property (nonatomic, retain) HWMConfiguration * configuration;
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSColor* groupEndColor;
 @property (nonatomic, retain) NSColor* groupStartColor;
@@ -48,6 +49,5 @@
 @property (nonatomic, retain) NSColor* toolbarStrokeColor;
 @property (nonatomic, retain) NSColor* toolbarTitleColor;
 @property (nonatomic, retain) NSNumber * useDarkIcons;
-@property (nonatomic, retain) HWMConfiguration * configuration;
 
 @end

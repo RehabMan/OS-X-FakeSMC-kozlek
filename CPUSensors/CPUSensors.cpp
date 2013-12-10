@@ -251,6 +251,7 @@ void CPUSensors::readTjmaxFromMSR()
 
 #define ROUND(x)    ((x) + 0.5 > int(x) + 1 ? int(x) + 1 : int(x))
 
+#ifdef REVIEW_REHABMAN_MERGE0
 //REVIEW_REHABMAN: potential fix for multiplier being stuck at x11...
 // the fix is to not do so much work inside a timer event so much...
 // as the simple act of reading CPU sensor data is causing the system
@@ -262,32 +263,31 @@ void CPUSensors::scheduleSensorRead(UInt32 timerEventBit)
         timerEventSource->setTimeoutMS(500);
     bit_set(timerEventsPending, timerEventBit);
 }
+#endif
 
 float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
-{
-    //IOSimpleLockLock(workloopLock);
-    
+{    
     UInt32 index = sensor->getIndex();
     
     switch (sensor->getGroup()) {
         case kCPUSensorsCoreThermalSensor:
             if (!cpu_thermal_updated[index]) {
-                ////bit_set(timerEventsPending, kCPUSensorsCoreThermalSensor);
-                scheduleSensorRead(kCPUSensorsCoreThermalSensor);
+                bit_set(timerEventsPending, kCPUSensorsCoreThermalSensor);
+                ////scheduleSensorRead(kCPUSensorsCoreThermalSensor);
             }
             cpu_thermal_updated[index] = false;
             return tjmax[index] - cpu_thermal[index];
             
         case kCPUSensorsPackageThermalSensor:
-            ////bit_set(timerEventsPending, kCPUSensorsPackageThermalSensor);
-            scheduleSensorRead(kCPUSensorsPackageThermalSensor);
+            bit_set(timerEventsPending, kCPUSensorsPackageThermalSensor);
+            ////scheduleSensorRead(kCPUSensorsPackageThermalSensor);
             return float(tjmax[0] - cpu_thermal_package);
             
         case kCPUSensorsCoreMultiplierSensor:
         case kCPUSensorsPackageMultiplierSensor:
             if (!cpu_state_updated[index]) {
-                ////bit_set(timerEventsPending, sensor->getGroup());
-                scheduleSensorRead(sensor->getGroup());
+                bit_set(timerEventsPending, sensor->getGroup());
+                ////scheduleSensorRead(sensor->getGroup());
             }
             cpu_state_updated[index] = false;
             switch (cpuid_info()->cpuid_cpufamily) {
@@ -322,18 +322,17 @@ float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
         case kCPUSensorsCoresPowerSensor:
         case kCPUSensorsUncorePowerSensor:
         case kCPUSensorsDramPowerSensor:
-            ////bit_set(timerEventsPending, sensor->getGroup());
-            scheduleSensorRead(sensor->getGroup());
+            bit_set(timerEventsPending, sensor->getGroup());
+            ////scheduleSensorRead(sensor->getGroup());
             return (float)energyUnits * cpu_energy_delta[index];
     }
-    
-    //IOSimpleLockUnlock(workloopLock);
     
     return 0;
 }
 
 IOReturn CPUSensors::woorkloopTimerEvent()
 {
+#ifdef REVIEW_REHABMAN_MERGE0
     if (!timerEventsPending)
         return kIOReturnSuccess;
 
@@ -403,8 +402,66 @@ IOReturn CPUSensors::woorkloopTimerEvent()
     timerEventsPending = 0;
     
     ////timerEventSource->setTimeoutMS(1000);
-    
-    //IOSimpleLockUnlock(workloopLock);
+#else
+    if (timerEventsPending) {
+        if (bit_get(timerEventsPending, kCPUSensorsCoreThermalSensor)) {
+            mp_rendezvous_no_intrs(read_cpu_thermal, NULL);
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsPackageThermalSensor)) {            
+            mp_rendezvous_no_intrs(read_cpu_thermal_package, NULL);
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsCoreMultiplierSensor)) {
+            
+            IOSleep(10);
+            
+            if (baseMultiplier > 0) {   
+                mp_rendezvous_no_intrs(read_cpu_ratio, NULL);
+            }
+            
+            mp_rendezvous_no_intrs(read_cpu_state, NULL);
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsPackageMultiplierSensor)) {
+            UInt32 index = 0;
+            
+            IOSleep(10);
+            
+            if (baseMultiplier > 0) {
+                mp_rendezvous_no_intrs(read_cpu_ratio, NULL);
+            }
+
+            if (cpu_ratio[index] <= 1.0f) {
+                mp_rendezvous_no_intrs(read_cpu_state, &index);
+            }
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsTotalPowerSensor)) {
+            UInt8 index = 0;
+            read_cpu_energy(&index);
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsCoresPowerSensor)) {
+            UInt8 index = 1;
+            read_cpu_energy(&index);
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsUncorePowerSensor)) {
+            UInt8 index = 2;
+            read_cpu_energy(&index);
+        }
+        
+        if (bit_get(timerEventsPending, kCPUSensorsDramPowerSensor)) {
+            UInt8 index = 3;
+            read_cpu_energy(&index);
+        }
+
+        timerEventsPending = 0;
+    }
+        
+    timerEventSource->setTimeoutMS(1000);
+#endif
     
     return kIOReturnSuccess;
 }
@@ -414,8 +471,8 @@ FakeSMCSensor *CPUSensors::addSensor(const char *key, const char *type, UInt8 si
     FakeSMCSensor *result = super::addSensor(key, type, size, group, index);
     
     if (result) {
-        ////bit_set(timerEventsPending, group);
-        scheduleSensorRead(group);
+        bit_set(timerEventsPending, group);
+        ////scheduleSensorRead(group);
     }
     
     return result;
@@ -803,7 +860,11 @@ bool CPUSensors::start(IOService *provider)
     registerService();
     
     // start timer
+#ifdef REVIEW_REHABMAN_MERGE0
     ////timerEventsMomentum = 0;
+#else
+    //timerEventsMomentum = 0;
+#endif
     timerEventSource->setTimeoutMS(500);
     
     return true;

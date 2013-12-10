@@ -1,13 +1,15 @@
 //
-//  si.cpp
+//  cik.h
 //  HWSensors
 //
-//  Created by Natan Zalkin on 08.01.13.
+//  Created by Kozlek on 07.12.13.
 //
 //
 
 /*
- * Copyright 2011 Advanced Micro Devices, Inc.
+ * Copyright 2008 Advanced Micro Devices, Inc.
+ * Copyright 2008 Red Hat Inc.
+ * Copyright 2009 Jerome Glisse.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,30 +29,35 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
- * Authors: Alex Deucher
+ * Authors: Dave Airlie
+ *          Alex Deucher
+ *          Jerome Glisse
  */
 
-#include "si.h"
+#ifndef HWSensors_cik_h
+#define HWSensors_cik_h
 
-#define     CG_MULT_THERMAL_STATUS		0x714
-#define		CTF_TEMP(x)					((x) << 9)
-#define		CTF_TEMP_MASK				0x0003fe00
-#define		CTF_TEMP_SHIFT				9
+#include "radeon.h"
 
-/* get temperature in millidegrees */
-int si_get_temp(struct radeon_device *rdev)
+#define     RREG32_SMC(reg)             tn_smc_rreg(rdev, (reg))
+#define     TN_SMC_IND_INDEX_0          0x200
+#define     TN_SMC_IND_DATA_0           0x204
+
+static inline u32 tn_smc_rreg(struct radeon_device *rdev, u32 reg)
 {
-	u32 temp;
-	int actual_temp = 0;
+	//unsigned long flags;
+	u32 r;
     
-	temp = (RREG32(CG_MULT_THERMAL_STATUS) & CTF_TEMP_MASK) >> CTF_TEMP_SHIFT;
+	//spin_lock_irqsave(&rdev->smc_idx_lock, flags);
+	WREG32(TN_SMC_IND_INDEX_0, (reg));
+	r = RREG32(TN_SMC_IND_DATA_0);
     
-	if (temp & 0x200)
-		actual_temp = 255;
-	else
-		actual_temp = temp & 0x1ff;
-    
-	//actual_temp = (actual_temp * 1000);
-    
-	return actual_temp;
+	//spin_unlock_irqrestore(&rdev->smc_idx_lock, flags);
+	return r;
 }
+
+
+int ci_get_temp(struct radeon_device *rdev);
+int kv_get_temp(struct radeon_device *rdev);
+
+#endif

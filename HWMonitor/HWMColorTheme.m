@@ -31,6 +31,7 @@
 
 @implementation HWMColorTheme
 
+@dynamic configuration;
 @dynamic name;
 @dynamic groupEndColor;
 @dynamic groupStartColor;
@@ -46,6 +47,5 @@
 @dynamic toolbarStrokeColor;
 @dynamic toolbarTitleColor;
 @dynamic useDarkIcons;
-@dynamic configuration;
 
 @end
