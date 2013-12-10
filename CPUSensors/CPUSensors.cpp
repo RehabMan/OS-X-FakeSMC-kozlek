@@ -251,20 +251,6 @@ void CPUSensors::readTjmaxFromMSR()
 
 #define ROUND(x)    ((x) + 0.5 > int(x) + 1 ? int(x) + 1 : int(x))
 
-#ifdef REVIEW_REHABMAN_MERGE0
-//REVIEW_REHABMAN: potential fix for multiplier being stuck at x11...
-// the fix is to not do so much work inside a timer event so much...
-// as the simple act of reading CPU sensor data is causing the system
-// to be unable to idle properly.
-
-void CPUSensors::scheduleSensorRead(UInt32 timerEventBit)
-{
-    if (!timerEventsPending)
-        timerEventSource->setTimeoutMS(500);
-    bit_set(timerEventsPending, timerEventBit);
-}
-#endif
-
 float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
 {    
     UInt32 index = sensor->getIndex();
@@ -273,21 +259,18 @@ float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
         case kCPUSensorsCoreThermalSensor:
             if (!cpu_thermal_updated[index]) {
                 bit_set(timerEventsPending, kCPUSensorsCoreThermalSensor);
-                ////scheduleSensorRead(kCPUSensorsCoreThermalSensor);
             }
             cpu_thermal_updated[index] = false;
             return tjmax[index] - cpu_thermal[index];
             
         case kCPUSensorsPackageThermalSensor:
             bit_set(timerEventsPending, kCPUSensorsPackageThermalSensor);
-            ////scheduleSensorRead(kCPUSensorsPackageThermalSensor);
             return float(tjmax[0] - cpu_thermal_package);
             
         case kCPUSensorsCoreMultiplierSensor:
         case kCPUSensorsPackageMultiplierSensor:
             if (!cpu_state_updated[index]) {
                 bit_set(timerEventsPending, sensor->getGroup());
-                ////scheduleSensorRead(sensor->getGroup());
             }
             cpu_state_updated[index] = false;
             switch (cpuid_info()->cpuid_cpufamily) {
@@ -323,7 +306,6 @@ float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
         case kCPUSensorsUncorePowerSensor:
         case kCPUSensorsDramPowerSensor:
             bit_set(timerEventsPending, sensor->getGroup());
-            ////scheduleSensorRead(sensor->getGroup());
             return (float)energyUnits * cpu_energy_delta[index];
     }
     
@@ -332,77 +314,6 @@ float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
 
 IOReturn CPUSensors::woorkloopTimerEvent()
 {
-#ifdef REVIEW_REHABMAN_MERGE0
-    if (!timerEventsPending)
-        return kIOReturnSuccess;
-
-    if (timerEventsPending) {
-        ////if (++timerEventsMomentum > 5) {
-        ////    timerEventsMomentum = 0;
-        ////    timerEventsPending = 0;
-        ////}
-    }
-
-    if (bit_get(timerEventsPending, kCPUSensorsPackageMultiplierSensor)) {
-        IOSleep(10);
-        UInt32 index = 0;
-        if (baseMultiplier > 0)
-            mp_rendezvous_no_intrs(read_cpu_ratio, NULL);
-        //mp_rendezvous_no_intrs(read_cpu_turbo, &index);
-        //else
-        if (cpu_ratio[index] <= 1.0f)
-            mp_rendezvous_no_intrs(read_cpu_state, &index);
-        ////bit_clear(timerEventsPending, kCPUSensorsPackageMultiplierSensor);
-    }
-
-    if (bit_get(timerEventsPending, kCPUSensorsCoreMultiplierSensor)) {
-        IOSleep(10);
-        if (baseMultiplier > 0)
-            mp_rendezvous_no_intrs(read_cpu_ratio, NULL);
-        //mp_rendezvous_no_intrs(read_cpu_turbo, NULL);
-        //else
-        mp_rendezvous_no_intrs(read_cpu_state, NULL);
-        ////bit_clear(timerEventsPending, kCPUSensorsCoreMultiplierSensor);
-    }
-
-    if (bit_get(timerEventsPending, kCPUSensorsCoreThermalSensor)) {
-        mp_rendezvous_no_intrs(read_cpu_thermal, NULL);
-        //bit_clear(timerEventsPending, kCPUSensorsCoreThermalSensor);
-    }
-    
-    if (bit_get(timerEventsPending, kCPUSensorsPackageThermalSensor)) {
-        mp_rendezvous_no_intrs(read_cpu_thermal_package, NULL);
-        //bit_clear(timerEventsPending, kCPUSensorsCoreThermalSensor);
-    }
-    
-    if (bit_get(timerEventsPending, kCPUSensorsTotalPowerSensor)) {
-        UInt8 index = 0;
-        read_cpu_energy(&index);
-        //bit_clear(timerEventsPending, kCPUSensorsTotalPowerSensor);
-    }
-    
-    if (bit_get(timerEventsPending, kCPUSensorsCoresPowerSensor)) {
-        UInt8 index = 1;
-        read_cpu_energy(&index);
-        //bit_clear(timerEventsPending, kCPUSensorsCoresPowerSensor);
-    }
-    
-    if (bit_get(timerEventsPending, kCPUSensorsUncorePowerSensor)) {
-        UInt8 index = 2;
-        read_cpu_energy(&index);
-        //bit_clear(timerEventsPending, kCPUSensorsUncorePowerSensor);
-    }
-    
-    if (bit_get(timerEventsPending, kCPUSensorsDramPowerSensor)) {
-        UInt8 index = 3;
-        read_cpu_energy(&index);
-        //bit_clear(timerEventsPending, kCPUSensorsDramPowerSensor);
-    }
-
-    timerEventsPending = 0;
-    
-    ////timerEventSource->setTimeoutMS(1000);
-#else
     if (timerEventsPending) {
         if (bit_get(timerEventsPending, kCPUSensorsCoreThermalSensor)) {
             mp_rendezvous_no_intrs(read_cpu_thermal, NULL);
@@ -461,7 +372,6 @@ IOReturn CPUSensors::woorkloopTimerEvent()
     }
         
     timerEventSource->setTimeoutMS(1000);
-#endif
     
     return kIOReturnSuccess;
 }
@@ -472,7 +382,6 @@ FakeSMCSensor *CPUSensors::addSensor(const char *key, const char *type, UInt8 si
     
     if (result) {
         bit_set(timerEventsPending, group);
-        ////scheduleSensorRead(group);
     }
     
     return result;
@@ -860,11 +769,7 @@ bool CPUSensors::start(IOService *provider)
     registerService();
     
     // start timer
-#ifdef REVIEW_REHABMAN_MERGE0
-    ////timerEventsMomentum = 0;
-#else
     //timerEventsMomentum = 0;
-#endif
     timerEventSource->setTimeoutMS(500);
     
     return true;
