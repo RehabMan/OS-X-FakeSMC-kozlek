@@ -34,6 +34,31 @@
 
 #include <IOKit/IOLib.h>
 
+inline void _ultostr(char *str, UInt32 val)
+{
+    str[4] = '\0';
+    snprintf(str, 5, "%c%c%c%c",
+             (unsigned int) val >> 24,
+             (unsigned int) val >> 16,
+             (unsigned int) val >> 8,
+             (unsigned int) val);
+}
+
+inline UInt32 _strtoul(const char *str, int size, int base)
+{
+    UInt32 total = 0;
+    int i;
+    
+    for (i = 0; i < size; i++)
+    {
+        if (base == 16)
+            total += str[i] << (size - 1 - i) * 8;
+        else
+            total += (unsigned char) (str[i] << (size - 1 - i) * 8);
+    }
+    return total;
+}
+
 static IORecursiveLock *gClientSyncLock = 0;
 
 #define SYNCLOCK        if (!gClientSyncLock) gClientSyncLock = IORecursiveLockAlloc(); IORecursiveLockLock(gClientSyncLock)
@@ -141,6 +166,39 @@ IOReturn FakeSMCKeyStoreUserClient::externalMethod(uint32_t selector, IOExternal
                     }
                     else result = kIOReturnNotFound;
 
+                    break;
+                }
+                    
+                case SMC_CMD_WRITE_BYTES: {
+                    char name[5];
+                    
+                    _ultostr(name, input->key);
+                
+                    IOLog("FakeSMCKeyStoreUserClient: SMC_CMD_WRITE_BYTES key=%s", name);
+                    
+                    FakeSMCKey *key = keyStore->getKey(name);
+                    
+                    if (key) {
+                        
+                        key->setValueFromBuffer(input->bytes, input->keyInfo.dataSize);
+                        
+                        result = kIOReturnSuccess;
+                    }
+                    else {
+                        char type[5];
+                        
+                        if (input->keyInfo.dataType) {
+                            _ultostr(type, input->keyInfo.dataType);
+                        }
+                        else {
+                            type[0] = '\0';
+                        }
+                        
+                        keyStore->addKeyWithValue(name, type, input->keyInfo.dataSize, input->bytes);
+                        
+                        result = kIOReturnSuccess;
+                    }
+                    
                     break;
                 }
 

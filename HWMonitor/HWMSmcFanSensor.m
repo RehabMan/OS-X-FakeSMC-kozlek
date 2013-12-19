@@ -27,10 +27,39 @@
  */
 
 #import "HWMSmcFanSensor.h"
-
+#import "smc.h"
+#import "SmcHelper.h"
+#import "HWMEngine.h"
+#import "HWMConfiguration.h"
 
 @implementation HWMSmcFanSensor
 
+@dynamic number;
+@dynamic max;
+@dynamic min;
+@dynamic speed;
 @dynamic unique;
+
+-(void)setSpeed:(NSNumber *)speed
+{
+    if (self.engine.configuration.enableFanControl.boolValue && self.max && self.min && self.number && self.speed && speed) {
+        SMCVal_t info;
+        
+        char key[5];
+        
+        //snprintf(str, 5, "F%dMn", self.number.unsignedCharValue);
+        snprintf(key, 5, "F%XTg", self.number.unsignedCharValue);
+        
+        if (kIOReturnSuccess == SMCReadKey((io_connect_t)self.service.unsignedLongValue, key, &info)) {
+            if ([SmcHelper encodeNumericValue:speed.floatValue length:info.dataSize type:info.dataType outBuffer:info.bytes]) {
+                SMCWriteKeyUnsafe((io_connect_t)self.service.unsignedLongValue, &info);
+            }
+        }
+    }
+    
+    [self willChangeValueForKey:@"speed"];
+    [self setPrimitiveValue:speed forKey:@"speed"];
+    [self didChangeValueForKey:@"speed"];
+}
 
 @end

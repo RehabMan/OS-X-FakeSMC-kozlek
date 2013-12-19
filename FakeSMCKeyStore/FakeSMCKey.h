@@ -54,7 +54,8 @@ private:
 	void *              value;
 	FakeSMCKeyHandler * handler;
 
-    double              lastUpdated;
+    double              lastValueRead;
+    double              lastValueWrote;
 	
 public:
 	static FakeSMCKey   *withValue(const char *aKey, const char *aType, const unsigned char aSize, const void *aValue);
@@ -69,8 +70,8 @@ public:
     
 	const char          *getKey();
 	const char          *getType();
-	UInt8               getSize() const;
-	void                *getValue();
+	const UInt8         getSize() const;
+	const void          *getValue();
     FakeSMCKeyHandler   *getHandler();
 	
     bool                setType(const char *aType);

@@ -34,8 +34,8 @@
 
 @interface PrefsController : NSWindowController <NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate, PopupControllerDelegate, HWMEngineDelegate>
 {
-    @private
     NSInteger _previousViewTag;
+    BOOL _ignoreSensorsAndGroupListChanges;
 }
 
 @property (assign) IBOutlet HWMEngine *monitorEngine;
@@ -58,5 +58,6 @@
 @property (atomic, assign) NSDragOperation currentItemDragOperation;
 
 - (IBAction)checkForUpdates:(id)sender;
+- (IBAction)rebuildSensorsList:(id)sender;
 
 @end

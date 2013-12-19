@@ -151,7 +151,7 @@ const struct FakeSMCSensorDefinitionEntry FakeSMCSensorDefinitions[] =
     {"CPU GFX",                 "PC%XG", "sp96", 2, kFakeSMCCategoryPower, 0, 0x4},
     {"CPU Package Cores",       "PCPC", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
     {"CPU Package Graphics",    "PCPG", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
-    {"CPU Package Total",       "PCPT", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
+    {"CPU Package Total",       "PCTR", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
     {"CPU Package DRAM",        "PCPD", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
 //    [NSArray arrayWithObjects:@"PC1R",       @"CPU Rail", nil],
 //    [NSArray arrayWithObjects:@"PC5R",       @"CPU 1.5V S0 Rail", nil],
@@ -174,6 +174,12 @@ const struct FakeSMCSensorDefinitionEntry FakeSMCSensorDefinitions[] =
 };
 
 #endif // DEFINE_FAKESMC_SENSOR_PARAMS
+
+UInt8   fakeSMCPluginGetIndexFromChar(char c);
+bool    fakeSMCPluginEncodeNumericValue(float value, const char *type, const UInt8 size, void *outBuffer);
+bool 	fakeSMCPluginIsValidIntegerType(const char *type);
+bool    fakeSMCPluginIsValidFloatingType(const char *type);
+bool    fakeSMCPluginDecodeNumericValue(const char *type, const UInt8 size, const void *data, float *outValue);
 
 class FakeSMCPlugin;
 
@@ -213,11 +219,10 @@ public:
 class EXPORT FakeSMCPlugin : public FakeSMCKeyHandler {
 	OSDeclareAbstractStructors(FakeSMCPlugin)
 
-private:
+protected:
     OSDictionary            *sensors;
     FakeSMCKeyStore         *keyStore;
-
-protected:
+    
     OSString                *getPlatformManufacturer(void);
     OSString                *getPlatformProduct(void);
     
@@ -247,7 +252,7 @@ protected:
     OSDictionary            *getConfigurationNode(OSString *model = NULL);
 
     virtual float           getSensorValue(FakeSMCSensor *sensor);
-    virtual void            setSensorValue(FakeSMCSensor *sensor, void *data);
+    virtual void            setSensorValue(FakeSMCSensor *sensor, float value);
     
 public:    
 	virtual bool			init(OSDictionary *properties=0);
@@ -256,6 +261,7 @@ public:
 	virtual void			free(void);
 
     virtual IOReturn        getValueCallback(const char *key, const char *type, const UInt8 size, void *buffer);
+    virtual IOReturn        setValueCallback(const char *key, const char *type, const UInt8 size, const void *buffer);
 };
 
 #endif

@@ -251,65 +251,31 @@ void CPUSensors::readTjmaxFromMSR()
 
 #define ROUND(x)    ((x) + 0.5 > int(x) + 1 ? int(x) + 1 : int(x))
 
-float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
-{    
-    UInt32 index = sensor->getIndex();
-    
-    switch (sensor->getGroup()) {
-        case kCPUSensorsCoreThermalSensor:
-            if (!cpu_thermal_updated[index]) {
-                bit_set(timerEventsPending, kCPUSensorsCoreThermalSensor);
-            }
-            cpu_thermal_updated[index] = false;
-            return tjmax[index] - cpu_thermal[index];
-            
-        case kCPUSensorsPackageThermalSensor:
-            bit_set(timerEventsPending, kCPUSensorsPackageThermalSensor);
-            return float(tjmax[0] - cpu_thermal_package);
-            
-        case kCPUSensorsCoreMultiplierSensor:
-        case kCPUSensorsPackageMultiplierSensor:
-            if (!cpu_state_updated[index]) {
-                bit_set(timerEventsPending, sensor->getGroup());
-            }
-            cpu_state_updated[index] = false;
-            switch (cpuid_info()->cpuid_cpufamily) {
-                case CPUFAMILY_INTEL_NEHALEM:
-                case CPUFAMILY_INTEL_WESTMERE:
-                    if (baseMultiplier > 0 && cpu_ratio[index] > 1.0)
-                        multiplier[index] = ROUND(cpu_ratio[index] * (float)baseMultiplier);
-                    else
-                        multiplier[index] = (float)(cpu_state[index] & 0xFF);
-                    break;
-                case CPUFAMILY_INTEL_SANDYBRIDGE:
-                case CPUFAMILY_INTEL_IVYBRIDGE:
-                case CPUFAMILY_INTEL_HASWELL:
-                    if (baseMultiplier > 0 && cpu_ratio[index] > 1.0)
-                        multiplier[index] = ROUND(cpu_ratio[index] * (float)baseMultiplier);
-                    else
-                        multiplier[index] = (float)((cpu_state[index] >> 8) & 0xFF);
-                    break;
-                default: {
-                    UInt8 fid = (cpu_state[0] >> 8) & 0xFF;
-                    multiplier[index] = float((float)((fid & 0x1f)) * (fid & 0x80 ? 0.5 : 1.0) + 0.5f * (float)((fid >> 6) & 1));
-                    break;
-                }
-            }
-            return multiplier[index];
-            
-        case kCPUSensorsCoreFrequencySensor:
-        case kCPUSensorsPackageFrequencySensor:
-            return multiplier[index] * (float)busClock;
-            
-        case kCPUSensorsTotalPowerSensor:
-        case kCPUSensorsCoresPowerSensor:
-        case kCPUSensorsUncorePowerSensor:
-        case kCPUSensorsDramPowerSensor:
-            bit_set(timerEventsPending, sensor->getGroup());
-            return (float)energyUnits * cpu_energy_delta[index];
+
+void CPUSensors::calculateMultiplier(UInt32 index)
+{
+    switch (cpuid_info()->cpuid_cpufamily) {
+        case CPUFAMILY_INTEL_NEHALEM:
+        case CPUFAMILY_INTEL_WESTMERE:
+            if (baseMultiplier > 0 && cpu_ratio[index] > 1.0)
+                multiplier[index] = ROUND(cpu_ratio[index] * (float)baseMultiplier);
+            else
+                multiplier[index] = (float)(cpu_state[index] & 0xFF);
+            break;
+        case CPUFAMILY_INTEL_SANDYBRIDGE:
+        case CPUFAMILY_INTEL_IVYBRIDGE:
+        case CPUFAMILY_INTEL_HASWELL:
+            if (baseMultiplier > 0 && cpu_ratio[index] > 1.0)
+                multiplier[index] = ROUND(cpu_ratio[index] * (float)baseMultiplier);
+            else
+                multiplier[index] = (float)((cpu_state[index] >> 8) & 0xFF);
+            break;
+        default: {
+            UInt8 fid = (cpu_state[index] >> 8) & 0xFF;
+            multiplier[index] = float((float)((fid & 0x1f)) * (fid & 0x80 ? 0.5 : 1.0) + 0.5f * (float)((fid >> 6) & 1));
+            break;
+        }
     }
-    
-    return 0;
 }
 
 IOReturn CPUSensors::woorkloopTimerEvent()
@@ -317,6 +283,9 @@ IOReturn CPUSensors::woorkloopTimerEvent()
     if (timerEventsPending) {
         if (bit_get(timerEventsPending, kCPUSensorsCoreThermalSensor)) {
             mp_rendezvous_no_intrs(read_cpu_thermal, NULL);
+            for (UInt8 index = 0; index < availableCoresCount; index++) {
+                cpu_thermal_updated[index] = true;
+            }
         }
         
         if (bit_get(timerEventsPending, kCPUSensorsPackageThermalSensor)) {            
@@ -332,6 +301,11 @@ IOReturn CPUSensors::woorkloopTimerEvent()
             }
             
             mp_rendezvous_no_intrs(read_cpu_state, NULL);
+
+            for (UInt8 index = 0; index < availableCoresCount; index++) {
+                calculateMultiplier(index);
+                cpu_state_updated[index] = true;
+            }
         }
         
         if (bit_get(timerEventsPending, kCPUSensorsPackageMultiplierSensor)) {
@@ -346,6 +320,8 @@ IOReturn CPUSensors::woorkloopTimerEvent()
             if (cpu_ratio[index] <= 1.0f) {
                 mp_rendezvous_no_intrs(read_cpu_state, &index);
             }
+
+            calculateMultiplier(index);
         }
         
         if (bit_get(timerEventsPending, kCPUSensorsTotalPowerSensor)) {
@@ -374,6 +350,47 @@ IOReturn CPUSensors::woorkloopTimerEvent()
     timerEventSource->setTimeoutMS(1000);
     
     return kIOReturnSuccess;
+}
+
+float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
+{    
+    UInt32 index = sensor->getIndex();
+    
+    switch (sensor->getGroup()) {
+        case kCPUSensorsCoreThermalSensor:
+        case kCPUSensorsPackageThermalSensor:
+            if (!cpu_thermal_updated[index]) {
+                bit_set(timerEventsPending, kCPUSensorsCoreThermalSensor);
+            }
+            cpu_thermal_updated[index] = false;
+            return tjmax[index] - cpu_thermal[index];
+            
+        case kCPUSensorsCoreMultiplierSensor:
+        case kCPUSensorsPackageMultiplierSensor:
+            bit_set(timerEventsPending, sensor->getGroup());
+            return multiplier[index];
+            
+        case kCPUSensorsCoreFrequencySensor:
+            if (!cpu_state_updated[index]) {
+                bit_set(timerEventsPending, kCPUSensorsCoreMultiplierSensor);
+            }
+            cpu_state_updated[index] = false;
+            return multiplier[index] * (float)busClock;
+
+        case kCPUSensorsPackageFrequencySensor:
+            bit_set(timerEventsPending, kCPUSensorsCoreMultiplierSensor);
+            return multiplier[index] * (float)busClock;
+            
+        case kCPUSensorsTotalPowerSensor:
+        case kCPUSensorsCoresPowerSensor:
+        case kCPUSensorsUncorePowerSensor:
+        case kCPUSensorsDramPowerSensor:
+            bit_set(timerEventsPending, sensor->getGroup());
+            return (float)energyUnits * cpu_energy_delta[index];
+            
+    }
+    
+    return 0;
 }
 
 FakeSMCSensor *CPUSensors::addSensor(const char *key, const char *type, UInt8 size, UInt32 group, UInt32 index, float reference, float gain, float offset)
@@ -643,15 +660,12 @@ bool CPUSensors::start(IOService *provider)
     }
     
     // digital thermal sensor at core level
-
-    uint32_t available_cores_count = 0;
-    
     mp_rendezvous_no_intrs(read_cpu_thermal, NULL);
                            
     for (uint32_t i = 0; i < kCPUSensorsMaxCpus; i++) {
         if (cpu_thermal[i]) {
             
-            available_cores_count++;
+            availableCoresCount++;
             
             char key[5];
             
@@ -705,7 +719,7 @@ bool CPUSensors::start(IOService *provider)
                 HWSensorsInfoLog("base CPU multiplier is %d", baseMultiplier);
             // break; fall down adding multiplier sensors for each core
         default:
-            for (uint32_t i = 0; i < available_cores_count/*cpuid_info()->core_count*/; i++) {
+            for (uint32_t i = 0; i < availableCoresCount/*cpuid_info()->core_count*/; i++) {
                 char key[5];
                 
                 snprintf(key, 5, KEY_FAKESMC_FORMAT_CPU_MULTIPLIER, i);

@@ -125,7 +125,7 @@
 // Power (Watts)
 #define KEY_CPU_PACKAGE_CORE_POWER              "PCPC" // SNB
 #define KEY_CPU_PACKAGE_GFX_POWER               "PCPG" // SNB
-#define KEY_CPU_PACKAGE_TOTAL_POWER             "PCPT" // SNB
+#define KEY_CPU_PACKAGE_TOTAL_POWER             "PCTR" //"PCPT" // SNB
 #define KEY_CPU_PACKAGE_DRAM_POWER              "PCPD" // ??
 
 
@@ -133,6 +133,9 @@
 #define KEY_FAN_NUMBER                          "FNum"
 #define KEY_FORMAT_FAN_ID                       "F%XID"
 #define KEY_FORMAT_FAN_SPEED                    "F%XAc"
+#define KEY_FORMAT_FAN_MIN                      "F%XMn"
+#define KEY_FORMAT_FAN_MAX                      "F%XMx"
+#define KEY_FORMAT_FAN_TARGET                   "F%XTg"
 
 // Other
 #define KEY_FAKESMC_FORMAT_CPU_FREQUENCY		"CC%XC"

@@ -60,6 +60,11 @@
 				</dict>
 				<key>Keys</key>
 				<dict>
+					<key>NATJ</key>
+					<array>
+						<string>ui8</string>
+						<data>AA==</data>
+					</array>
 					<key>$Adr</key>
 					<array>
 						<string>ui32</string>

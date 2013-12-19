@@ -65,8 +65,12 @@
 #define MSR_PP0_ENERY_STATUS                0x639
 #define MSR_PP1_ENERY_STATUS                0x641
 
+#ifndef MSR_IA32_APERF
 #define MSR_IA32_APERF                      0x0E8
+#endif
+#ifndef MSR_IA32_MPERF
 #define MSR_IA32_MPERF                      0x0E7
+#endif
 
 #define MSR_IA32_TIME_STAMP_COUNTER         0x10
 
@@ -97,15 +101,19 @@ private:
     float                   multiplier[kCPUSensorsMaxCpus];
     float                   energyUnits;
     UInt8                   baseMultiplier;
+    UInt8                   availableCoresCount;
     
 	void                    readTjmaxFromMSR();
     float                   readMultiplier(UInt8 cpu_index);
     
     UInt16                  timerEventsPending;
     //UInt8                   timerEventsMomentum;
+
     IOReturn                woorkloopTimerEvent(void);
+    void                    calculateMultiplier(UInt32 index);
     
     virtual FakeSMCSensor   *addSensor(const char *key, const char *type, UInt8 size, UInt32 group, UInt32 index, float reference = 0.0f, float gain = 0.0f, float offset = 0.0f);
+    
     
 protected:
     virtual float           getSensorValue(FakeSMCSensor *sensor);

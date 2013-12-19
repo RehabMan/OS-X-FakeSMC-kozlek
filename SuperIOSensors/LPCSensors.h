@@ -33,12 +33,38 @@
 
 #include "FakeSMCPlugin.h"
 
-class EXPORT LPCSensors : public FakeSMCPlugin
-{
+#define kLPCSensorsMinRPM               0.0
+#define kLPCSensorsMaxRPM               3000.0
+#define kLPCSensorsMatchTheresholdRPM   50.0
+#define kLPCSensorsControlIncrement     5
+#define kLPCSensorsWorkloopTimeout      5000
+
+#define kLPCSensorsFanController        1000
+
+enum kLPCSensorsFanControlAction {
+    kLPCSensorsFanActionNone = 0,
+    kLPCSensorsFanActionIncrement,
+    kLPCSensorsFanActionDecrement,
+    kLPCSensorsFanActionMatched,
+    kLPCSensorsFanActionProbe
+};
+
+struct LPCSensorsFanControl {
+    float                       target;
+    kLPCSensorsFanControlAction action;
+};
+
+#define kLPCSensorsMaxFanControls       16
+
+class EXPORT LPCSensors : public FakeSMCPlugin {
 	OSDeclareAbstractStructors(LPCSensors)
 	
 private:
-
+    IOWorkLoop*             workloop;
+    IOTimerEventSource*     timerEventSource;
+    IOReturn                woorkloopTimerEvent(void);
+    
+    LPCSensorsFanControl    tachometerControls[kLPCSensorsMaxFanControls];
     
 protected:    
 	UInt16					address;
@@ -65,7 +91,12 @@ protected:
 	virtual float			readVoltage(UInt32 index);
 	virtual float			readTachometer(UInt32 index);
     
+    virtual bool			supportsTachometerControl();
+    virtual UInt8			readTachometerControl(UInt32 index);
+    virtual void			writeTachometerControl(UInt32 index, UInt8 percent);
+    
     virtual float           getSensorValue(FakeSMCSensor *sensor);
+    virtual void            setSensorValue(FakeSMCSensor *sensor, float value);
     
     virtual bool            initialize();
 		

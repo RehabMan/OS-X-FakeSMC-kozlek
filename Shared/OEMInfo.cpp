@@ -150,6 +150,7 @@ void SMBPackedStrings::setStringProperty( IORegistryEntry * entry,
 
 //---------------------------------------------------------------------------
 
+#if 0 //REVIEW_REHABMAN: this is not used anymore
 static UInt8 checksum8( void * start, UInt length )
 {
     UInt8   csum = 0;
@@ -160,6 +161,7 @@ static UInt8 checksum8( void * start, UInt length )
     
     return csum;
 }
+#endif
 
 OSString* getManufacturerNameFromOEMName(OSString *name)
 {

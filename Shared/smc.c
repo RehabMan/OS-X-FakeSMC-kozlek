@@ -19,14 +19,37 @@
 /*
 cc ./smc.c  -o smcutil -framework IOKit -framework CoreFoundation -Wno-four-char-constants -Wall -g -arch i386 
  */
-#include <unistd.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <string.h>
+
 #include <IOKit/IOKitLib.h>
+#include <Kernel/string.h>
+#include <stdio.h>
+
 #include "smc.h"
+
+UInt32 _strtoul(const char *str, int size, int base)
+{
+    UInt32 total = 0;
+    int i;
+    
+    for (i = 0; i < size; i++)
+    {
+        if (base == 16)
+            total += str[i] << (size - 1 - i) * 8;
+        else
+            total += (unsigned char) (str[i] << (size - 1 - i) * 8);
+    }
+    return total;
+}
+
+void _ultostr(char *str, UInt32 val)
+{
+    str[4] = '\0';
+    snprintf(str, 5, "%c%c%c%c",
+             (unsigned int) val >> 24,
+             (unsigned int) val >> 16,
+             (unsigned int) val >> 8,
+             (unsigned int) val);
+}
 
 kern_return_t SMCOpen(io_connect_t *conn, const char *serviceName)
 {
@@ -41,7 +64,7 @@ kern_return_t SMCOpen(io_connect_t *conn, const char *serviceName)
     result = IOServiceGetMatchingServices(masterPort, matchingDictionary, &iterator);
     if (result != kIOReturnSuccess)
     {
-        printf("Error: IOServiceGetMatchingServices() = %08x\n", result);
+        //printf("Error: IOServiceGetMatchingServices() = %08x\n", result);
         return 1;
     }
 
@@ -57,7 +80,7 @@ kern_return_t SMCOpen(io_connect_t *conn, const char *serviceName)
     IOObjectRelease(device);
     if (result != kIOReturnSuccess)
     {
-        printf("Error: IOServiceOpen() = %08x\n", result);
+        //printf("Error: IOServiceOpen() = %08x\n", result);
         return 1;
     }
 
@@ -115,6 +138,41 @@ kern_return_t SMCReadKey(io_connect_t conn, const UInt32Char_t key, SMCVal_t *va
         return result;
     
     memcpy(val->bytes, outputStructure.bytes, sizeof(outputStructure.bytes));
+    
+    return kIOReturnSuccess;
+}
+
+kern_return_t SMCWriteKey(io_connect_t conn, const SMCVal_t *val)
+{    
+    SMCVal_t      readVal;
+    
+    IOReturn result = SMCReadKey(conn, val->key, &readVal);
+    if (result != kIOReturnSuccess) 
+        return result;
+    
+    if (readVal.dataSize != val->dataSize)
+        return kIOReturnError;
+    
+    return SMCWriteKeyUnsafe(conn, val);
+}
+
+kern_return_t SMCWriteKeyUnsafe(io_connect_t conn, const SMCVal_t *val)
+{
+    kern_return_t result;
+    SMCKeyData_t  inputStructure;
+    SMCKeyData_t  outputStructure;
+    
+    memset(&inputStructure, 0, sizeof(SMCKeyData_t));
+    memset(&outputStructure, 0, sizeof(SMCKeyData_t));
+    
+    inputStructure.key = _strtoul(val->key, 4, 16);
+    inputStructure.data8 = SMC_CMD_WRITE_BYTES;    
+    inputStructure.keyInfo.dataSize = val->dataSize;
+    memcpy(inputStructure.bytes, val->bytes, sizeof(val->bytes));
+    
+    result = SMCCall(conn, KERNEL_INDEX_SMC, &inputStructure, &outputStructure);
+    if (result != kIOReturnSuccess)
+        return result;
     
     return kIOReturnSuccess;
 }

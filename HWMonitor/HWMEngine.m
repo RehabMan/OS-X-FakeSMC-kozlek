@@ -731,6 +731,32 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     }
 }
 
+-(void)setNeedsUpdateSensorLists
+{
+    @synchronized (self) {
+        [self willChangeValueForKey:@"iconsWithSensorsAndGroups"];
+        _iconsWithSensorsAndGroups = nil;
+        [self didChangeValueForKey:@"iconsWithSensorsAndGroups"];
+        
+        [self willChangeValueForKey:@"sensorsAndGroups"];
+        _sensorsAndGroups = nil;
+        [self didChangeValueForKey:@"sensorsAndGroups"];
+        
+        [self willChangeValueForKey:@"favoriteItems"];
+        _favoriteItems = nil;
+        [self didChangeValueForKey:@"favoriteItems"];
+    }
+}
+
+-(void)setNeedsUpdateGraphsList
+{
+    @synchronized (self) {
+        [self willChangeValueForKey:@"graphsAndGroups"];
+        _graphsAndGroups = nil;
+        [self didChangeValueForKey:@"graphsAndGroups"];
+    }
+}
+
 -(void)setNeedsRecalculateSensorValues
 {
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Sensor"];
@@ -749,6 +775,8 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
             [obj didChangeValueForKey:@"value"];
             [obj willChangeValueForKey:@"formattedValue"];
             [obj didChangeValueForKey:@"formattedValue"];
+            [obj willChangeValueForKey:@"strippedValue"];
+            [obj didChangeValueForKey:@"strippedValue"];
         }];
     }
 }
@@ -798,15 +826,15 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 {
     @synchronized (self) {
 
-        if (fromIndex > _configuration.favorites.count) {
+        if (fromIndex >= _configuration.favorites.count) {
             fromIndex = _configuration.favorites.count - 1;
         }
 
-        if (toIndex > _configuration.favorites.count) {
+        if (toIndex >= _configuration.favorites.count) {
             toIndex = _configuration.favorites.count - 1;
         }
 
-        [[_configuration mutableOrderedSetValueForKey:@"favorites"] moveObjectsAtIndexes:[NSIndexSet indexSetWithIndex:fromIndex] toIndex:toIndex];
+        [[_configuration mutableOrderedSetValueForKey:@"favorites"] moveObjectsAtIndexes:[NSIndexSet indexSetWithIndex:fromIndex] toIndex:toIndex > fromIndex && toIndex < _configuration.favorites.count - 1 ? toIndex - 1 : toIndex];
 
         [self saveContext];
         
@@ -1378,10 +1406,14 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 {
     HWMSmcFanSensor *fan = [self getSmcFanSensorByUnique:title fromGroup:group];
 
+    BOOL newFan = NO;
+    
     if (!fan) {
         fan = [NSEntityDescription insertNewObjectForEntityForName:@"SmcFanSensor" inManagedObjectContext:self.managedObjectContext];
 
         [fan setGroup:group];
+        
+        newFan = YES;
     }
 
     [fan setService:[NSNumber numberWithLongLong:connection]];
@@ -1391,10 +1423,51 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
     [fan setTitle:title];
     [fan setUnique:title];
-    [fan setIdentifier:@"Sensor"];
+    [fan setIdentifier:@"Fan"];
 
     [fan setEngine:self];
 
+    [fan doUpdateValue];
+    
+    if (newFan) {
+        
+        int index = [SmcHelper getIndexFromHexChar:[fan.name characterAtIndex:1]];
+        
+        if (index >= 0) {
+            
+            [fan setNumber:[NSNumber numberWithInt:index]];
+            
+            SMCVal_t info;
+            
+            char key[5];
+            
+            // Min
+            snprintf(key, 5, "F%XMn", index);
+            
+            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
+                [fan setMin:[NSNumber numberWithFloat:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType]]];
+            }
+            
+            // Max
+            snprintf(key, 5, "F%XMx", index);
+            
+            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
+                [fan setMax:[NSNumber numberWithFloat:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType]]];
+            }
+            
+            // Target
+            snprintf(key, 5, "F%XTg", index);
+            
+            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
+                [fan setPrimitiveValue:[NSNumber numberWithFloat:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType]] forKey:@"speed"];
+            }
+        }
+    }
+    else if (_configuration.enableFanControl) {
+        // Force SMC fan speed to previousely saved speed
+        [fan setSpeed:fan.speed];
+    }
+    
     return fan;
 }
 
