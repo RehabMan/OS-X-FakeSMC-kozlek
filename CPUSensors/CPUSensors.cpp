@@ -119,7 +119,9 @@ static inline void read_cpu_thermal(void *magic)
     UInt32 number = get_cpu_number();
     
     if (number < kCPUSensorsMaxCpus) {
+
         UInt64 msr = rdmsr64(MSR_IA32_THERM_STS);
+
         if (msr & 0x80000000) {
             cpu_thermal[number] = (msr >> 16) & 0x7F;
             cpu_thermal_updated[number] = true;
@@ -133,8 +135,10 @@ static inline void read_cpu_thermal_package(void *magic)
 {
     UInt32 number = get_cpu_number();
 
-    if (!number) {
+    if (0 == number) {
+
         UInt64 msr = rdmsr64(MSR_IA32_PACKAGE_THERM_STATUS);
+
         if (msr & 0x80000000) {
             cpu_thermal_package = ((msr >> 16) & 0x7F);
         }
@@ -242,11 +246,15 @@ inline void read_cpu_energy(void *idx)
     cpu_energy_last_value[*index] = energy;
 }
 
-void CPUSensors::readTjmaxFromMSR()
+static UInt8  tjmax[kCPUSensorsMaxCpus];
+
+inline void read_cpu_tjmax(void *idx)
 {
-	for (uint32_t i = 0; i < cpuid_info()->core_count; i++) {
-		tjmax[i] = (rdmsr64(MSR_IA32_TEMP_TARGET) >> 16) & 0xFF;
-	}
+    UInt32 number = get_cpu_number();
+
+    if (number < kCPUSensorsMaxCpus) {
+        tjmax[number] = (rdmsr64(MSR_IA32_TEMP_TARGET) >> 16) & 0xFF;
+    }
 }
 
 #define ROUND(x)    ((x) + 0.5 > int(x) + 1 ? int(x) + 1 : int(x))
@@ -283,13 +291,11 @@ IOReturn CPUSensors::woorkloopTimerEvent()
     if (timerEventsPending) {
         if (bit_get(timerEventsPending, kCPUSensorsCoreThermalSensor)) {
             mp_rendezvous_no_intrs(read_cpu_thermal, NULL);
-            for (UInt8 index = 0; index < availableCoresCount; index++) {
-                cpu_thermal_updated[index] = true;
-            }
         }
         
-        if (bit_get(timerEventsPending, kCPUSensorsPackageThermalSensor)) {            
-            mp_rendezvous_no_intrs(read_cpu_thermal_package, NULL);
+        if (bit_get(timerEventsPending, kCPUSensorsPackageThermalSensor)) {
+            UInt32 index = 0;
+            mp_rendezvous_no_intrs(read_cpu_thermal_package, &index);
         }
         
         if (bit_get(timerEventsPending, kCPUSensorsCoreMultiplierSensor)) {
@@ -304,7 +310,6 @@ IOReturn CPUSensors::woorkloopTimerEvent()
 
             for (UInt8 index = 0; index < availableCoresCount; index++) {
                 calculateMultiplier(index);
-                cpu_state_updated[index] = true;
             }
         }
         
@@ -314,7 +319,7 @@ IOReturn CPUSensors::woorkloopTimerEvent()
             IOSleep(10);
             
             if (baseMultiplier > 0) {
-                mp_rendezvous_no_intrs(read_cpu_ratio, NULL);
+                mp_rendezvous_no_intrs(read_cpu_ratio, &index);
             }
 
             if (cpu_ratio[index] <= 1.0f) {
@@ -352,7 +357,7 @@ IOReturn CPUSensors::woorkloopTimerEvent()
     return kIOReturnSuccess;
 }
 
-float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
+bool CPUSensors::willReadSensorValue(FakeSMCSensor *sensor, float *outValue)
 {    
     UInt32 index = sensor->getIndex();
     
@@ -363,34 +368,42 @@ float CPUSensors::getSensorValue(FakeSMCSensor *sensor)
                 bit_set(timerEventsPending, kCPUSensorsCoreThermalSensor);
             }
             cpu_thermal_updated[index] = false;
-            return tjmax[index] - cpu_thermal[index];
+            *outValue = tjmax[index] - cpu_thermal[index];
+            break;
             
         case kCPUSensorsCoreMultiplierSensor:
         case kCPUSensorsPackageMultiplierSensor:
             bit_set(timerEventsPending, sensor->getGroup());
-            return multiplier[index];
+            *outValue = multiplier[index];
+            break;
             
         case kCPUSensorsCoreFrequencySensor:
             if (!cpu_state_updated[index]) {
                 bit_set(timerEventsPending, kCPUSensorsCoreMultiplierSensor);
             }
             cpu_state_updated[index] = false;
-            return multiplier[index] * (float)busClock;
+            *outValue = multiplier[index] * (float)busClock;
+            break;
 
         case kCPUSensorsPackageFrequencySensor:
             bit_set(timerEventsPending, kCPUSensorsCoreMultiplierSensor);
-            return multiplier[index] * (float)busClock;
+            *outValue = multiplier[index] * (float)busClock;
+            break;
             
         case kCPUSensorsTotalPowerSensor:
         case kCPUSensorsCoresPowerSensor:
         case kCPUSensorsUncorePowerSensor:
         case kCPUSensorsDramPowerSensor:
             bit_set(timerEventsPending, sensor->getGroup());
-            return (float)energyUnits * cpu_energy_delta[index];
+            *outValue = (float)energyUnits * cpu_energy_delta[index];
+            break;
+
+        default:
+            return false;
             
     }
     
-    return 0;
+    return true;
 }
 
 FakeSMCSensor *CPUSensors::addSensor(const char *key, const char *type, UInt8 size, UInt32 group, UInt32 index, float reference, float gain, float offset)
@@ -539,18 +552,18 @@ bool CPUSensors::start(IOService *provider)
                     case CPUID_MODEL_NEHALEM_EX:
                     case CPUID_MODEL_WESTMERE_EX:
                         if (!platform) platform = OSData::withBytes("k74\0\0\0\0\0", 8);
-                        readTjmaxFromMSR();
+                        mp_rendezvous_no_intrs(read_cpu_tjmax, NULL);
                         break;
                         
                     case CPUID_MODEL_SANDYBRIDGE:
                     case CPUID_MODEL_JAKETOWN:
                         if (!platform) platform = OSData::withBytes("k62\0\0\0\0\0", 8);
-                        readTjmaxFromMSR();
+                        mp_rendezvous_no_intrs(read_cpu_tjmax, NULL);
                         break;
                         
                     case CPUID_MODEL_IVYBRIDGE:
                         if (!platform) platform = OSData::withBytes("d8\0\0\0\0\0\0", 8);
-                        readTjmaxFromMSR();
+                        mp_rendezvous_no_intrs(read_cpu_tjmax, NULL);
                         break;
                     
                     case CPUID_MODEL_HASWELL_DT:
@@ -559,7 +572,7 @@ bool CPUSensors::start(IOService *provider)
                     case CPUID_MODEL_HASWELL_ULT:
                     case CPUID_MODEL_HASWELL_ULX:
                         if (!platform) platform = OSData::withBytes("j43\0\0\0\0\0", 8); // TODO: got from macbookair6,2 need to check for other platforms
-                        readTjmaxFromMSR();
+                        mp_rendezvous_no_intrs(read_cpu_tjmax, NULL);
                         break;
                         
                     default:
@@ -778,15 +791,42 @@ bool CPUSensors::start(IOService *provider)
     }
     
     disableExclusiveAccessMode();
-    
+
+    // two power states - off and on
+	static const IOPMPowerState powerStates[2] = {
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 1, IOPMDeviceUsable, IOPMPowerOn, IOPMPowerOn, 0, 0, 0, 0, 0, 0, 0, 0 }
+    };
+
+    // register interest in power state changes
+	PMinit();
+	provider->joinPMtree(this);
+	registerPowerDriver(this, (IOPMPowerState *)powerStates, 2);
+
     // Register service
     registerService();
-    
-    // start timer
-    //timerEventsMomentum = 0;
-    timerEventSource->setTimeoutMS(500);
-    
+
+    HWSensorsInfoLog("started");
+
     return true;
+}
+
+IOReturn CPUSensors::setPowerState(unsigned long powerState, IOService *device)
+{
+	switch (powerState) {
+        case 0: // Power Off
+            timerEventSource->cancelTimeout();
+            break;
+
+        case 1: // Power On
+            timerEventSource->setTimeoutMS(1000);
+            break;
+
+        default:
+            break;
+    }
+
+	return(IOPMAckImplied);
 }
 
 void CPUSensors::stop(IOService *provider)

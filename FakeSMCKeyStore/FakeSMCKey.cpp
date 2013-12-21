@@ -61,7 +61,7 @@ bool FakeSMCKey::init(const char * aKey, const char * aType, const unsigned char
     if (!super::init())
         return false;
 
-	if (!aKey || strlen(aKey) == 0 || !(key = (char *)IOMalloc(5))) 
+	if (!aKey || strnlen(aKey, 4) == 0 || !(key = (char *)IOMalloc(5)))
 		return false;
 	
 	copySymbol(aKey, key);
@@ -71,7 +71,7 @@ bool FakeSMCKey::init(const char * aKey, const char * aType, const unsigned char
 	if (!(type = (char *)IOMalloc(5)))
 		return false;
     
-	if (!aType || strlen(aType) == 0) {
+	if (!aType || strnlen(aType, 4) == 0) {
 		switch (size) 
 		{
 			case 1:
@@ -136,7 +136,7 @@ const void *FakeSMCKey::getValue()
         
         if (time - lastValueRead >= 1.0) {
             
-            IOReturn result = handler->getValueCallback(key, type, size, value);
+            IOReturn result = handler->readKeyValueCallback(key, type, size, value);
             
             if (kIOReturnSuccess == result) {
                 lastValueRead = time;
@@ -192,7 +192,7 @@ bool FakeSMCKey::setValueFromBuffer(const void *aBuffer, UInt8 aSize)
         
         if (time - lastValueWrote >= 1.0) {
             
-            IOReturn result = handler->setValueCallback(key, type, size, value);
+            IOReturn result = handler->writeKeyValueCallback(key, type, size, value);
             
             if (kIOReturnSuccess == result) {
                 lastValueWrote = time;

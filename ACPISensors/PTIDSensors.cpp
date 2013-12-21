@@ -110,16 +110,22 @@ float PTIDSensors::readTachometer(UInt32 index)
     return 0;
 }
 
-float PTIDSensors::getSensorValue(FakeSMCSensor *sensor)
+bool PTIDSensors::willReadSensorValue(FakeSMCSensor *sensor, float *outValue)
 {
     switch(sensor->getGroup()) {
         case kFakeSMCTemperatureSensor:
-            return readTemperature(sensor->getIndex());
+            *outValue = readTemperature(sensor->getIndex());
+            break;
+
         case kFakeSMCTachometerSensor:
-            return readTachometer(sensor->getIndex());
+            *outValue = readTachometer(sensor->getIndex());
+            break;
+
+        default:
+            return false;
     }
     
-    return 0;
+    return true;
 }
 
 void PTIDSensors::parseTemperatureName(OSString *name, UInt32 index)

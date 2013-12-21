@@ -33,13 +33,15 @@
 
 #include "FakeSMCPlugin.h"
 
-#define kLPCSensorsMinRPM               0.0
+#define kLPCSensorsMinRPM               0000.0
 #define kLPCSensorsMaxRPM               3000.0
-#define kLPCSensorsMatchTheresholdRPM   50.0
-#define kLPCSensorsControlIncrement     5
+#define kLPCSensorsInitialStep          5
+#define kLPCSensorsMatchTheresholdRPM   25.0
 #define kLPCSensorsWorkloopTimeout      5000
 
-#define kLPCSensorsFanController        1000
+#define kLPCSensorsFanTargetController  1000
+#define kLPCSensorsFanMinController     2000
+#define kLPCSensorsFanManualController  3000
 
 enum kLPCSensorsFanControlAction {
     kLPCSensorsFanActionNone = 0,
@@ -50,8 +52,10 @@ enum kLPCSensorsFanControlAction {
 };
 
 struct LPCSensorsFanControl {
+    UInt8                       number;
     float                       target;
     kLPCSensorsFanControlAction action;
+    float                       step;
 };
 
 #define kLPCSensorsMaxFanControls       16
@@ -94,15 +98,19 @@ protected:
     virtual bool			supportsTachometerControl();
     virtual UInt8			readTachometerControl(UInt32 index);
     virtual void			writeTachometerControl(UInt32 index, UInt8 percent);
+    virtual void			disableTachometerControl(UInt32 index);
     
-    virtual float           getSensorValue(FakeSMCSensor *sensor);
-    virtual void            setSensorValue(FakeSMCSensor *sensor, float value);
+    virtual bool            willReadSensorValue(FakeSMCSensor *sensor, float *outValue);
+    virtual bool            didWriteSensorValue(FakeSMCSensor *sensor, float value);
     
     virtual bool            initialize();
-		
+    virtual void            willPowerOff();
+    virtual void            didPoweredOn();
+
 public:
 	virtual bool			init(OSDictionary *properties=0);
     virtual bool			start(IOService *provider);
+    virtual IOReturn        setPowerState(unsigned long powerState, IOService *device);
     virtual void            stop(IOService* provider);
 };
 

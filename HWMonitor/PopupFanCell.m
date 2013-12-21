@@ -22,6 +22,16 @@
 {
     [_slider setFloatValue:[[(HWMSmcFanSensor *)self.objectValue speed] floatValue]];
     [_textField setFloatValue:[[(HWMSmcFanSensor *)self.objectValue speed] floatValue]];
+    [_textField setFont:[NSFont fontWithName:@"Let's go Digital Regular" size:20]];
+    [_textField setTextColor:self.colorTheme.useDarkIcons.boolValue ?
+     self.colorTheme.itemValueTitleColor :
+     [self.colorTheme.itemValueTitleColor highlightWithLevel:0.35]];
+
+    COICOPopoverView *container = (COICOPopoverView *)[self view];
+
+    [container setBackgroundColour:self.colorTheme.useDarkIcons.boolValue ?
+     [self.colorTheme.listBackgroundColor highlightWithLevel:0.5] :
+     [self.colorTheme.listBackgroundColor shadowWithLevel:0.05]];
 }
 
 - (IBAction)sliderHasMoved:(id)sender
@@ -36,7 +46,7 @@
 
 - (void)sliderHasBeenReleased:(id)sender
 {
-    [(HWMSmcFanSensor *)self.objectValue setSpeed:[NSNumber numberWithFloat:_slider.floatValue]];
+    [(HWMSmcFanSensor *)self.objectValue setSpeed:[NSNumber numberWithFloat:_textField.floatValue]];
 }
 
 @end;
@@ -61,13 +71,10 @@ static NSPopover *gFanControllerPopover;
             }
         }
         
-        PopupFanController *controller = [[PopupFanController alloc] initWithNibName:@"FanController" bundle:[NSBundle mainBundle]];
+        PopupFanController *controller = [[PopupFanController alloc] initWithNibName:@"PopupFanController" bundle:[NSBundle mainBundle]];
         
         [controller setObjectValue:self.objectValue];
-        
-        COICOPopoverView *container = (COICOPopoverView *)[controller view];
-        
-        [container setBackgroundColour:[self.objectValue engine].configuration.colorTheme.listBackgroundColor];
+        [controller setColorTheme:self.colorTheme];
         
         [Localizer localizeView:controller.view];
         

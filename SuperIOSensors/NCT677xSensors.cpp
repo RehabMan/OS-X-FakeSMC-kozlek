@@ -47,7 +47,7 @@
 
 #include "NCT677xSensors.h"
 #include "FakeSMCDefinitions.h"
-#include "SuperIO.h"
+#include "SuperIODevice.h"
 
 #define super LPCSensors
 OSDefineMetaClassAndStructors(NCT677xSensors, LPCSensors)
@@ -107,7 +107,7 @@ float NCT677xSensors::readTemperature(UInt32 index)
                 value = readByte(NUVOTON_TEMPERATURE_REG_NEW[index]) << 1;
                 break;
         }
-        
+
         float t = 0.5f * (float)value;
         
         return t <= 125 && t >= -55 ? t : 0;
@@ -134,7 +134,7 @@ float NCT677xSensors::readVoltage(UInt32 index)
                 value = readByte(NUVOTON_VOLTAGE_REG_NEW[index]) * 0.008f;
                 break;
         }
-        
+
         bool valid = value > 0;
         
         // check if battery voltage monitor is enabled
@@ -175,48 +175,68 @@ UInt8 NCT677xSensors::readTachometerControl(UInt32 index)
 void NCT677xSensors::writeTachometerControl(UInt32 index, UInt8 percent)
 {
     if (index < fanLimit && !fanControlEnabled[index]) {
-        
-        switch (model) {
-            case NCT6771F: {
-                UInt8 reg = readByte(NUVOTON_FAN_PWM_MODE_OLD_REG[index]);
-                reg &= ~NUVOTON_PWM_MODE_MASK_OLD[index];
-                
-                UInt8 val = 0; // 0 - DC mode; 1 - PWM mode
-                
-                if (val)
-                    reg |= ~NUVOTON_PWM_MODE_MASK_OLD[index];
-                
-                writeByte(NUVOTON_FAN_PWM_MODE_OLD_REG[index], reg);
-                break;
-            }
-                
-            default: {
-                UInt8 reg = readByte(NUVOTON_FAN_PWM_MODE_REG[index]);
-                reg &= ~NUVOTON_PWM_MODE_MASK[index];
-                
-                UInt8 val = 0; // 0 - DC mode; 1 - PWM mode
-                
-                if (val)
-                    reg |= ~NUVOTON_PWM_MODE_MASK[index];
-                
-                writeByte(NUVOTON_FAN_PWM_MODE_REG[index], reg);
-                break;
-            }
-        }
-       
+
+        fanDefaultControl[index] = readByte(NUVOTON_FAN_CONTROL_MODE_REG[index]);
+        fanDefaultCommand[index] = readByte(NUVOTON_FAN_PWM_COMMAND_REG[index]);
+
+        // set manual mode
+        writeByte(NUVOTON_FAN_CONTROL_MODE_REG[index], 0);
+
+//        switch (model) {
+//            case NCT6771F: {
+//                UInt8 reg = readByte(NUVOTON_FAN_PWM_MODE_OLD_REG[index]);
+//                reg &= ~NUVOTON_PWM_MODE_MASK_OLD[index];
+//                
+//                UInt8 val = 0; // 0 - DC mode; 1 - PWM mode
+//                
+//                if (val)
+//                    reg |= ~NUVOTON_PWM_MODE_MASK_OLD[index];
+//                
+//                writeByte(NUVOTON_FAN_PWM_MODE_OLD_REG[index], reg);
+//                break;
+//            }
+//                
+//            default: {
+//                UInt8 reg = readByte(NUVOTON_FAN_PWM_MODE_REG[index]);
+//                reg &= ~NUVOTON_PWM_MODE_MASK[index];
+//                
+//                UInt8 val = 0; // 0 - DC mode; 1 - PWM mode
+//                
+//                if (val)
+//                    reg |= ~NUVOTON_PWM_MODE_MASK[index];
+//                
+//                writeByte(NUVOTON_FAN_PWM_MODE_REG[index], reg);
+//                break;
+//            }
+//        }
+
         fanControlEnabled[index] = true;
     }
 
     UInt8 value = (float)(percent) * 2.55;
-    
-    writeByte(NUVOTON_FAN_PWM_OUT_REG[index], value);
-    
-	if (index == 2)	{ /* floor: disable if val == 0 */
-		UInt8 reg = readByte(NUVOTON_TEMPERATURE_SEL_REG[index]);
-		reg &= 0x7f;
-		if (value) reg |= 0x80;
-		writeByte(NUVOTON_TEMPERATURE_SEL_REG[index], reg);
-	}
+
+    // set output value
+    writeByte(NUVOTON_FAN_PWM_COMMAND_REG[index], value);
+
+//    writeByte(NUVOTON_FAN_PWM_OUT_REG[index], value);
+//    
+//	if (index == 2)	{ /* floor: disable if val == 0 */
+//		UInt8 reg = readByte(NUVOTON_TEMPERATURE_SEL_REG[index]);
+//		reg &= 0x7f;
+//		if (value) reg |= 0x80;
+//		writeByte(NUVOTON_TEMPERATURE_SEL_REG[index], reg);
+//	}
+}
+
+void NCT677xSensors::disableTachometerControl(UInt32 index)
+{
+    // Restore fan control mode
+    writeByte(NUVOTON_FAN_CONTROL_MODE_REG[index], fanDefaultControl[index]);
+
+    // Restore PWM command value
+    writeByte(NUVOTON_FAN_PWM_COMMAND_REG[index], fanDefaultCommand[index]);
+
+    fanControlEnabled[index] = false;
 }
 
 bool NCT677xSensors::initialize()
@@ -265,6 +285,18 @@ bool NCT677xSensors::initialize()
             voltageVBatRegister = 0x488;
             minFanRPM = (int)(1.35e6 / 0x1FFF);
 
+
+            
+            break;
+    }
+
+	return true;
+}
+
+void NCT677xSensors::didPoweredOn()
+{
+    switch (model) {
+        case NCT6771F: {
             // disable the hardware monitor i/o space lock on NCT6791D chips
             winbond_family_enter(port);
 
@@ -284,11 +316,10 @@ bool NCT677xSensors::initialize()
                 // disable the i/o space lock
                 superio_write_port_byte(port, NUVOTON_HWMON_IO_SPACE_LOCK, (UInt8)(options & ~0x10));
             }
-            
+
             winbond_family_exit(port);
             
             break;
+        }
     }
-
-	return true;
 }
