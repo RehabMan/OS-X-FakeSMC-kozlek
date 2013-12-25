@@ -51,11 +51,10 @@
                     floatValue >= 50 ? kHWMSensorLevelModerate :
                     kHWMSensorLevelNormal;
 
-        case kHWMGroupTachometer:
-            //REVIEW_REHABMAN: temporary workaround for fan rpm in red.
-            return /* floatValue >= 2500 ? kHWMSensorLevelHigh :
-                   floatValue >= 1500 ? kHWMSensorLevelModerate : */
-                   kHWMSensorLevelNormal;
+//        case kHWMGroupTachometer:
+//            return floatValue >= 2500 ? kHWMSensorLevelHigh :
+//                   floatValue >= 1500 ? kHWMSensorLevelModerate :
+//                   kHWMSensorLevelNormal;
 
         default:
             break;

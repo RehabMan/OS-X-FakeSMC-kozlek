@@ -322,7 +322,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceWillSleep:) name:NSWorkspaceWillSleepNotification object:nil];
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceDidWake:) name:NSWorkspaceDidWakeNotification object:nil];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willTerminate:) name:NSApplicationWillTerminateNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
 
     [self addObserver:self forKeyPath:@"configuration.smcSensorsUpdateRate" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
     [self addObserver:self forKeyPath:@"configuration.smartSensorsUpdateRate" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
@@ -525,6 +525,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)updateSmcAndDevicesSensors
 {
     @synchronized (self) {
+        if (_engineState == kHWMEngineNotInitialized)
+            return;
+
         if (!_smcAndDevicesSensors) {
 
             __block NSMutableArray *sensors = [NSMutableArray array];
@@ -584,6 +587,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)updateAtaSmartSensors
 {
     @synchronized (self) {
+        if (_engineState == kHWMEngineNotInitialized)
+            return;
+
         if (!_ataSmartSensors) {
             if (_iconsWithSensorsAndGroups) {
                 __block NSMutableArray *sensors = [NSMutableArray array];
@@ -651,6 +657,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)rebuildSensorsList
 {
     @synchronized (self) {
+
         if (_engineState == kHWMEngineStateActive) {
             [self internalStopEngine];
         }
@@ -694,7 +701,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
         [self insertSmcGpuFansWithConnection:_fakeSmcConnection keys:fakeSmcKeys];
 
         // BATTERIES
-        [self insertBatterySensors];
+        [HWMBatterySensor discoverBatteryDevicesWithEngine:self];
 
         // Update graphs
         [self insertGraphs];
@@ -715,6 +722,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)setNeedsUpdateLists
 {
     @synchronized (self) {
+        if (_engineState == kHWMEngineNotInitialized)
+            return;
+
         [self willChangeValueForKey:@"iconsWithSensorsAndGroups"];
         _iconsWithSensorsAndGroups = nil;
         [self didChangeValueForKey:@"iconsWithSensorsAndGroups"];
@@ -736,6 +746,10 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)setNeedsUpdateSensorLists
 {
     @synchronized (self) {
+
+        if (_engineState == kHWMEngineNotInitialized)
+            return;
+
         [self willChangeValueForKey:@"iconsWithSensorsAndGroups"];
         _iconsWithSensorsAndGroups = nil;
         [self didChangeValueForKey:@"iconsWithSensorsAndGroups"];
@@ -753,6 +767,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)setNeedsUpdateGraphsList
 {
     @synchronized (self) {
+        if (_engineState == kHWMEngineNotInitialized)
+            return;
+
         [self willChangeValueForKey:@"graphsAndGroups"];
         _graphsAndGroups = nil;
         [self didChangeValueForKey:@"graphsAndGroups"];
@@ -761,25 +778,31 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
 -(void)setNeedsRecalculateSensorValues
 {
-    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Sensor"];
+    @synchronized (self) {
 
-    NSError *error;
+        if (_engineState == kHWMEngineNotInitialized)
+            return;
 
-    NSArray *sensors = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
+        NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Sensor"];
 
-    if (error) {
-        NSLog(@"fetch sensors in setNeedsRecalculateSensorValues error %@", error);
-    }
+        NSError *error;
 
-    if (sensors) {
-        [sensors enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            [obj willChangeValueForKey:@"value"];
-            [obj didChangeValueForKey:@"value"];
-            [obj willChangeValueForKey:@"formattedValue"];
-            [obj didChangeValueForKey:@"formattedValue"];
-            [obj willChangeValueForKey:@"strippedValue"];
-            [obj didChangeValueForKey:@"strippedValue"];
-        }];
+        NSArray *sensors = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
+
+        if (error) {
+            NSLog(@"fetch sensors in setNeedsRecalculateSensorValues error %@", error);
+        }
+
+        if (sensors) {
+            [sensors enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+                [obj willChangeValueForKey:@"value"];
+                [obj didChangeValueForKey:@"value"];
+                [obj willChangeValueForKey:@"formattedValue"];
+                [obj didChangeValueForKey:@"formattedValue"];
+                [obj willChangeValueForKey:@"strippedValue"];
+                [obj didChangeValueForKey:@"strippedValue"];
+            }];
+        }
     }
 }
 
@@ -941,6 +964,8 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     if (_engineState == kHWMEngineStateActive) {
         [self internalStopEngine];
     }
+
+    [HWMBatterySensor stopWatchingForBatteryDevices];
 }
 
 -(void)workspaceDidWake:(id)sender
@@ -952,7 +977,63 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     }
 }
 
-- (void)willTerminate:(id)sender
+- (void)systemDidAddBatteryDevice:(io_registry_entry_t)device
+{
+        NSUInteger deviceType = 0;
+
+        if ((__bridge_transfer  NSNumber *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorMaxCapacity), kCFAllocatorDefault, 0) &&
+            (__bridge_transfer  NSNumber *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorCurrentCapacity), kCFAllocatorDefault, 0)) {
+            deviceType = kHWMBatterySensorInternal;
+        }
+        else if (!(__bridge_transfer  NSNumber *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorBatteryPercent), kCFAllocatorDefault, 0)) {
+            deviceType = kHWMBatterySensorHIDDevice;
+        }
+
+        NSString *productName;
+        NSString *serialNumber;
+
+        switch (deviceType) {
+            case kHWMBatterySensorInternal:
+                productName = (__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorDeviceName), kCFAllocatorDefault, 0);
+                serialNumber = (__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorBatterySerialNumber), kCFAllocatorDefault, 0);
+
+                if (!serialNumber)
+                    serialNumber = (__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorSerialNumber), kCFAllocatorDefault, 0);
+                break;
+
+            case kHWMBatterySensorHIDDevice:
+                productName = (__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorProductName), kCFAllocatorDefault, 0);
+                serialNumber = (__bridge_transfer NSString *)IORegistryEntryCreateCFProperty(device, (__bridge CFStringRef)(kHWMBatterySensorSerialNumber), kCFAllocatorDefault, 0);
+                break;
+        }
+
+        if (serialNumber && productName) {
+            [self insertBatterySensorFromDictionary:@{@"service"        : [NSNumber numberWithUnsignedLongLong:device],
+                                                      @"type"           : [NSNumber numberWithUnsignedLongLong:deviceType],
+                                                      @"serialNumber"   : serialNumber,
+                                                      @"productName"    : productName}
+                                              group:_batterySensorsGroup];
+        }
+
+    if (self.engineState != kHWMEngineNotInitialized) {
+        [self setNeedsUpdateSensorLists];
+    }
+}
+
+- (void)systemDidRemoveBatteryDevice:(io_registry_entry_t)device
+{
+    NSArray *sensors = [[_batterySensorsGroup.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"service == %u", device]];
+
+    if (sensors) {
+        for (HWMBatterySensor *sensor in sensors) {
+            [sensor setService:@0];
+        }
+    }
+
+    [self setNeedsUpdateSensorLists];
+}
+
+- (void)applicationWillTerminate:(id)sender
 {
     [self removeObserver:self forKeyPath:@"configuration.smcSensorsUpdateRate"];
     [self removeObserver:self forKeyPath:@"configuration.smartSensorsUpdateRate"];
@@ -960,9 +1041,15 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self removeObserver:self forKeyPath:@"configuration.useBsdDriveNames"];
 
     [self internalStopEngine];
+    [HWMBatterySensor stopWatchingForBatteryDevices];
 
     [self saveContext];
 
+    for (HWMSensor *sensor in _smcAndDevicesSensors) {
+        if (sensor.service && sensor.service.unsignedLongLongValue) {
+            IOObjectRelease((io_object_t)sensor.service.unsignedLongLongValue);
+        }
+    }
     if (_smcConnection)
         SMCClose(_smcConnection);
 
@@ -1133,7 +1220,17 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self insertGroupWithSelector:kHWMGroupVoltage name:@"VOLTAGES" icon:[self getIconByName:kHWMonitorIconVoltages]];
     [self insertGroupWithSelector:kHWMGroupCurrent name:@"CURRENTS" icon:[self getIconByName:kHWMonitorIconVoltages]];
     [self insertGroupWithSelector:kHWMGroupPower name:@"POWER CONSUMPTION" icon:[self getIconByName:kHWMonitorIconVoltages]];
-    [self insertGroupWithSelector:kHWMGroupBattery name:@"BATTERIES" icon:[self getIconByName:kHWMonitorIconBattery]];
+    _batterySensorsGroup = [self insertGroupWithSelector:kHWMGroupBattery name:@"BATTERIES" icon:[self getIconByName:kHWMonitorIconBattery]];
+}
+
+#pragma mark
+#pragma mark Sensors
+
+-(id)getSensorByName:(NSString*)name fromGroup:(HWMSensorsGroup*)group
+{
+    NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
+
+    return sensors && sensors.count ? [sensors objectAtIndex:0] : nil;
 }
 
 #pragma mark
@@ -1180,30 +1277,23 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     return array;
 }
 
--(HWMSmcSensor*)getSmcSensorByName:(NSString*)name fromGroup:(HWMSensorsGroup*)group
-{
-    NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
-
-    return sensors && sensors.count ? [sensors objectAtIndex:0] : nil;
-}
-
 -(HWMSmcSensor*)insertSmcSensorWithConnection:(io_connect_t)connection name:(NSString*)name type:(NSString*)type title:(NSString*)title selector:(NSUInteger)selector group:(HWMSensorsGroup*)group
 {
-    HWMSmcSensor *sensor = [self getSmcSensorByName:name fromGroup:group];
+    HWMSmcSensor *sensor = [self getSensorByName:name fromGroup:group];
 
     if (!sensor) {
         sensor = [NSEntityDescription insertNewObjectForEntityForName:@"SmcSensor" inManagedObjectContext:self.managedObjectContext];
 
+        [sensor setName:name];
         [sensor setGroup:group];
     }
 
-    [sensor setService:[NSNumber numberWithLongLong:connection]];
-    [sensor setName:name];
     [sensor setType:type];
-    [sensor setSelector:[NSNumber numberWithUnsignedInteger:selector]];
-
     [sensor setTitle:title];
+    [sensor setSelector:[NSNumber numberWithUnsignedInteger:selector]];
     [sensor setIdentifier:@"Sensor"];
+
+    [sensor setService:[NSNumber numberWithLongLong:connection]];
 
     [sensor setEngine:self];
 
@@ -1327,107 +1417,38 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 }
 
 #pragma mark
-#pragma mark ATA SMART Sensors
-
--(HWMAtaSmartSensor*)getAtaSmartSensorByName:(NSString*)name fromGroup:(HWMSensorsGroup*)group
-{
-    NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
-
-    return sensors && sensors.count ? [sensors objectAtIndex:0] : nil;
-}
-
--(HWMAtaSmartSensor*)insertAtaSmartSensorFromDictionary:(NSDictionary*)attributes group:(HWMSensorsGroup*)group
-{
-    NSString *name = [attributes objectForKey:@"serialNumber"];
-
-    HWMAtaSmartSensor *sensor = [self getAtaSmartSensorByName:name fromGroup:group];
-
-    if (!sensor) {
-        sensor = [NSEntityDescription insertNewObjectForEntityForName:@"AtaSmartSensor" inManagedObjectContext:self.managedObjectContext];
-
-        [sensor setName:name];
-
-        [sensor setGroup:group];
-    }
-
-    [sensor setSelector:group.selector];
-    [sensor setService:[attributes objectForKey:@"service"]];
-    [sensor setBsdName:[attributes objectForKey:@"bsdName"]];
-
-    [sensor doUpdateValue];
-
-    if (sensor.value) {
-        [sensor setProductName:[attributes objectForKey:@"productName"]];
-        [sensor setVolumeNames:[attributes objectForKey:@"volumesNames"]];
-        [sensor setRotational:[attributes objectForKey:@"rotational"]];
-        [sensor setIdentifier:@"Drive"];
-
-        [sensor setTitle:_configuration.useBsdDriveNames.boolValue ? sensor.bsdName : sensor.productName];
-        [sensor setLegend:_configuration.showVolumeNames.boolValue ? sensor.volumeNames : nil];
-
-        [sensor setEngine:self];
-    }
-    else {
-        [self.managedObjectContext deleteObject:sensor];
-        return nil;
-    }
-
-    return sensor;
-}
-
--(void)insertAtaSmartSensors
-{
-    HWMSensorsGroup *smartTemperatures = [self getGroupBySelector:kHWMGroupSmartTemperature];
-    HWMSensorsGroup *smartLife = [self getGroupBySelector:kHWMGroupSmartRemainingLife];
-    HWMSensorsGroup *smartBlocks = [self getGroupBySelector:kHWMGroupSmartRemainingBlocks];
-
-    __block NSArray *drives;
-
-    drives = [HWMAtaSmartSensor discoverDrives];
-
-    for (id drive in drives) {
-        [self insertAtaSmartSensorFromDictionary:drive group:smartTemperatures];
-        [self insertAtaSmartSensorFromDictionary:drive group:smartLife];
-        [self insertAtaSmartSensorFromDictionary:drive group:smartBlocks];
-    }
-
-    [HWMSmartPlugInInterfaceWrapper destroyAllWrappers];
-}
-
-#pragma mark
 #pragma mark SMC Fan Sensors
 
--(HWMSmcFanSensor*)getSmcFanSensorByUnique:(NSString*)unique fromGroup:(HWMSensorsGroup*)group
+-(HWMSmcFanSensor*)getSmcFanSensorByDescriptor:(NSString*)descriptor fromGroup:(HWMSensorsGroup*)group
 {
-    NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"unique == %@", unique]];
+    NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"descriptor == %@", descriptor]];
 
     return sensors && sensors.count ? [sensors objectAtIndex:0] : nil;
 }
 
--(HWMSmcSensor*)insertSmcFanWithConnection:(io_connect_t)connection name:(NSString*)name type:(NSString*)type title:(NSString*)title selector:(NSUInteger)selector group:(HWMSensorsGroup*)group
-{
-    NSString *unique = [NSString stringWithFormat:@"%@@%@", _platformName, [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 
-    HWMSmcFanSensor *fan = [self getSmcFanSensorByUnique:unique fromGroup:group];
+-(HWMSmcSensor*)insertSmcFanWithConnection:(io_connect_t)connection descriptor:(NSString*)descriptor name:(NSString*)name type:(NSString*)type title:(NSString*)title selector:(NSUInteger)selector group:(HWMSensorsGroup*)group
+{
+    HWMSmcFanSensor *fan = [self getSmcFanSensorByDescriptor:descriptor fromGroup:group];
 
     BOOL newFan = NO;
     
     if (!fan) {
         fan = [NSEntityDescription insertNewObjectForEntityForName:@"SmcFanSensor" inManagedObjectContext:self.managedObjectContext];
 
+        [fan setName:name];
+        [fan setDescriptor:descriptor];
         [fan setGroup:group];
         
         newFan = YES;
     }
 
-    [fan setService:[NSNumber numberWithLongLong:connection]];
-    [fan setName:name];
+    [fan setTitle:title];
     [fan setType:type];
     [fan setSelector:[NSNumber numberWithUnsignedInteger:selector]];
-
-    [fan setTitle:title];
-    [fan setUnique:unique];
     [fan setIdentifier:@"Fan"];
+
+    [fan setService:[NSNumber numberWithLongLong:connection]];
 
     [fan setEngine:self];
 
@@ -1457,7 +1478,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
             [fan setMax:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType]];
         }
 
-        if (newFan || !_configuration.enableFanControl) {
+        if (newFan || !_configuration.enableFanControl.boolValue) {
             // Target
             snprintf(key, 5, KEY_FORMAT_FAN_TARGET, index);
             
@@ -1465,7 +1486,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                 [fan setPrimitiveValue:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType] forKey:@"speed"];
             }
         }
-        else if (_configuration.enableFanControl) {
+        else if (_configuration.enableFanControl.boolValue) {
             // Force SMC fan speed to previousely saved speed
             [fan setSpeed:fan.speed];
         }
@@ -1491,10 +1512,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                 NSData *value = [NSData dataWithBytes:info.bytes length:info.dataSize];
 
                 if ([type isEqualToString:@TYPE_CH8]) {
+
                     NSString * caption = [[NSString alloc] initWithData:value encoding: NSUTF8StringEncoding];
 
                     if ([caption length] == 0)
-                        caption = [[NSString alloc] initWithFormat:GetLocalizedString(@"Fan %X"),i + 1];
+                        caption = [[NSString alloc] initWithFormat:@"Fan %X", i + 1];
 
                     if (![caption hasPrefix:@"GPU "]) {
 
@@ -1504,18 +1526,20 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
                             type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
 
-                            [self insertSmcFanWithConnection:connection name:key type:type title:GetLocalizedString(caption) selector:group.selector.unsignedIntegerValue group:group];
+                            [self insertSmcFanWithConnection:connection descriptor:caption name:key type:type title:GetLocalizedString(caption) selector:group.selector.unsignedIntegerValue group:group];
                         }
                     }
                 }
                 else if ([type isEqualToString:@TYPE_FDS]) {
+
                     FanTypeDescStruct *fds = (FanTypeDescStruct*)[value bytes];
 
                     if (fds) {
+
                         NSString *caption = [[NSString stringWithCString:fds->strFunction encoding:NSASCIIStringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
                         if ([caption length] == 0)
-                            caption = [[NSString alloc] initWithFormat:GetLocalizedString(@"Fan %X"), i + 1];
+                            caption = [[NSString alloc] initWithFormat:@"Fan %X", i + 1];
 
                         switch (fds->type) {
                             case GPU_FAN_RPM:
@@ -1530,7 +1554,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
                                     type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
 
-                                    [self insertSmcFanWithConnection:connection name:key type:type title:GetLocalizedString(caption) selector:group.selector.unsignedIntegerValue group:group];
+                                    [self insertSmcFanWithConnection:connection descriptor:caption name:key type:type title:GetLocalizedString(caption) selector:group.selector.unsignedIntegerValue group:group];
                                 }
 
                                 break;
@@ -1560,11 +1584,14 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                 NSData *value = [NSData dataWithBytes:info.bytes length:info.dataSize];
 
                 if ([type isEqualToString:@TYPE_CH8]) {
+
                     NSString * caption = [[NSString alloc] initWithData:value encoding: NSUTF8StringEncoding];
 
                     if ([caption hasPrefix:@"GPU "]) {
+
                         UInt8 cardIndex = [[caption substringFromIndex:4] intValue] - 1;
-                        NSString *title = cardIndex == 0 ? GetLocalizedString(@"GPU Fan") : [NSString stringWithFormat:GetLocalizedString(@"GPU %X Fan"), cardIndex + 1];
+
+                        NSString *title = cardIndex == 0 ? @"GPU Fan" : [NSString stringWithFormat:@"GPU %X Fan", cardIndex + 1];
 
                         key = [[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i];
 
@@ -1572,16 +1599,17 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
                             type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
 
-                            [self insertSmcFanWithConnection:connection name:key type:type title:title selector:group.selector.unsignedIntegerValue group:group];
+                            [self insertSmcFanWithConnection:connection descriptor:title name:key type:type title:GetLocalizedString(title) selector:group.selector.unsignedIntegerValue group:group];
                         }
                     }
                 }
                 else if ([type isEqualToString:@TYPE_FDS]) {
+
                     FanTypeDescStruct *fds = (FanTypeDescStruct*)[value bytes];
 
                     switch (fds->type) {
                         case GPU_FAN_RPM: {
-                            NSString *title = fds->ui8Zone == 0 ? GetLocalizedString(@"GPU Fan") : [NSString stringWithFormat:GetLocalizedString(@"GPU %X Fan"), fds->ui8Zone + 1];
+                            NSString *caption = fds->ui8Zone == 0 ? @"GPU Fan" : [NSString stringWithFormat:@"GPU %X Fan", fds->ui8Zone + 1];
 
                             key = [[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i];
 
@@ -1589,14 +1617,15 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                                 
                                 type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
                                 
-                                [self insertSmcFanWithConnection:connection name:key type:type title:title selector:group.selector.unsignedIntegerValue group:group];
+                                [self insertSmcFanWithConnection:connection descriptor:caption name:key type:type title:GetLocalizedString(caption) selector:group.selector.unsignedIntegerValue group:group];
                             }
                             
                             break;
                         }
                             
                         case GPU_FAN_PWM_CYCLE: {
-                            NSString *title = fds->ui8Zone == 0 ? GetLocalizedString(@"GPU PWM") : [NSString stringWithFormat:GetLocalizedString(@"GPU %X PWM"), fds->ui8Zone + 1];
+
+                            NSString *caption = fds->ui8Zone == 0 ? @"GPU PWM" : [NSString stringWithFormat:@"GPU %X PWM", fds->ui8Zone + 1];
                             
                             key = [[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i];
                             
@@ -1604,7 +1633,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                                 
                                 type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
                                 
-                                [self insertSmcFanWithConnection:connection name:key type:type title:title selector:kHWMGroupPWM group:group];
+                                [self insertSmcFanWithConnection:connection descriptor:caption name:key type:type title:GetLocalizedString(caption) selector:kHWMGroupPWM group:group];
                             }
                             
                             break;
@@ -1614,6 +1643,66 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
             }
         }
     }
+}
+
+#pragma mark
+#pragma mark ATA SMART Sensors
+
+-(HWMAtaSmartSensor*)insertAtaSmartSensorFromDictionary:(NSDictionary*)attributes group:(HWMSensorsGroup*)group
+{
+    NSString *name = [attributes objectForKey:@"serialNumber"];
+
+    HWMAtaSmartSensor *sensor = [self getSensorByName:name fromGroup:group];
+
+    if (!sensor) {
+        sensor = [NSEntityDescription insertNewObjectForEntityForName:@"AtaSmartSensor" inManagedObjectContext:self.managedObjectContext];
+
+        [sensor setName:name];
+        [sensor setGroup:group];
+    }
+
+    [sensor setSelector:group.selector];
+    [sensor setService:[attributes objectForKey:@"service"]];
+    [sensor setBsdName:[attributes objectForKey:@"bsdName"]];
+
+    [sensor doUpdateValue];
+
+    if (sensor.value) {
+        [sensor setProductName:[attributes objectForKey:@"productName"]];
+        [sensor setVolumeNames:[attributes objectForKey:@"volumesNames"]];
+        [sensor setRotational:[attributes objectForKey:@"rotational"]];
+
+        [sensor setTitle:_configuration.useBsdDriveNames.boolValue ? sensor.bsdName : sensor.productName];
+        [sensor setLegend:_configuration.showVolumeNames.boolValue ? sensor.volumeNames : nil];
+        [sensor setIdentifier:@"Drive"];
+
+        [sensor setEngine:self];
+    }
+    else {
+        [self.managedObjectContext deleteObject:sensor];
+        return nil;
+    }
+
+    return sensor;
+}
+
+-(void)insertAtaSmartSensors
+{
+    HWMSensorsGroup *smartTemperatures = [self getGroupBySelector:kHWMGroupSmartTemperature];
+    HWMSensorsGroup *smartLife = [self getGroupBySelector:kHWMGroupSmartRemainingLife];
+    HWMSensorsGroup *smartBlocks = [self getGroupBySelector:kHWMGroupSmartRemainingBlocks];
+
+    __block NSArray *drives;
+
+    drives = [HWMAtaSmartSensor discoverDrives];
+
+    for (id drive in drives) {
+        [self insertAtaSmartSensorFromDictionary:drive group:smartTemperatures];
+        [self insertAtaSmartSensorFromDictionary:drive group:smartLife];
+        [self insertAtaSmartSensorFromDictionary:drive group:smartBlocks];
+    }
+    
+    [HWMSmartPlugInInterfaceWrapper destroyAllWrappers];
 }
 
 #pragma mark
@@ -1630,76 +1719,29 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 {
     NSString *serialNumber = [attributes objectForKey:@"serialNumber"];
     NSString *productName = [attributes objectForKey:@"productName"];
-    NSNumber *selector = [attributes objectForKey:@"selector"];
-    
-    if (!serialNumber || serialNumber.length == 0) {
-        if (!productName || productName.length == 0) {
-            switch (selector.unsignedIntegerValue) {
-                case kHWMGroupBatteryInternal:
-                    serialNumber = [NSString stringWithFormat:@"Internal Battery %lu", group.sensors.count + 1];
-                    break;
-                case kHWMGroupBatteryKeyboard:
-                    serialNumber = [NSString stringWithFormat:@"Keyboard %lu", group.sensors.count + 1];
-                    break;
-                case kHWMGroupBatteryMouse:
-                    serialNumber = [NSString stringWithFormat:@"Mouse %lu", group.sensors.count + 1];
-                    break;
-                case kHWMGroupBatteryTrackpad:
-                    serialNumber = [NSString stringWithFormat:@"Trackpad %lu", group.sensors.count + 1];
-                    break;
-                
-                default:
-                    return nil;
-            }
-        }
-        else {
-            serialNumber = productName;
-        }
-    }
-    
+    NSNumber *deviceType = [attributes objectForKey:@"type"];
+
     HWMBatterySensor *sensor = [self getBatterySensorByName:serialNumber fromGroup:group];
     
     if (!sensor) {
         sensor = [NSEntityDescription insertNewObjectForEntityForName:@"BatterySensor" inManagedObjectContext:self.managedObjectContext];
 
+        [sensor setName:serialNumber];
         [sensor setGroup:group];
     }
     
     [sensor setService:[attributes objectForKey:@"service"]];
-    [sensor setSelector:selector];
+    [sensor setSelector:group.selector];
     
+    [sensor setDeviceType:deviceType.unsignedIntegerValue];
+
     [sensor doUpdateValue];
 
     // TEST BATTERY
-    //    [sensor setValue:@49]; 
+    //[sensor setValue:@49];
     
     if (sensor.value) {
-
-        [sensor setName:serialNumber];
-        
-        switch (sensor.selector.unsignedIntegerValue) {
-            case kHWMGroupBatteryInternal:
-                [sensor setTitle:GetLocalizedString(@"Internal Battery")];
-                break;
-            case kHWMGroupBatteryKeyboard:
-                [sensor setTitle:GetLocalizedString(@"Keyboard")];
-                break;
-            case kHWMGroupBatteryMouse:
-                [sensor setTitle:GetLocalizedString(@"Mouse")];
-                break;
-            case kHWMGroupBatteryTrackpad:
-                [sensor setTitle:GetLocalizedString(@"Trackpad")];
-                break;
-                
-            default:
-                [sensor setTitle:GetLocalizedString(@"Battery")];
-                break;
-        }
-
-        [sensor setProductName:productName];
-        [sensor setSerialNumber:serialNumber];
-
-        [sensor setLegend:productName];
+        [sensor setTitle:productName];
         [sensor setIdentifier:@"Battery"];
 
         [sensor setEngine:self];
@@ -1710,17 +1752,6 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     }
 
     return sensor;
-}
-
--(void)insertBatterySensors
-{
-    HWMSensorsGroup *group = [self getGroupBySelector:kHWMGroupBattery];
-    
-    NSArray *devices = [HWMBatterySensor discoverDevices];
-    
-    for (id device in devices) {
-        [self insertBatterySensorFromDictionary:device group:group];
-    }
 }
 
 #pragma mark
