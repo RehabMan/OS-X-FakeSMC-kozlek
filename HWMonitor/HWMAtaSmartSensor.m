@@ -32,7 +32,11 @@
 #import "HWMEngine.h"
 #import "HWMSensorsGroup.h"
 
-#include <sys/mount.h>
+#import "HWMonitorDefinitions.h"
+#import "Localizer.h"
+
+#import <sys/mount.h>
+#import <Growl/Growl.h>
 
 static NSMutableDictionary * gIOCFPlugInInterfaces;
 
@@ -85,7 +89,7 @@ static NSMutableDictionary * gIOCFPlugInInterfaces;
 
 +(HWMSmartPlugInInterfaceWrapper*)getWrapperForBsdName:(NSString*)name
 {
-    if (name &&gIOCFPlugInInterfaces) {
+    if (name && gIOCFPlugInInterfaces) {
         return [gIOCFPlugInInterfaces objectForKey:name];
     }
 
@@ -139,14 +143,13 @@ const UInt8 kATASMARTAttributeUnusedReservedBloks   = 0xB4;
 {
     NSMutableDictionary *partitions = [[NSMutableDictionary alloc] init];
 
-    NSString *path;
 	BOOL first = YES;
 
-    NSEnumerator *mountedPathsEnumerator = [[[NSWorkspace  sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
+    NSArray *mountedVolumeURLs = [[NSFileManager defaultManager] mountedVolumeURLsIncludingResourceValuesForKeys:[NSArray array] options:NSVolumeEnumerationSkipHiddenVolumes];
 
-    while (path = [mountedPathsEnumerator nextObject] )
-    {
-		struct statfs buffer;
+    for (NSURL *url in mountedVolumeURLs) {
+        NSString *path = url.path;
+        struct statfs buffer;
 
         if (statfs([path fileSystemRepresentation],&buffer) == 0)
         {
@@ -176,7 +179,7 @@ const UInt8 kATASMARTAttributeUnusedReservedBloks   = 0xB4;
             else
 				[partitions setObject:[[NSMutableArray alloc] initWithObjects:[[NSFileManager defaultManager] displayNameAtPath:path], nil] forKey:name];
 		}
-	}
+    }
 
     NSMutableArray * list = [[NSMutableArray alloc] init];
 
@@ -250,9 +253,42 @@ const UInt8 kATASMARTAttributeUnusedReservedBloks   = 0xB4;
     return list;
 }
 
+-(void)awakeFromFetch
+{
+    [super awakeFromFetch];
+
+    [self addObserver:self forKeyPath:@"self.engine.configuration.useBsdDriveNames" options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@"self.engine.configuration.showVolumeNames" options:NSKeyValueObservingOptionNew context:nil];
+}
+
+-(void)awakeFromInsert
+{
+    [super awakeFromInsert];
+
+    [self addObserver:self forKeyPath:@"self.engine.configuration.useBsdDriveNames" options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@"self.engine.configuration.showVolumeNames" options:NSKeyValueObservingOptionNew context:nil];
+}
+
 -(void)prepareForDeletion
 {
+    [super prepareForDeletion];
+
+    [self removeObserver:self forKeyPath:@"self.engine.configuration.useBsdDriveNames"];
+    [self removeObserver:self forKeyPath:@"self.engine.configuration.showVolumeNames"];
+
     IOObjectRelease((io_service_t)self.service.unsignedLongLongValue);
+}
+
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"self.engine.configuration.useBsdDriveNames"]) {
+        [self setTitle:self.engine.configuration.useBsdDriveNames.boolValue ? self.bsdName : self.productName];
+    }
+    else if ([keyPath isEqualToString:@"self.engine.configuration.showVolumeNames"]) {
+        [self setLegend:self.engine.configuration.showVolumeNames.boolValue ? self.volumeNames : nil];
+    }
+
+    [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
 -(BOOL)readSMARTData
@@ -399,6 +435,49 @@ const UInt8 kATASMARTAttributeUnusedReservedBloks   = 0xB4;
     }
 
     return @0;
+}
+
+-(void)internalSendAlarmNotification
+{
+    if (self.selector.unsignedIntegerValue == kHWMGroupSmartRemainingLife) {
+        switch (_alarmLevel) {
+            case kHWMSensorLevelExceeded:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ is exceeded limit"), self.title]
+                                       notificationName:NotifierSensorLevelExceededNotification
+                                               iconData:nil
+                                               priority:1000
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            case kHWMSensorLevelHigh:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ is critical"), self.title]
+                                       notificationName:NotifierSensorLevelHighNotification
+                                               iconData:nil
+                                               priority:500
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            case kHWMSensorLevelModerate:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ lifespan is low"), self.title]
+                                       notificationName:NotifierSensorLevelModerateNotification
+                                               iconData:nil
+                                               priority:0
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            default:
+                break;
+        }
+    }
+    else {
+        [super internalSendAlarmNotification];
+    }
 }
 
 @end

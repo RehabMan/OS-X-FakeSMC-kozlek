@@ -33,6 +33,9 @@
 #import "HWMValueFormatter.h"
 
 #import "Localizer.h"
+#import "HWMonitorDefinitions.h"
+
+#import <Growl/Growl.h>
 
 @implementation HWMSensor
 
@@ -48,18 +51,22 @@
 
 -(void)awakeFromFetch
 {
-    //[self setPrimitiveValue:@0 forKey:@"service"];
+    [super awakeFromFetch];
     
     [self addObserver:self forKeyPath:@"value" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 -(void)awakeFromInsert
 {
+    [super awakeFromInsert];
+
     [self addObserver:self forKeyPath:@"value" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 -(void)prepareForDeletion
 {
+    [super prepareForDeletion];
+
     [self removeObserver:self forKeyPath:@"value"];
 }
 
@@ -69,6 +76,8 @@
         _formattedValue = nil;
         _strippedValue = nil;
     }
+
+    [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
 //-(void)setValue:(NSNumber *)value
@@ -112,6 +121,83 @@
     return @0;
 }
 
+-(void)internalSendAlarmNotification
+{
+    if (self.selector.unsignedIntegerValue == kHWMGroupSmartTemperature ||
+        self.selector.unsignedIntegerValue == kHWMGroupSmartTemperature) {
+        switch (_alarmLevel) {
+            case kHWMSensorLevelExceeded:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ completely overheated!"), self.title]
+                                       notificationName:NotifierSensorLevelExceededNotification
+                                               iconData:nil
+                                               priority:1000
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            case kHWMSensorLevelHigh:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ is overheating"), self.title]
+                                       notificationName:NotifierSensorLevelHighNotification
+                                               iconData:nil
+                                               priority:500
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            case kHWMSensorLevelModerate:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ is hot"), self.title]
+                                       notificationName:NotifierSensorLevelModerateNotification
+                                               iconData:nil
+                                               priority:0
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            default:
+                break;
+        }
+    }
+    else {
+        switch (_alarmLevel) {
+            case kHWMSensorLevelExceeded:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ alarm level is exceeded limit"), self.title]
+                                       notificationName:NotifierSensorLevelExceededNotification
+                                               iconData:nil
+                                               priority:1000
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            case kHWMSensorLevelHigh:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ high alarm level"), self.title]
+                                       notificationName:NotifierSensorLevelHighNotification
+                                               iconData:nil
+                                               priority:500
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            case kHWMSensorLevelModerate:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ moderate alarm level"), self.title]
+                                       notificationName:NotifierSensorLevelModerateNotification
+                                               iconData:nil
+                                               priority:0
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+
 - (void)doUpdateValue
 {
     NSNumber *value = [self internalUpdateValue];
@@ -131,6 +217,10 @@
             [self willChangeValueForKey:@"alarmLevel"];
             _alarmLevel = alarmLevel;
             [self didChangeValueForKey:@"alarmLevel"];
+
+            if (self.engine.configuration.notifyAlarmLevelChanges.boolValue) {
+                [self internalSendAlarmNotification];
+            }
         }
     }
 }
