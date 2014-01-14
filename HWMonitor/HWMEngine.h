@@ -50,6 +50,8 @@ typedef enum {
     io_connect_t _smcConnection;
     io_connect_t _fakeSmcConnection;
 
+    NSMutableArray *_groups;
+
     NSArray *_smcAndDevicesSensors;
     NSTimer *_smcAndDevicesSensorsUpdateLoopTimer;
 
@@ -70,15 +72,15 @@ typedef enum {
 @property (nonatomic, strong) IBOutlet NSManagedObjectContext * managedObjectContext;
 @property (nonatomic, strong) IBOutlet HWMConfiguration * configuration;
 
-@property (nonatomic, assign) HWMEngineState engineState;
-@property (nonatomic, assign) HWMSensorsUpdateLoopStrategy updateLoopStrategy;
+@property (assign) HWMEngineState engineState;
+@property (assign) HWMSensorsUpdateLoopStrategy updateLoopStrategy;
 
 @property (readonly) BOOL isRunningOnMac;
 
-@property (nonatomic, readonly) IBOutlet NSArray * iconsWithSensorsAndGroups;
-@property (nonatomic, readonly) IBOutlet NSArray * sensorsAndGroups;
-@property (nonatomic, readonly) IBOutlet NSArray * graphsAndGroups;
-@property (nonatomic, readonly) IBOutlet NSArray * favoriteItems;
+@property (readonly) IBOutlet NSArray * iconsWithSensorsAndGroups;
+@property (readonly) IBOutlet NSArray * sensorsAndGroups;
+@property (readonly) IBOutlet NSArray * graphsAndGroups;
+@property (readonly) IBOutlet NSArray * favoriteItems;
 
 +(HWMEngine*)engineWithBundle:(NSBundle*)bundle;
 

@@ -36,12 +36,10 @@
 
 @interface PrefsController : NSWindowController <NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate, PopupControllerDelegate, HWMEngineDelegate, GrowlApplicationBridgeDelegate>
 {
-    NSInteger _previousViewTag;
-    BOOL _ignoreFavoritesListChanges;
-    BOOL _ignoreSensorsAndGroupListChanges;
-    BOOL _forceUpdateSensors;
-    NSMutableArray *_iconsAndSensorsCollectionSnapshot;
+    NSView *_previousView;
+    NSMutableArray *_sensorsAndGroupsCollectionSnapshot;
     NSMutableArray *_favoritesCollectionSnapshot;
+    BOOL _forceUpdateSensors;
 }
 
 @property (assign) IBOutlet HWMEngine *monitorEngine;
@@ -53,10 +51,6 @@
 @property (assign) IBOutlet GraphsController *graphsController;
 @property (assign) IBOutlet SUUpdater *sharedUpdater;
 
-@property (assign) IBOutlet NSView *generalPrefsView;
-@property (assign) IBOutlet NSView *menubarPrefsView;
-@property (assign) IBOutlet NSView *popupPrefsView;
-@property (assign) IBOutlet NSView *graphsPrefsView;
 @property (assign) IBOutlet NSTableView *favoritesTableView;
 @property (assign) IBOutlet NSTableView *sensorsTableView;
 

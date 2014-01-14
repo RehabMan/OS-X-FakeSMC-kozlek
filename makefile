@@ -29,7 +29,7 @@ install:
 	sudo rm -rf /System/Library/Extensions/FakeSMC.kext
 	sudo cp -R Build/Products/Release/FakeSMC.kext /System/Library/Extensions
 	sudo mkdir /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
-	sudo cp -R Build/Products/Release/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
+	#sudo cp -R Build/Products/Release/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Release/CPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Release/ACPISensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Release/LPCSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
@@ -42,7 +42,7 @@ install_probook:
 	sudo rm -rf /System/Library/Extensions/FakeSMC.kext
 	sudo cp -R Build/Products/Release/FakeSMC.kext /System/Library/Extensions
 	sudo mkdir /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
-	sudo cp -R Build/Products/Release/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
+	#sudo cp -R Build/Products/Release/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Release/CPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Release/ACPISensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo touch /System/Library/Extensions
@@ -53,7 +53,7 @@ install_debug:
 	sudo rm -rf /System/Library/Extensions/FakeSMC.kext
 	sudo cp -R Build/Products/Debug/FakeSMC.kext /System/Library/Extensions
 	sudo mkdir /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
-	sudo cp -R Build/Products/Debug/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
+	#sudo cp -R Build/Products/Debug/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Debug/CPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Debug/ACPISensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Debug/LPCSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
@@ -66,7 +66,7 @@ install_probook_debug:
 	sudo rm -rf /System/Library/Extensions/FakeSMC.kext
 	sudo cp -R Build/Products/Debug/FakeSMC.kext /System/Library/Extensions
 	sudo mkdir /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
-	sudo cp -R Build/Products/Debug/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
+	#sudo cp -R Build/Products/Debug/FakeSMCKeyStore.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Debug/CPUSensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo cp -R Build/Products/Debug/ACPISensors.kext /System/Library/Extensions/FakeSMC.kext/Contents/PlugIns
 	sudo touch /System/Library/Extensions
@@ -79,7 +79,7 @@ distribute:
 	#mkdir ./Distribute/Release
 	cp -R ./Build/Products/Release/FakeSMC.kext ./Distribute
 	mkdir ./Distribute/FakeSMC.kext/Contents/PlugIns
-	cp -R ./Build/Products/Release/FakeSMCKeyStore.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
+	#cp -R ./Build/Products/Release/FakeSMCKeyStore.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
 	cp -R ./Build/Products/Release/CPUSensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
 	cp -R ./Build/Products/Release/ACPISensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns
 	cp -R ./Build/Products/Release/LPCSensors.kext ./Distribute/FakeSMC.kext/Contents/PlugIns

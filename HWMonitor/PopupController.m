@@ -24,6 +24,8 @@
 #import "HWMSensorsGroup.h"
 #import "HWMSensor.h"
 
+#import "NSTableView+HWMEngineHelper.h"
+
 @implementation PopupController
 
 @synthesize statusItem = _statusItem;
@@ -89,9 +91,7 @@
                     [menuItem setAttributedTitle:attributedTitle];
                 }
             }
-            
-            [self layoutContent:YES orderFront:NO];
-            
+
             [(OBMenuBarWindow*)self.window setColorTheme:self.monitorEngine.configuration.colorTheme];
             [(JLNFadingScrollView *)_scrollView setFadeColor:self.monitorEngine.configuration.colorTheme.listBackgroundColor];
             
@@ -103,7 +103,7 @@
             
             [self addObserver:self forKeyPath:@"monitorEngine.configuration.colorTheme" options:NSKeyValueObservingOptionNew context:nil];
             [self addObserver:self forKeyPath:@"monitorEngine.sensorsAndGroups" options:NSKeyValueObservingOptionNew context:nil];
-            
+
             [_statusItemView setMonitorEngine:_monitorEngine];
 
             [self performSelector:@selector(reloadSensorsTableView:) withObject:self afterDelay:0.0];
@@ -129,7 +129,7 @@
         [self.delegate popupWillOpen:self];
     }
 
-    [self layoutContent:YES orderFront:YES];
+    [self layoutContent:NO orderFront:YES animated:NO];
     
 //    if (!_windowFilter) {
 //        _windowFilter = [[WindowFilter alloc] initWithWindow:self.window name:@"CIGaussianBlur" andOptions:[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:1.5] forKey:@"inputRadius"]];
@@ -170,23 +170,39 @@
 #pragma mark -
 #pragma mark Methods
 
-- (void)layoutContent:(BOOL)resizeToContent orderFront:(BOOL)orderFront
+- (void)layoutContent:(BOOL)resizeToContent orderFront:(BOOL)orderFront animated:(BOOL)animated
 {
     OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
 
     if (resizeToContent) {
-        CGFloat height = menubarWindow.toolbarHeight + 6;
+        __block CGFloat height = menubarWindow.toolbarHeight + 6;
 
-        for (int i = 0; i < self.monitorEngine.sensorsAndGroups.count; i++) {
-            height += [self tableView:_tableView heightOfRow:i];
+        [_sensorsAndGroupsCollectionSnapshot enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            height += [self tableView:_tableView heightOfRow:idx];
+        }];
+
+        if (height > menubarWindow.screen.visibleFrame.size.height) {
+            height = menubarWindow.screen.visibleFrame.size.height - menubarWindow.toolbarHeight;
+            [_scrollView setHasVerticalScroller:YES];
+        }
+        else {
+            [_scrollView setHasVerticalScroller:NO];
         }
 
-        height = height > menubarWindow.screen.visibleFrame.size.height ? menubarWindow.screen.visibleFrame.size.height - menubarWindow.toolbarHeight : height;
-
-        [menubarWindow setFrame:NSMakeRect(menubarWindow.frame.origin.x,
-                                           menubarWindow.frame.origin.y + (menubarWindow.frame.size.height - height),
-                                           menubarWindow.frame.size.width,
-                                           height) display:YES animate:NO];
+        if (animated) {
+            [[menubarWindow animator] setFrame:NSMakeRect(menubarWindow.frame.origin.x,
+                                                          menubarWindow.frame.origin.y + (menubarWindow.frame.size.height - height),
+                                                          menubarWindow.frame.size.width,
+                                                          height)
+                                       display:YES];
+        }
+        else {
+            [menubarWindow setFrame:NSMakeRect(menubarWindow.frame.origin.x,
+                                               menubarWindow.frame.origin.y + (menubarWindow.frame.size.height - height),
+                                               menubarWindow.frame.size.width,
+                                               height)
+                            display:YES];
+        }
     }
 
     // Order front if needed
@@ -197,11 +213,15 @@
 
 -(void)reloadSensorsTableView:(id)sender
 {
-    _sensorsAndGroupsCollectionSnapshot = [self.monitorEngine.sensorsAndGroups mutableCopy];
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        NSArray *oldSensorsAndGroups = [_sensorsAndGroupsCollectionSnapshot copy];
+        _sensorsAndGroupsCollectionSnapshot = [_monitorEngine.sensorsAndGroups copy];
 
-   [_tableView reloadData];
+        [self layoutContent:YES orderFront:NO animated:YES];
 
-   [self layoutContent:YES orderFront:NO];
+        [_tableView updateWithObjectValues:_sensorsAndGroupsCollectionSnapshot previousObjectValues:oldSensorsAndGroups];
+    }];
+
 }
 
 #pragma mark -
@@ -222,10 +242,10 @@
         {
             if (!menubarWindow.attachedToMenuBar) {
                 [NSApp activateIgnoringOtherApps:YES];
-                [self.window makeKeyAndOrderFront:self];
+                //[self.window makeKeyAndOrderFront:self];
             }
-            
-            [self showWindow:nil];
+
+            [self showWindow:self];
             self.statusItemView.isHighlighted = YES;
         }
     }
@@ -256,13 +276,8 @@
         [(JLNFadingScrollView *)_scrollView setFadeColor:self.monitorEngine.configuration.colorTheme.listBackgroundColor];
         [_tableView setNeedsDisplay:YES];
     }
-    else if ([keyPath isEqual:@"monitorEngine.sensorsAndGroups"] &&
-             _ignoreSensorsAndGroupListChanges == NO) {
-        // Cancel previous waiting for reload request
-        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(reloadSensorsTableView:) object:self];
-
-        // Perform reload after a while, maybe we'll recieve another async updates
-        [self performSelector:@selector(reloadSensorsTableView:) withObject:self afterDelay:0.250];
+    else if ([keyPath isEqual:@"monitorEngine.sensorsAndGroups"]) {
+        [self reloadSensorsTableView:self];
     }
 }
 
@@ -293,9 +308,7 @@
     [menubarWindow setMaxSize:NSMakeSize(menubarWindow.maxSize.width, menubarWindow.frame.size.height)];
     [menubarWindow setMinSize:NSMakeSize(menubarWindow.minSize.width, menubarWindow.toolbarHeight + 6)];
 
-    if (menubarWindow.isKeyWindow) {
-        [NSApp activateIgnoringOtherApps:YES];
-    }
+    [NSApp activateIgnoringOtherApps:NO];
 }
 
 - (void)windowDidBecomeKey:(id)sender
@@ -465,17 +478,11 @@
     id checkItem = toRow >= _sensorsAndGroupsCollectionSnapshot.count ? [_sensorsAndGroupsCollectionSnapshot lastObject] : [_sensorsAndGroupsCollectionSnapshot objectAtIndex:toRow];
     
     HWMSensor *toItem = ![checkItem isKindOfClass:[HWMSensor class]] 
-    || toRow >= _sensorsAndGroupsCollectionSnapshot.count ? [fromItem.group.sensors lastObject] : checkItem;
+    || toRow >= _sensorsAndGroupsCollectionSnapshot.count ? nil : checkItem;
 
-    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-        [tableView moveRowAtIndex:fromRow toIndex:toRow > fromRow ? toRow - 1 : toRow];
-        [fromItem.group exchangeSensorsObjectAtIndex:[fromItem.group.sensors indexOfObject:fromItem]
-                            withSensorsObjectAtIndex:[fromItem.group.sensors indexOfObject:toItem]];
-    } completionHandler:^{
-        _ignoreSensorsAndGroupListChanges = YES;
-        [_monitorEngine setNeedsUpdateSensorLists];
-        _ignoreSensorsAndGroupListChanges = NO;
-    }];
+    [fromItem.group moveSensorsObjectAtIndex:[fromItem.group.sensors indexOfObject:fromItem] toIndex: toItem ? [fromItem.group.sensors indexOfObject:toItem] : fromItem.group.sensors.count];
+
+    [_monitorEngine setNeedsUpdateSensorLists];
 
     return YES;
 }

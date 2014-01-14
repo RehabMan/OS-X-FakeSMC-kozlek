@@ -56,12 +56,12 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
 - (void)windowDidMove:(NSNotification *)aNotification;
 - (void)statusItemViewDidMove:(NSNotification *)aNotification;
 - (NSWindow *)window;
-- (NSImage *)noiseImage;
 - (void)drawRectOriginal:(NSRect)dirtyRect;
 
 @property (readonly) NSImage *noiseImage;
 @property (readonly) NSImage *activeImage;
 @property (readonly) NSImage *inactiveImage;
+@property (atomic, assign) NSUInteger scheduledRefreshCount;
 
 @end
 
@@ -75,8 +75,8 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
 @synthesize toolbarView;
 @synthesize colorTheme;
 @synthesize noiseImage;
-@synthesize activeImage;
-@synthesize inactiveImage;
+@synthesize activeImage = _activeImage;
+@synthesize inactiveImage = _inactiveImage;
 
 -(CGFloat)toolbarHeight
 {
@@ -143,10 +143,10 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
 -(void)setColorTheme:(HWMColorTheme*)newColorTheme
 {
     if (colorTheme != newColorTheme) {
-        activeImage = nil;
-        inactiveImage = nil;
+        [self resetContentImagesScheduleRefresh:YES];
         colorTheme = newColorTheme;
-        [self layoutContent];
+        // Redraw the theme frame
+        [[self.contentView superview] setNeedsDisplayInRect:[self titleBarRect]];
     }
 }
 
@@ -396,7 +396,7 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
             }
         }
 
-        [self setLevel:(isAttached ? NSPopUpMenuWindowLevel : NSNormalWindowLevel)];
+        [self setLevel:(isAttached ? NSFloatingWindowLevel : NSNormalWindowLevel)];
 
         if (isAttached)
         {
@@ -621,8 +621,6 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
 
 - (void)windowDidResize:(NSNotification *)aNotification
 {
-    activeImage = nil;
-    inactiveImage = nil;
     [self layoutContent];
 }
 
@@ -667,38 +665,45 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
 
 - (void)setFrame:(NSRect)frameRect display:(BOOL)flag
 {
-    if ([self inLiveResize] && self.attachedToMenuBar)
-    {
-        NSPoint mouseLocation = [self convertBaseToScreen:[self mouseLocationOutsideOfEventStream]];
-        NSRect newFrame = resizeStartFrame;
-        if (frameRect.size.width != resizeStartFrame.size.width)
+    if ([self inLiveResize]) {
+        if (self.attachedToMenuBar)
         {
-            CGFloat deltaWidth = (resizeRight ? mouseLocation.x - resizeStartLocation.x : resizeStartLocation.x - mouseLocation.x);
-            newFrame.origin.x -= deltaWidth;
-            newFrame.size.width += deltaWidth * 2;
-            if (newFrame.size.width < self.minSize.width)
+            NSPoint mouseLocation = [self convertBaseToScreen:[self mouseLocationOutsideOfEventStream]];
+            NSRect newFrame = resizeStartFrame;
+            if (frameRect.size.width != resizeStartFrame.size.width)
             {
-                newFrame.size.width = self.minSize.width;
-                newFrame.origin.x = NSMidX(resizeStartFrame) - (self.minSize.width) / 2.0;
+                CGFloat deltaWidth = (resizeRight ? mouseLocation.x - resizeStartLocation.x : resizeStartLocation.x - mouseLocation.x);
+                newFrame.origin.x -= deltaWidth;
+                newFrame.size.width += deltaWidth * 2;
+                if (newFrame.size.width < self.minSize.width)
+                {
+                    newFrame.size.width = self.minSize.width;
+                    newFrame.origin.x = NSMidX(resizeStartFrame) - (self.minSize.width) / 2.0;
+                }
+                if (newFrame.size.width > self.maxSize.width)
+                {
+                    newFrame.size.width = self.maxSize.width;
+                    newFrame.origin.x = NSMidX(resizeStartFrame) - (self.maxSize.width) / 2.0;
+                }
             }
-            if (newFrame.size.width > self.maxSize.width)
+
+            // Don't allow resizing upwards when attached to menu bar
+            if (frameRect.origin.y != resizeStartFrame.origin.y)
             {
-                newFrame.size.width = self.maxSize.width;
-                newFrame.origin.x = NSMidX(resizeStartFrame) - (self.maxSize.width) / 2.0;
+                newFrame.origin.y = frameRect.origin.y;
+                newFrame.size.height = frameRect.size.height;
             }
-        }
 
-        // Don't allow resizing upwards when attached to menu bar
-        if (frameRect.origin.y != resizeStartFrame.origin.y)
-        {
-            newFrame.origin.y = frameRect.origin.y;
-            newFrame.size.height = frameRect.size.height;
+            [self resetContentImagesScheduleRefresh:NO];
+            [super setFrame:newFrame display:YES];
         }
-
-        [super setFrame:newFrame display:YES];
+        else {
+            [self resetContentImagesScheduleRefresh:NO];
+            [super setFrame:frameRect display:flag];
+        }
     }
-    else
-    {
+    else {
+        [self resetContentImagesScheduleRefresh:YES];
         [super setFrame:frameRect display:flag];
     }
 }
@@ -716,7 +721,17 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
     {
         size_t dimension = 100;
         size_t bytes = dimension * dimension * 4;
-        CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+        //CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+        // Fix rainbow noise when selected device-independent monitor profile
+        // Values got from: http://stackoverflow.com/questions/501199/disabling-color-correction-in-quartz-2d
+        const CGFloat whitePoint[] = {0.95047, 1.0, 1.08883};
+        const CGFloat blackPoint[] = {0, 0, 0};
+        const CGFloat gamma[] = {1, 1, 1};
+        const CGFloat matrix[] = {0.449695, 0.244634, 0.0251829, 0.316251, 0.672034, 0.141184, 0.18452, 0.0833318, 0.922602 };
+        CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateCalibratedRGB(whitePoint, blackPoint, gamma, matrix);
+
         unsigned char *data = malloc(bytes);
         unsigned char grey;
         for (NSUInteger i = 0; i < bytes; i += 4)
@@ -738,12 +753,12 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
     return noiseImage;
 }
 
-- (NSImage *)contentImageWhenTheWindowIsKey:(BOOL)isKey
+- (void)drawContentForKeyWindow:(BOOL)isKey
 {
     OBMenuBarWindow *window = (OBMenuBarWindow *)[self window];
 
     if (!window.toolbarView) {
-        return NULL;
+        return;
     }
 
     NSRect bounds = [window.contentView superview].bounds;
@@ -755,9 +770,8 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
     CGFloat arrowWidth = OBMenuBarWindowArrowWidth;
     CGFloat cornerRadius = 6.0;
 
-    NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
-
-    [image lockFocus];
+    [[NSColor clearColor] set];
+    NSRectFill(NSMakeRect(0, 0, width, height));
 
     BOOL isAttached = window.attachedToMenuBar;
 
@@ -935,28 +949,61 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
     [[NSColor colorWithCalibratedWhite:0.3 alpha:1.0] set];
     NSRect separatorRect = NSMakeRect(originX, originY + height - window.toolbarView.frame.size.height - (isAttached ? OBMenuBarWindowArrowHeight : 0) - 1, width, 1);
     NSRectFill(separatorRect);
-
-    [image unlockFocus];
-
-    return image;
 }
 
-- (NSImage *)activeImage
+- (void)refreshContentImageForKeyWindow:(BOOL)isKey
 {
-    if (activeImage == nil)
-        activeImage = [self contentImageWhenTheWindowIsKey:YES];
+    NSImage *contentImage = [[NSImage alloc] initWithSize:NSMakeSize([self.contentView superview].bounds.size.width, [self.contentView superview].bounds.size.height)];
 
-    return activeImage;
+    [contentImage lockFocus];
+
+    [self drawContentForKeyWindow:isKey];
+
+    [contentImage unlockFocus];
+
+    if (isKey) {
+        _activeImage = contentImage;
+        //NSLog(@"Active image refreshed");
+    }
+    else {
+        _inactiveImage = contentImage;
+        //NSLog(@"Inactive image refreshed");
+    }
 }
 
-- (NSImage *)inactiveImage
+- (void)resetContentImagesScheduleRefresh:(BOOL)scheduleRefresh
 {
-    if (inactiveImage == nil)
-    inactiveImage = [self contentImageWhenTheWindowIsKey:NO];
+    if (_activeImage || _inactiveImage) {
+        _activeImage = nil;
+        _inactiveImage = nil;
 
-    return inactiveImage;
+        //NSLog(@"reset");
+    }
+
+    if (scheduleRefresh) {
+
+        self.scheduledRefreshCount++;
+
+        [self performSelector:@selector(refreshContentImages) withObject:nil afterDelay:0.5];
+    }
 }
 
+- (void)refreshContentImages
+{
+    if (--self.scheduledRefreshCount) {
+        return;
+    }
+    
+    if (!_activeImage) {
+        [self refreshContentImageForKeyWindow:YES];
+        //NSLog(@"active image refreshed");
+    }
+
+    if (!_inactiveImage) {
+        [self refreshContentImageForKeyWindow:NO];
+        //NSLog(@"inactive image refreshed");
+    }
+}
 
 - (void)drawRectOriginal:(NSRect)dirtyRect
 {
@@ -978,19 +1025,19 @@ const CGFloat OBMenuBarWindowArrowOffset = 6;
         return;
     }
     
-    
     NSImage *content = [window isKeyWindow] || [window attachedToMenuBar] ? [window activeImage] : [window inactiveImage];
-    
-    if (!content) {
-        return;
-    }
-    
-    // Draw the window background
-    
-    [[NSColor clearColor] set];
-    NSRectFill(dirtyRect);
 
-    [content drawInRect:dirtyRect fromRect:dirtyRect operation:NSCompositeSourceOver fraction:1.0];
+
+    if (!content) {
+        [window drawContentForKeyWindow:[window isKeyWindow]];
+    }
+    else {
+        // Clear background (needs for semitransparent drawings)
+        [[NSColor clearColor] set];
+        NSRectFill(dirtyRect);
+
+        [content drawInRect:dirtyRect fromRect:dirtyRect operation:NSCompositeSourceOver fraction:1.0];
+    }
 }
 
 @end
