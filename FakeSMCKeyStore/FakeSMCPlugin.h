@@ -221,6 +221,10 @@ public:
 class EXPORT FakeSMCPlugin : public FakeSMCKeyHandler {
 	OSDeclareAbstractStructors(FakeSMCPlugin)
 
+private:
+    virtual IOReturn        readKeyCallback(const char *key, const char *type, const UInt8 size, void *buffer);
+    virtual IOReturn        writeKeyCallback(const char *key, const char *type, const UInt8 size, const void *buffer);
+
 protected:
     OSDictionary            *sensors;
     FakeSMCKeyStore         *keyStore;
@@ -262,9 +266,6 @@ public:
     virtual bool			start(IOService *provider);
 	virtual void			stop(IOService *provider);
 	virtual void			free(void);
-
-    virtual IOReturn        readKeyValueCallback(const char *key, const char *type, const UInt8 size, void *buffer);
-    virtual IOReturn        writeKeyValueCallback(const char *key, const char *type, const UInt8 size, const void *buffer);
 };
 
 #endif
