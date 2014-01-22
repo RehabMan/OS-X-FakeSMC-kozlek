@@ -39,6 +39,8 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 @synthesize sensorsAndGroups = _sensorsAndGroups;
 @synthesize graphsAndGroups = _graphsAndGroups;
 @synthesize favoriteItems = _favoriteItems;
+@synthesize favorites = _favorites;
+
 @synthesize isRunningOnMac = _isRunningOnMac;
 
 #pragma mark
@@ -264,6 +266,31 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     return _favoriteItems;
 }
 
+-(NSArray *)favorites
+{
+    if (!_favorites) {
+
+        @synchronized (self) {
+
+            NSMutableArray *items = [[NSMutableArray alloc] init];
+
+            for (HWMFavorite *favorite in _configuration.favorites) {
+                if ([favorite.item isKindOfClass:[HWMSensor class]] && ![(HWMSensor*)favorite.item service].unsignedLongLongValue) {
+                    continue;
+                }
+
+                [items addObject:favorite];
+            }
+
+            //[self willChangeValueForKey:@"favoriteItems"];
+            _favorites = [items copy];
+            //[self didChangeValueForKey:@"favoriteItems"];
+        }
+    }
+    
+    return _favorites;
+}
+
 #pragma mark
 #pragma mark Overriden Methods
 
@@ -306,7 +333,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self insertColorThemes];
 
     // Load icons
-    [self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
+    //[self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
     [self loadIconNamed:kHWMonitorIconThermometer];
     [self loadIconNamed:kHWMonitorIconScale];
     [self loadIconNamed:kHWMonitorIconDevice];
@@ -782,6 +809,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
         [self willChangeValueForKey:@"favoriteItems"];
         _favoriteItems = nil;
+        _favorites = nil;
         [self didChangeValueForKey:@"favoriteItems"];
     }];
 }
@@ -854,6 +882,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
             [self willChangeValueForKey:@"favoriteItems"];
             _favoriteItems = nil;
+            _favorites = nil;
             [self didChangeValueForKey:@"favoriteItems"];
 
     }
@@ -865,6 +894,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
     [self willChangeValueForKey:@"favoriteItems"];
     _favoriteItems = nil;
+    _favorites = nil;
     [self didChangeValueForKey:@"favoriteItems"];
 }
 
@@ -881,6 +911,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
         [self willChangeValueForKey:@"favoriteItems"];
         _favoriteItems = nil;
+        _favorites = nil;
         [self didChangeValueForKey:@"favoriteItems"];
 }
 
