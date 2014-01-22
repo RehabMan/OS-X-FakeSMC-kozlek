@@ -2,7 +2,11 @@ Notes about this fork by RehabMan:
 
 Note: This version forked from kozlek's branch at: https://www.assembla.com/code/fakesmc/git/nodes 
 
-Download link for RehabMan builds: https://code.google.com/p/os-x-fake-smc-kozlek/downloads/list
+Download link for RehabMan builds:
+https://bitbucket.org/RehabMan/os-x-fakesmc-kozlek/downloads
+
+Older builds are archived here:
+https://code.google.com/p/os-x-fake-smc-kozlek/downloads/list
 
 A note about the contents of the download:
 Debug/FakeSMC.kext - debug FakeSMC.kext + PlugIns (install for troubleshooting)
