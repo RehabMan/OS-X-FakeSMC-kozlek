@@ -330,8 +330,8 @@ bool RadeonSensors::managedStart(IOService *provider)
         }
     }
     
-    enableExclusiveAccessMode();
-    
+    char key[5];
+
     if (card.get_core_temp) {
         char key[5];
         snprintf(key, 5, KEY_FORMAT_GPU_DIODE_TEMPERATURE, card.card_index);
@@ -343,8 +343,6 @@ bool RadeonSensors::managedStart(IOService *provider)
             return false;
         }
     }
-    
-    disableExclusiveAccessMode();
     
     registerService();
     

@@ -38,7 +38,6 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 @synthesize iconsWithSensorsAndGroups = _iconsWithSensorsAndGroups;
 @synthesize sensorsAndGroups = _sensorsAndGroups;
 @synthesize graphsAndGroups = _graphsAndGroups;
-@synthesize favoriteItems = _favoriteItems;
 @synthesize favorites = _favorites;
 
 @synthesize isRunningOnMac = _isRunningOnMac;
@@ -241,31 +240,6 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     return _graphsAndGroups;
 }
 
--(NSArray *)favoriteItems
-{
-    if (!_favoriteItems) {
-
-        @synchronized (self) {
-
-            NSMutableArray *items = [[NSMutableArray alloc] init];
-
-            for (HWMFavorite *favorite in _configuration.favorites) {
-                if ([favorite.item isKindOfClass:[HWMSensor class]] && ![(HWMSensor*)favorite.item service].unsignedLongLongValue) {
-                    continue;
-                }
-
-                [items addObject:favorite.item];
-            }
-
-            //[self willChangeValueForKey:@"favoriteItems"];
-            _favoriteItems = [items copy];
-            //[self didChangeValueForKey:@"favoriteItems"];
-        }
-    }
-
-    return _favoriteItems;
-}
-
 -(NSArray *)favorites
 {
     if (!_favorites) {
@@ -282,9 +256,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                 [items addObject:favorite];
             }
 
-            //[self willChangeValueForKey:@"favoriteItems"];
+            //[self willChangeValueForKey:@"favorites"];
             _favorites = [items copy];
-            //[self didChangeValueForKey:@"favoriteItems"];
+            //[self didChangeValueForKey:@"favorites"];
         }
     }
     
@@ -333,7 +307,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self insertColorThemes];
 
     // Load icons
-    //[self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
     [self loadIconNamed:kHWMonitorIconThermometer];
     [self loadIconNamed:kHWMonitorIconScale];
     [self loadIconNamed:kHWMonitorIconDevice];
@@ -807,10 +781,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
         _sensorsAndGroups = nil;
         [self didChangeValueForKey:@"sensorsAndGroups"];
 
-        [self willChangeValueForKey:@"favoriteItems"];
-        _favoriteItems = nil;
+        [self willChangeValueForKey:@"favorites"];
         _favorites = nil;
-        [self didChangeValueForKey:@"favoriteItems"];
+        [self didChangeValueForKey:@"favorites"];
     }];
 }
 
@@ -870,7 +843,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 {
     if (item && item.managedObjectContext == _managedObjectContext) {
 
-            if ([item isKindOfClass:[HWMSensor class]] && [self.favoriteItems containsObject:item]) {
+            if ([item isKindOfClass:[HWMSensor class]] && item.favorites.count) {
                 return;
             }
 
@@ -880,10 +853,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
             [[_configuration mutableOrderedSetValueForKey:@"favorites"] insertObject:favorite atIndex:index];
 
-            [self willChangeValueForKey:@"favoriteItems"];
-            _favoriteItems = nil;
+            [self willChangeValueForKey:@"favorites"];
             _favorites = nil;
-            [self didChangeValueForKey:@"favoriteItems"];
+            [self didChangeValueForKey:@"favorites"];
 
     }
 }
@@ -892,10 +864,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 {
     [[_configuration mutableOrderedSetValueForKey:@"favorites"] moveObjectsAtIndexes:[NSIndexSet indexSetWithIndex:fromIndex] toIndex:toIndex > fromIndex ? toIndex - 1 : toIndex < _configuration.favorites.count ? toIndex : _configuration.favorites.count];
 
-    [self willChangeValueForKey:@"favoriteItems"];
-    _favoriteItems = nil;
+    [self willChangeValueForKey:@"favorites"];
     _favorites = nil;
-    [self didChangeValueForKey:@"favoriteItems"];
+    [self didChangeValueForKey:@"favorites"];
 }
 
 -(void)removeItemFromFavoritesAtIndex:(NSUInteger)index
@@ -909,10 +880,9 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
         [self.managedObjectContext deleteObject:favorite];
 
-        [self willChangeValueForKey:@"favoriteItems"];
-        _favoriteItems = nil;
+        [self willChangeValueForKey:@"favorites"];
         _favorites = nil;
-        [self didChangeValueForKey:@"favoriteItems"];
+        [self didChangeValueForKey:@"favorites"];
 }
 
 #pragma mark
@@ -1152,7 +1122,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self insertColorThemeWithName:@"Default"
                      groupEndColor:[NSColor colorWithCalibratedWhite:0.85 alpha:0.5]
                    groupStartColor:[NSColor colorWithCalibratedWhite:0.95 alpha:0.5]
-                   groupTitleColor:[NSColor colorWithCalibratedWhite:0.6 alpha:1.0]
+                   groupTitleColor:[NSColor colorWithCalibratedWhite:0.2 alpha:1.0]
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
@@ -1168,7 +1138,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self insertColorThemeWithName:@"Gray"
                      groupEndColor:[NSColor colorWithCalibratedWhite:0.85 alpha:0.5]
                    groupStartColor:[NSColor colorWithCalibratedWhite:0.95 alpha:0.5]
-                   groupTitleColor:[NSColor colorWithCalibratedWhite:0.6 alpha:1.0]
+                   groupTitleColor:[NSColor colorWithCalibratedWhite:0.2 alpha:1.0]
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
@@ -1184,7 +1154,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self insertColorThemeWithName:@"Dark"
                      groupEndColor:[NSColor colorWithCalibratedWhite:0.14 alpha:0.5]
                    groupStartColor:[NSColor colorWithCalibratedWhite:0.2 alpha:0.5]
-                   groupTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
+                   groupTitleColor:[NSColor colorWithCalibratedWhite:0.85 alpha:1.0]
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.65 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.85 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.95 alpha:1.0]
@@ -1786,7 +1756,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 #endif
 
     if (sensor.value) {
-        [sensor setTitle:productName];
+        [sensor setTitle:GetLocalizedString(productName)];
         [sensor setIdentifier:@"Battery"];
 
         [sensor setEngine:self];

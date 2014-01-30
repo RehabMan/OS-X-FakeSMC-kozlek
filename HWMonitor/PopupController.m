@@ -54,8 +54,8 @@
         
         _statusItemView = [[StatusItemView alloc] initWithFrame:NSMakeRect(0, 0, 22, 22) statusItem:_statusItem];
 
-        _statusItemView.image = [NSImage loadImageNamed:@"thermometer" ofType:@"png"];
-        _statusItemView.alternateImage = [NSImage loadImageNamed:@"thermometer-white" ofType:@"png"];
+        _statusItemView.image = [NSImage loadImageNamed:@"scale" ofType:@"png"];
+        _statusItemView.alternateImage = [NSImage loadImageNamed:@"scale-white" ofType:@"png"];
         
         [_statusItemView setAction:@selector(togglePanel:)];
         [_statusItemView setTarget:self];
@@ -343,7 +343,7 @@
 {
     HWMItem *item = [_sensorsAndGroupsCollectionSnapshot objectAtIndex:row];
 
-    NSUInteger height = [item isKindOfClass:[HWMSensorsGroup class]] ? 20 : 17;
+    NSUInteger height = [item isKindOfClass:[HWMSensorsGroup class]] ? 21 : 17;
 
     if (item.legend)
         height += 10;
