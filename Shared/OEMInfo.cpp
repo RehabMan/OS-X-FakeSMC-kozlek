@@ -391,7 +391,9 @@ bool setOemProperties(IOService *provider)
     if (!provider->getProperty(kOEMInfoProduct) || !provider->getProperty(kOEMInfoManufacturer)) {
         // Try to obtain OEM info from Chameleon EFI
         if (IORegistryEntry* platformNode = IORegistryEntry::fromPath("/efi/platform", gIODTPlane)) {
-            if (OSData *data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS"))) {
+            OSData* data;
+            if ((data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS"))) ||
+                (data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS-ORIG")))) {
                 if (const void *smbios = data->getBytesNoCopy()) {
                     decodeSMBIOSTable(provider, smbios, data->getLength());
                 }
