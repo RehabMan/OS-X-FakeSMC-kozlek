@@ -150,18 +150,16 @@ void SMBPackedStrings::setStringProperty( IORegistryEntry * entry,
 
 //---------------------------------------------------------------------------
 
-#if 0 //REVIEW_REHABMAN: this is not used anymore
-static UInt8 checksum8( void * start, UInt length )
-{
-    UInt8   csum = 0;
-    UInt8 * cp = (UInt8 *) start;
-    
-    for (UInt i = 0; i < length; i++)
-        csum += *cp++;
-    
-    return csum;
-}
-#endif
+//static UInt8 checksum8( void * start, UInt length )
+//{
+//    UInt8   csum = 0;
+//    UInt8 * cp = (UInt8 *) start;
+//    
+//    for (UInt i = 0; i < length; i++)
+//        csum += *cp++;
+//    
+//    return csum;
+//}
 
 OSString* getManufacturerNameFromOEMName(OSString *name)
 {
@@ -391,9 +389,8 @@ bool setOemProperties(IOService *provider)
     if (!provider->getProperty(kOEMInfoProduct) || !provider->getProperty(kOEMInfoManufacturer)) {
         // Try to obtain OEM info from Chameleon EFI
         if (IORegistryEntry* platformNode = IORegistryEntry::fromPath("/efi/platform", gIODTPlane)) {
-            OSData* data;
-            if ((data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS"))) ||
-                (data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS-ORIG")))) {
+            OSData *data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS"));
+            if (!data && (data = OSDynamicCast(OSData, platformNode->getProperty("SMBIOS-ORIG")))) {
                 if (const void *smbios = data->getBytesNoCopy()) {
                     decodeSMBIOSTable(provider, smbios, data->getLength());
                 }
