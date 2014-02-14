@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="Version 1.2" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="3401" systemVersion="13C53" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+<model userDefinedModelVersionIdentifier="Version 1.5" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="3401" systemVersion="13C53" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="AtaSmartSensor" representedClassName="HWMAtaSmartSensor" parentEntity="Sensor" syncable="YES">
         <attribute name="bsdName" optional="YES" transient="YES" attributeType="String" syncable="YES"/>
         <attribute name="productName" optional="YES" transient="YES" attributeType="String" syncable="YES"/>
+        <attribute name="revision" optional="YES" transient="YES" syncable="YES"/>
         <attribute name="rotational" optional="YES" transient="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="serialNumber" optional="YES" transient="YES" syncable="YES"/>
         <attribute name="volumeNames" optional="YES" transient="YES" attributeType="String" syncable="YES"/>
     </entity>
     <entity name="BatterySensor" representedClassName="HWMBatterySensor" parentEntity="Sensor" syncable="YES"/>
@@ -27,7 +29,6 @@
     </entity>
     <entity name="Configuration" representedClassName="HWMConfiguration" syncable="YES">
         <attribute name="colorThemeIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
-        <attribute name="enableFanControl" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
         <attribute name="graphsScaleValue" attributeType="Float" minValueString="1" maxValueString="10" defaultValueString="4" syncable="YES"/>
         <attribute name="graphsWindowAlwaysTopmost" attributeType="Boolean" defaultValueString="YES" syncable="YES"/>
         <attribute name="notifyAlarmLevelChanges" attributeType="Boolean" defaultValueString="YES" syncable="YES"/>
@@ -92,6 +93,7 @@
         <relationship name="sensors" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Sensor" inverseName="group" inverseEntity="Sensor" syncable="YES"/>
     </entity>
     <entity name="SmcFanSensor" representedClassName="HWMSmcFanSensor" parentEntity="SmcSensor" syncable="YES">
+        <attribute name="controlled" optional="YES" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
         <attribute name="descriptor" attributeType="String" indexed="YES" elementID="unique" syncable="YES"/>
         <attribute name="max" optional="YES" transient="YES" attributeType="Float" syncable="YES"/>
         <attribute name="min" optional="YES" transient="YES" attributeType="Float" syncable="YES"/>

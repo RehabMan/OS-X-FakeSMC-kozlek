@@ -165,6 +165,32 @@
             [self localizeView:view];
         }
     }
+    else if ([view isKindOfClass:[NSTableView class]]) {
+
+        NSTableView *tableView = (NSTableView*)view;
+
+        for (NSTableColumn *column in tableView.tableColumns) {
+            if (column.headerCell) {
+                NSTableHeaderCell *cell = column.headerCell;
+
+                NSString * title = GetLocalizedString(cell.title);
+
+                [cell setTitle:title];
+            }
+        }
+    }
+    else if ([view isKindOfClass:[NSSegmentedControl class]]) {
+
+        NSSegmentedControl *control = (NSSegmentedControl*)view;
+
+        for (int i = 0; i < control.segmentCount; i++) {
+
+            NSString * title = GetLocalizedString([control labelForSegment:i]);
+
+            [control setLabel:title forSegment:i];
+
+        }
+    }
     // Must be at the end to allow other checks to pass because almost all controls are derived from NSView
     else if ([view isKindOfClass:[NSView class]] && [view subviews]) {
         NSArray *subviews = [[view subviews] copy];
