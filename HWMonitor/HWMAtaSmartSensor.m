@@ -38,105 +38,9 @@
 #import <sys/mount.h>
 #import <Growl/Growl.h>
 
-static NSMutableDictionary * gIOCFPlugInInterfaces;
-
-@implementation HWMSmartPlugInInterfaceWrapper
-
-+(HWMSmartPlugInInterfaceWrapper*)wrapperWithService:(io_service_t)service forBsdName:(NSString*)name
-{
-
-    if (!gIOCFPlugInInterfaces) {
-        gIOCFPlugInInterfaces = [[NSMutableDictionary alloc] init];
-    }
-
-    HWMSmartPlugInInterfaceWrapper *wrapper = [gIOCFPlugInInterfaces objectForKey:name];
-
-    if (!wrapper) {
-        IOCFPlugInInterface ** pluginInterface = NULL;
-        SInt32 score = 0;
-
-        wrapper = [[HWMSmartPlugInInterfaceWrapper alloc] init];
-
-        if (S_OK == IOCreatePlugInInterfaceForService(service, kIOATASMARTUserClientTypeID, kIOCFPlugInInterfaceID, &pluginInterface, &score)) {
-
-            (*pluginInterface)->AddRef(pluginInterface);
-            [wrapper setPluginInterface:pluginInterface];
-
-            IOATASMARTInterface ** smartInterface = NULL;
-
-            if (S_OK == (*wrapper.pluginInterface)->QueryInterface(wrapper.pluginInterface, CFUUIDGetUUIDBytes(kIOATASMARTInterfaceID), (LPVOID)&smartInterface)) {
-
-                [wrapper setSmartInterface:smartInterface];
-
-                [gIOCFPlugInInterfaces setObject:wrapper forKey:name];
-            }
-            else {
-                if (smartInterface) {
-                    (*pluginInterface)->Release(pluginInterface);
-                    (*smartInterface)->Release(smartInterface);
-                    IODestroyPlugInInterface(pluginInterface);
-                    wrapper = nil;
-                }
-            }
-        }
-        else {
-            wrapper = nil;
-        }
-    }
-
-    return wrapper;
-}
-
-+(HWMSmartPlugInInterfaceWrapper*)getWrapperForBsdName:(NSString*)name
-{
-    if (name && gIOCFPlugInInterfaces) {
-        return [gIOCFPlugInInterfaces objectForKey:name];
-    }
-
-    return nil;
-}
-
-+(void)destroyAllWrappers
-{
-    if (gIOCFPlugInInterfaces) {
-        [gIOCFPlugInInterfaces enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-            [obj destroy];
-        }];
-
-        [gIOCFPlugInInterfaces removeAllObjects];
-        gIOCFPlugInInterfaces = nil;
-    }
-}
-
--(void)destroy
-{
-    if (self.smartInterface) {
-        (*self.smartInterface)->Release(self.smartInterface);
-    }
-
-    if (self.pluginInterface) {
-        (*self.pluginInterface)->Release(self.pluginInterface);
-
-        IODestroyPlugInInterface(self.pluginInterface);
-    }
-}
-
-@end
-
-static void block_device_appeared(void *engine, io_iterator_t iterator);
-static void block_device_disappeared(void *engine, io_iterator_t iterator);
-
-@implementation HWMAtaSmartSensor
-
-@dynamic bsdName;
-@dynamic productName;
-@dynamic volumeNames;
-@dynamic revision;
-@dynamic serialNumber;
-@dynamic rotational;
-
-@synthesize exceeded = _exceeded;
-@synthesize attributes = _attributes;
+static NSMutableDictionary * gIOCFPluginInterfaceCache = nil;
+static NSDictionary * gSmartAttributeOverrideDatabase = nil;
+static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
 
 #define RAW_TO_LONG(attribute)  (UInt64)attribute->rawvalue[0] | \
 (UInt64)attribute->rawvalue[1] << 8 | \
@@ -145,8 +49,83 @@ static void block_device_disappeared(void *engine, io_iterator_t iterator);
 (UInt64)attribute->rawvalue[4] << 32 | \
 (UInt64)attribute->rawvalue[5] << 40
 
-static NSDictionary * gAttributeOverridesDatabase = nil;
-static NSDictionary * gAvailableMountedPartitions = nil;
+#define GetLocalizedAttributeName(key) \
+[[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:@"SmartAttributes"]
+
+@implementation HWMSmartPluginInterfaceWrapper
+
+@synthesize pluginInterface = _pluginInterface;
+@synthesize smartInterface = _smartInterface;
+@synthesize attributes = _attributes;
+
++(HWMSmartPluginInterfaceWrapper*)wrapperWithService:(io_service_t)service productName:(NSString*)productName firmware:(NSString*)firmware bsdName:(NSString*)bsdName isRotational:(BOOL)rotational
+{
+
+    if (!gIOCFPluginInterfaceCache) {
+        gIOCFPluginInterfaceCache = [[NSMutableDictionary alloc] init];
+    }
+
+    HWMSmartPluginInterfaceWrapper *wrapper = [gIOCFPluginInterfaceCache objectForKey:bsdName];
+
+    if (!wrapper) {
+        IOCFPlugInInterface ** pluginInterface = NULL;
+        SInt32 score = 0;
+        int tryCount = 4;
+
+        do {
+
+            if (S_OK == IOCreatePlugInInterfaceForService(service, kIOATASMARTUserClientTypeID, kIOCFPlugInInterfaceID, &pluginInterface, &score)) {
+
+                (*pluginInterface)->AddRef(pluginInterface);
+
+                IOATASMARTInterface ** smartInterface = NULL;
+
+                if (S_OK == (*pluginInterface)->QueryInterface(pluginInterface, CFUUIDGetUUIDBytes(kIOATASMARTInterfaceID), (LPVOID)&smartInterface)) {
+
+                    (*smartInterface)->AddRef(smartInterface);
+
+                    wrapper = [[HWMSmartPluginInterfaceWrapper alloc] initWithPluginInterface:pluginInterface smartInterface:smartInterface productName:productName firmware:firmware bsdName:bsdName isRotational:rotational];
+
+                    [gIOCFPluginInterfaceCache setObject:wrapper forKey:bsdName];
+
+                    break;
+                }
+                else if (smartInterface) {
+                    (*pluginInterface)->Release(pluginInterface);
+                    (*smartInterface)->Release(smartInterface);
+                    IODestroyPlugInInterface(pluginInterface);
+
+                    [NSThread sleepForTimeInterval:0.25];
+                }
+            }
+
+        } while (--tryCount);
+
+    }
+
+    return wrapper;
+}
+
++(HWMSmartPluginInterfaceWrapper*)getWrapperForBsdName:(NSString*)name
+{
+    if (name && gIOCFPluginInterfaceCache) {
+        return [gIOCFPluginInterfaceCache objectForKey:name];
+    }
+
+    return nil;
+}
+
++(void)destroyAllWrappers
+{
+    if (gIOCFPluginInterfaceCache) {
+        [gIOCFPluginInterfaceCache enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            [obj destroy];
+        }];
+
+        [gIOCFPluginInterfaceCache removeAllObjects];
+        gIOCFPluginInterfaceCache = nil;
+    }
+}
 
 +(NSString *)getDefaultAttributeNameByIdentifier:(NSUInteger)identifier isRotational:(BOOL)hdd
 {
@@ -359,57 +338,230 @@ static NSDictionary * gAvailableMountedPartitions = nil;
     }
 }
 
-+(NSDictionary*)getAttributeOverridesForProduct:(NSString*)product firmware:(NSString*)firmware
++(NSDictionary*)getAttributeOverrideForProduct:(NSString*)product firmware:(NSString*)firmware
 {
     if (!product)
         return nil;
 
-    if (!gAttributeOverridesDatabase) {
-        if (!(gAttributeOverridesDatabase = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"smart-overrides" withExtension:@"plist"]])) {
-            gAttributeOverridesDatabase = [NSDictionary dictionary]; // Empty dictionary
+    if (!gSmartAttributeOverrideDatabase) {
+        if (!(gSmartAttributeOverrideDatabase = [NSDictionary dictionaryWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"smart-overrides" withExtension:@"plist"]])) {
+            gSmartAttributeOverrideDatabase = [NSDictionary dictionary]; // Empty dictionary
         }
     }
 
-    for (NSDictionary *group in gAttributeOverridesDatabase.allValues) {
+    if (!gSmartAttributeOverrideCache) {
+        gSmartAttributeOverrideCache = [[NSMutableDictionary alloc] init];
+    }
 
-        NSArray *productMatch = group[@"NameMatch"];
+    NSString *key = [NSString stringWithFormat:@"%@%@", product, firmware];
 
-        if (productMatch) {
+    NSDictionary *overrides = [gSmartAttributeOverrideCache objectForKey:key];
 
-            for (NSString *pattern in productMatch) {
+    if (!overrides) {
 
-                NSRegularExpression *expression = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:nil];
+        for (NSDictionary *group in gSmartAttributeOverrideDatabase.allValues) {
 
-                if ([expression numberOfMatchesInString:product options:NSMatchingReportCompletion range:NSMakeRange(0, product.length)]) {
+            NSArray *productMatch = group[@"NameMatch"];
 
-                    NSArray *firmwareMatch = group[@"FirmwareMatch"];
+            if (productMatch) {
 
-                    if (firmware && firmwareMatch) {
+                for (NSString *pattern in productMatch) {
 
-                        BOOL supported = NO;
+                    NSRegularExpression *expression = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:nil];
 
-                        for (pattern in productMatch) {
-                            expression = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:nil];
+                    if ([expression numberOfMatchesInString:product options:NSMatchingReportCompletion range:NSMakeRange(0, product.length)]) {
 
-                            if ([expression numberOfMatchesInString:product options:NSMatchingReportCompletion range:NSMakeRange(0, product.length)]) {
-                                supported = YES;
-                                break;
+                        NSArray *firmwareMatch = group[@"FirmwareMatch"];
+
+                        if (firmware && firmwareMatch) {
+
+                            BOOL supported = NO;
+
+                            for (pattern in productMatch) {
+                                expression = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:nil];
+
+                                if ([expression numberOfMatchesInString:product options:NSMatchingReportCompletion range:NSMakeRange(0, product.length)]) {
+                                    supported = YES;
+                                    break;
+                                }
+                            }
+                            
+                            if (!supported) {
+                                return nil;
                             }
                         }
 
-                        if (!supported) {
-                            return nil;
-                        }
-                    }
+                        overrides = group[@"Attributes"];
 
-                    return group[@"Attributes"];
+                        [gSmartAttributeOverrideCache setObject:overrides forKey:key];
+                    }
                 }
             }
         }
     }
 
-    return nil;
+    return overrides ? overrides : @{};
 }
+
+-(BOOL)readSMARTDataAndThresholds
+{
+    NSLog(@"reading SMART data for %@", _product);
+
+    IOReturn result = kIOReturnError;
+
+    ATASMARTData smartData;
+    ATASMARTDataThresholds smartDataThresholds;
+
+    bzero(&smartData, sizeof(smartData));
+    bzero(&smartDataThresholds, sizeof(smartDataThresholds));
+
+    Boolean exceeded = false;
+
+    if (kIOReturnSuccess != (*_smartInterface)->SMARTReturnStatus(_smartInterface, &exceeded)) {
+        if (kIOReturnSuccess != (*_smartInterface)->SMARTEnableDisableOperations(_smartInterface, true)) {
+            (*_smartInterface)->SMARTEnableDisableAutosave(_smartInterface, true);
+        }
+    }
+
+    if (kIOReturnSuccess == (result = (*_smartInterface)->SMARTReturnStatus(_smartInterface, &exceeded))) {
+        if (kIOReturnSuccess == (result = (*_smartInterface)->SMARTReadData(_smartInterface, &smartData))) {
+            if (kIOReturnSuccess == (result = (*_smartInterface)->SMARTValidateReadData(_smartInterface, &smartData))) {
+
+                bcopy(&smartData.vendorSpecific1, &_vendorSpecificData, sizeof(_vendorSpecificData));
+
+                if (kIOReturnSuccess == (result = (*_smartInterface)->SMARTReadDataThresholds(_smartInterface, &smartDataThresholds))) {
+                    bcopy(&smartDataThresholds.vendorSpecific1, &_vendorSpecificThresholds, sizeof(_vendorSpecificThresholds));
+                }
+                else {
+                    NSLog(@"Failed to read S.M.A.R.T. thresholds");
+                }
+
+                // Prepare SMART attributes list
+                if (!gSmartAttributeOverrideCache) {
+                    gSmartAttributeOverrideCache = [[NSMutableDictionary alloc] init];
+                }
+
+                _overrides = [HWMSmartPluginInterfaceWrapper getAttributeOverrideForProduct:_product firmware:_firmware];
+
+                NSMutableArray * attributes = [[NSMutableArray alloc] init];
+
+                NSUInteger count = 0;
+
+                for (int index = 0; index < kATASMARTAttributesCount; index++) {
+
+                    ATASMARTAttribute *attribute = &_vendorSpecificData.vendorAttributes[index];
+
+                    if (attribute->attributeId) {
+
+                        ATASmartThresholdAttribute *threshold = &_vendorSpecificThresholds.ThresholdEntries[index];
+
+                        NSString *overridden = _overrides ? [_overrides objectForKey:[NSString stringWithFormat:@"%d",attribute->attributeId]] : nil;
+
+                        NSString *name = overridden ? overridden : [HWMSmartPluginInterfaceWrapper getDefaultAttributeNameByIdentifier:attribute->attributeId isRotational:_rotational];
+
+                        NSString *title = GetLocalizedAttributeName(name);
+
+                        BOOL critical = ATTRIBUTE_FLAGS_PREFAILURE(attribute->flag);
+
+                        NSUInteger level = kHWMSensorLevelNormal;
+
+                        if (threshold)
+                        {
+                            if (critical && attribute->current <= threshold->ThresholdValue) {
+                                level = kHWMSensorLevelExceeded;
+                            }
+                        }
+
+                        NSColor *titleColor = nil;
+
+                        switch (level) {
+                            case kHWMSensorLevelExceeded:
+
+                                titleColor = [NSColor redColor];
+
+                                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                                            description:[NSString stringWithFormat:GetLocalizedString(@"'%@' S.M.A.R.T. attribute is critical for %@. Drive failure predicted!"), title, _product]
+                                                       notificationName:NotifierSensorLevelExceededNotification
+                                                               iconData:nil
+                                                               priority:0
+                                                               isSticky:YES
+                                                           clickContext:nil];
+                                break;
+                        }
+
+                        [attributes addObject:@{@"index" : [NSNumber numberWithUnsignedInteger:count++],
+                                                @"id": [NSNumber numberWithUnsignedChar:attribute->attributeId],
+                                                @"name": name,
+                                                @"title":titleColor ? [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:titleColor}] : title,
+                                                @"critical": GetLocalizedString(critical ? @"Pre-Failure" : @"Life-Span"),
+                                                @"value": [NSNumber numberWithUnsignedChar:attribute->current],
+                                                @"worst": [NSNumber numberWithUnsignedChar:attribute->worst],
+                                                @"threshold": (threshold ? [NSNumber numberWithUnsignedChar:threshold->ThresholdValue] : @0),
+                                                @"raw": [NSNumber numberWithUnsignedLongLong:RAW_TO_LONG(attribute)]
+                                               }];
+                    }
+                }
+
+                _attributes = [attributes copy];
+            }
+        }
+    }
+
+    if (result != kIOReturnSuccess)
+        NSLog(@"readSMARTData returned error for BSD device: %@", _bsdName);
+    
+    return result == kIOReturnSuccess;
+}
+
+-(HWMSmartPluginInterfaceWrapper*)initWithPluginInterface:(IOCFPlugInInterface**)pluginInterface smartInterface:(IOATASMARTInterface**)smartInterface productName:(NSString*)productName firmware:(NSString*)firmware bsdName:(NSString*)bsdName isRotational:(BOOL)rotational
+{
+    self = [super init];
+
+    if (self) {
+        _pluginInterface = pluginInterface;
+        _smartInterface = smartInterface;
+        _product = productName;
+        _firmware = firmware;
+        _bsdName = bsdName;
+        _rotational = rotational;
+
+        [self readSMARTDataAndThresholds];
+    }
+
+    return self;
+}
+
+-(void)destroy
+{
+    if (self.smartInterface) {
+        (*self.smartInterface)->Release(self.smartInterface);
+    }
+
+    if (self.pluginInterface) {
+        (*self.pluginInterface)->Release(self.pluginInterface);
+
+        IODestroyPlugInInterface(self.pluginInterface);
+    }
+}
+
+@end
+
+static void block_device_appeared(void *engine, io_iterator_t iterator);
+static void block_device_disappeared(void *engine, io_iterator_t iterator);
+
+@implementation HWMAtaSmartSensor
+
+@dynamic bsdName;
+@dynamic productName;
+@dynamic volumeNames;
+@dynamic revision;
+@dynamic serialNumber;
+@dynamic rotational;
+
+@synthesize attributes = _attributes;
+@synthesize lastUpdated = _lastUpdated;
+
+static NSDictionary * gAvailableMountedPartitions = nil;
 
 static IONotificationPortRef gHWMAtaSmartSensorNotificationPort = MACH_PORT_NULL;
 static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
@@ -446,7 +598,7 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
     // Discover devices and add notification callbacks
     if (!IOServiceAddMatchingNotification(gHWMAtaSmartSensorNotificationPort,
-                                          kIOPublishNotification,
+                                          kIOMatchedNotification,
                                           matching,
                                           block_device_appeared,
                                           (__bridge void *)engine,
@@ -473,7 +625,7 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
     BOOL first = YES;
 
-    NSArray *mountedVolumeURLs = [[NSFileManager defaultManager] mountedVolumeURLsIncludingResourceValuesForKeys:[NSArray array] options:NSVolumeEnumerationSkipHiddenVolumes];
+    NSArray *mountedVolumeURLs = [[NSFileManager defaultManager] mountedVolumeURLsIncludingResourceValuesForKeys:@[] options:0];
 
     for (NSURL *url in mountedVolumeURLs) {
         NSString *path = url.path;
@@ -521,169 +673,46 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
     return gAvailableMountedPartitions;
 }
 
-//+(NSArray*)discoverDrives
-//{
-//    NSMutableArray * list = [[NSMutableArray alloc] init];
-//
-//    CFDictionaryRef matching = IOServiceMatching("IOBlockStorageDevice");
-//    io_iterator_t iterator = IO_OBJECT_NULL;
-//
-//    if (kIOReturnSuccess == IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iterator)) {
-//        if (IO_OBJECT_NULL != iterator) {
-//
-//            io_service_t service = MACH_PORT_NULL;
-//
-//            while (MACH_PORT_NULL != (service = IOIteratorNext(iterator))) {
-//
-//                CFBooleanRef capable = (CFBooleanRef)IORegistryEntryCreateCFProperty(service, CFSTR(kIOPropertySMARTCapableKey), kCFAllocatorDefault, 0);
-//
-//                if (capable != IO_OBJECT_NULL) {
-//                    if (CFBooleanGetValue(capable)) {
-//
-//                        NSDictionary * characteristics = (__bridge_transfer NSDictionary*)IORegistryEntryCreateCFProperty(service, CFSTR("Device Characteristics"), kCFAllocatorDefault, 0);
-//
-//                        if (characteristics) {
-//                            NSString *name = [characteristics objectForKey:@"Product Name"];
-//                            NSString *serial = [characteristics objectForKey:@"Serial Number"];
-//                            NSString *medium = [characteristics objectForKey:@"Medium Type"];
-//                            NSString *revision = [characteristics objectForKey:@"Product Revision Level"];
-//
-//                            if (name && serial && revision) {
-//                                NSString *volumes;
-//                                NSString *bsdName;
-//
-//                                CFStringRef bsdNameRef = IORegistryEntrySearchCFProperty(service, kIOServicePlane, CFSTR("BSD Name"), kCFAllocatorDefault, kIORegistryIterateRecursively);
-//
-//                                if (MACH_PORT_NULL != bsdNameRef) {
-//                                    volumes = [[partitions objectForKey:(__bridge id)(bsdNameRef)] componentsJoinedByString:@", "];
-//                                    bsdName = [(__bridge NSString*)bsdNameRef copy];
-//                                    CFRelease(bsdNameRef);
-//                                }
-//
-//                                if (bsdName) {
-//
-//                                    if ([HWMSmartPlugInInterfaceWrapper wrapperWithService:service forBsdName:bsdName]) {
-//
-//                                        [list addObject:@{@"service" : [NSNumber numberWithUnsignedLongLong:service],
-//                                                          @"productName": name,
-//                                                          @"bsdName" :bsdName,
-//                                                          @"volumesNames" : (volumes ? volumes : bsdName) ,
-//                                                          @"serialNumber" : serial,
-//                                                          @"revision" : revision,
-//                                                          @"rotational" : [NSNumber numberWithBool:medium ? ![medium isEqualToString:@"Solid State"] : TRUE]}
-//                                         ];
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    CFRelease(capable);
-//                }
-//            }
-//
-//            IOObjectRelease(iterator);
-//        }
-//    }
-//
-//    [list sortUsingComparator:^NSComparisonResult(id obj1, id obj2) {
-//        NSString *name1 = [(NSDictionary*)obj1 objectForKey:@"bsdName"];
-//        NSString *name2 = [(NSDictionary*)obj2 objectForKey:@"bsdName"];
-//
-//        return [name1 compare:name2];
-//    }];
-//
-//    return list;
-//}
-
 -(NSArray *)attributes
 {
     if (!_attributes) {
+        HWMSmartPluginInterfaceWrapper *wrapper = [HWMSmartPluginInterfaceWrapper getWrapperForBsdName:self.bsdName];
 
-        if (!_overrides) {
-            _overrides = [HWMAtaSmartSensor getAttributeOverridesForProduct:self.productName firmware:self.name];
+        if (!wrapper) {
 
-            if (!_overrides) {
-                _overrides = [NSDictionary dictionary];
-            }
+            wrapper = [HWMSmartPluginInterfaceWrapper wrapperWithService:(io_service_t)self.service.unsignedLongLongValue
+                                                             productName:self.productName
+                                                                firmware:self.revision
+                                                                 bsdName:self.bsdName
+                                                            isRotational:self.rotational.boolValue];
         }
 
-        NSMutableArray * attributes = [[NSMutableArray alloc] init];
-
-        for (int index = 0; index < kATASMARTAttributesCount; index++) {
-            if (_smartData.vendorAttributes[index].attributeId) {
-
-                ATASMARTAttribute *attribute = &_smartData.vendorAttributes[index];
-                ATASmartThresholdAttribute *threshold = &_smartDataThresholds.ThresholdEntries[index];
-
-                NSString *overridden = _overrides ? [_overrides objectForKey:[NSString stringWithFormat:@"%d",_smartData.vendorAttributes[index].attributeId]] : nil;
-
-                NSString *name = overridden ? overridden : [HWMAtaSmartSensor getDefaultAttributeNameByIdentifier:attribute->attributeId isRotational:self.rotational.boolValue];
-                NSString *title = GetLocalizedString(name);
-
-                BOOL critical = ATTRIBUTE_FLAGS_PREFAILURE(attribute->flag);
-
-                NSUInteger level = kHWMSensorLevelNormal;
-
-                if (threshold)
-                {
-                    if (critical && attribute->current <= threshold->ThresholdValue) {
-                        level = kHWMSensorLevelExceeded;
-                    }
-                }
-
-                NSColor *titleColor = nil;
-
-                switch (level) {
-                    case kHWMSensorLevelExceeded:
-
-                        titleColor = [NSColor redColor];
-
-                        [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
-                                                    description:[NSString stringWithFormat:GetLocalizedString(@"%@ S.M.A.R.T. attribute is critical: '%@'. Drive failure predicted!"), self.title, title]
-                                               notificationName:NotifierSensorLevelExceededNotification
-                                                       iconData:nil
-                                                       priority:0
-                                                       isSticky:YES
-                                                   clickContext:nil];
-                        break;
-                }
-
-                if (level == kHWMSensorLevelExceeded) {
-
-                }
-
-                [attributes addObject:@{@"id": [NSNumber numberWithUnsignedChar:attribute->attributeId],
-                                        @"name": name,
-                                        @"title":titleColor ? [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:titleColor}] : title,
-                                        @"critical": GetLocalizedString(critical ? @"Pre-Failure" : @"Life-Span"),
-                                        @"value": [NSNumber numberWithUnsignedChar:attribute->current],
-                                        @"worst": [NSNumber numberWithUnsignedChar:attribute->worst],
-                                        @"threshold": (threshold ? [NSNumber numberWithUnsignedChar:threshold->ThresholdValue] : @0),
-                                        @"raw": [NSString stringWithFormat:@"(%1$llu)", RAW_TO_LONG(attribute)]}];
-            }
-        }
-
-        _attributes = [attributes copy];
+        _attributes = wrapper ? [wrapper.attributes copy] : @[];
+        _lastUpdated = [NSDate date];
     }
 
     return _attributes;
 }
 
--(void)awakeFromFetch
+-(void)initialize
 {
-    [super awakeFromFetch];
+    _temperatureAttributeIndex = -1;
+    _remainingLifeAttributeIndex = -1;
 
     [self addObserver:self forKeyPath:@"self.engine.configuration.useBsdDriveNames" options:NSKeyValueObservingOptionNew context:nil];
     [self addObserver:self forKeyPath:@"self.engine.configuration.showVolumeNames" options:NSKeyValueObservingOptionNew context:nil];
 }
 
+-(void)awakeFromFetch
+{
+    [super awakeFromFetch];
+    [self initialize];
+}
+
 -(void)awakeFromInsert
 {
     [super awakeFromInsert];
-
-    [self addObserver:self forKeyPath:@"self.engine.configuration.useBsdDriveNames" options:NSKeyValueObservingOptionNew context:nil];
-    [self addObserver:self forKeyPath:@"self.engine.configuration.showVolumeNames" options:NSKeyValueObservingOptionNew context:nil];
+    [self initialize];
 }
 
 -(void)prepareForDeletion
@@ -708,78 +737,14 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
--(BOOL)readSMARTData
-{
-    if (updated && [updated timeIntervalSinceNow] > -60.0)
-        return NO;
 
-    IOReturn result = kIOReturnError;
-
-    HWMSmartPlugInInterfaceWrapper *wrapper = [HWMSmartPlugInInterfaceWrapper getWrapperForBsdName:self.bsdName];
-
-    if (!wrapper) {
-        wrapper = [HWMSmartPlugInInterfaceWrapper wrapperWithService:self.service.unsignedIntValue forBsdName:self.bsdName];
-    }
-
-    if (wrapper) {
-
-        ATASMARTData smartData;
-        ATASMARTDataThresholds smartDataThresholds;
-
-        bzero(&smartData, sizeof(smartData));
-        bzero(&smartDataThresholds, sizeof(smartDataThresholds));
-
-        _exceeded = false;
-
-        if (kIOReturnSuccess != (*wrapper.smartInterface)->SMARTReturnStatus(wrapper.smartInterface, &_exceeded)) {
-            if (kIOReturnSuccess != (*wrapper.smartInterface)->SMARTEnableDisableOperations(wrapper.smartInterface, true)) {
-                (*wrapper.smartInterface)->SMARTEnableDisableAutosave(wrapper.smartInterface, true);
-            }
-        }
-
-        if (kIOReturnSuccess == (result = (*wrapper.smartInterface)->SMARTReturnStatus(wrapper.smartInterface, &_exceeded))) {
-            if (kIOReturnSuccess == (result = (*wrapper.smartInterface)->SMARTReadData(wrapper.smartInterface, &smartData))) {
-                if (kIOReturnSuccess == (result = (*wrapper.smartInterface)->SMARTValidateReadData(wrapper.smartInterface, &smartData))) {
-                    bcopy(&smartData.vendorSpecific1, &_smartData, sizeof(_smartData));
-
-                    if (kIOReturnSuccess == (result = (*wrapper.smartInterface)->SMARTReadDataThresholds(wrapper.smartInterface, &smartDataThresholds))) {
-                        bcopy(&smartDataThresholds.vendorSpecific1, &_smartDataThresholds, sizeof(_smartDataThresholds));
-                    }
-                    else {
-                        NSLog(@"Failed to read S.M.A.R.T. thresholds");
-                    }
-
-                    // Release old attributes dictionary forcing it to rebuild with new data
-                    _attributes = nil;
-
-                    updated = [NSDate date];
-                }
-            }
-        }
-    }
-
-    if (result != kIOReturnSuccess)
-        NSLog(@"readSMARTData returned error for device %@", self.bsdName);
-
-    return result == kIOReturnSuccess;
-}
-
--(NSUInteger)indexOfAttributeByIdentifier:(UInt8)identifier
-{
-    for (NSUInteger index = 0; index < kATASMARTAttributesCount; index++)
-        if (_smartData.vendorAttributes[index].attributeId == identifier)
-            return index;
-
-    return 0;
-}
-
--(NSUInteger)indexOfAttributeByName:(NSString*)name
+-(BOOL)findIndexOfAttributeByName:(NSString*)name outIndex:(NSInteger*)index
 {
     NSArray *results = [self.attributes filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name = %@", name]];
 
-    NSString *identifier = results && results.count ? [(NSDictionary*)[results objectAtIndex:0] objectForKey:@"id"] : nil;
+    *index = results && results.count ? [[results objectAtIndex:0][@"index"] unsignedIntegerValue] : -1;
 
-    return identifier ? [self indexOfAttributeByIdentifier:identifier.integerValue] : 0;
+    return *index > -1;
 }
 
 -(void)updateVolumeNames
@@ -791,54 +756,37 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
 -(NSNumber*)getTemperature
 {
-    [self readSMARTData];
+    if (_temperatureAttributeIndex < 0) {
 
-    if (!_temperatureAttributeIndex) {
-
-        NSUInteger index = 0;
-
-        if ((index = [self indexOfAttributeByName:@"Temperature_Celsius"]) ||
-            (index = [self indexOfAttributeByName:@"Airflow_Temperature_Cel"]) ||
-            (index = [self indexOfAttributeByName:@"Temperature_Case"])
-            ) {
-            _temperatureAttributeIndex = index;
-        }
-        else {
+        if (![self findIndexOfAttributeByName:@"Temperature_Celsius" outIndex:&_temperatureAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Airflow_Temperature_Cel" outIndex:&_temperatureAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Temperature_Case" outIndex:&_temperatureAttributeIndex])
+        {
             return nil;
         }
     }
 
-    ATASMARTAttribute *temperature = &_smartData.vendorAttributes[_temperatureAttributeIndex];
+    NSNumber *raw = [self.attributes objectAtIndex:_temperatureAttributeIndex][@"raw"];
 
-    NSUInteger value = temperature->rawvalue[0] && temperature->rawvalue[0] < 100 ? temperature->rawvalue[0] : temperature->current < 100 ? temperature->current : 0;
-    
-    return value ? [NSNumber numberWithUnsignedInteger:value] : nil;
+    return [NSNumber numberWithUnsignedShort:raw.unsignedShortValue];
 }
 
 -(NSNumber*)getRemainingLife
 {
-    [self readSMARTData];
+    if (_remainingLifeAttributeIndex < 0) {
 
-    if (!_remainingLifeAttributeIndex) {
-        NSUInteger index = 0;
-
-        if ((index = [self indexOfAttributeByName:@"SSD_Life_Left"]) ||
-            (index = [self indexOfAttributeByName:@"Remaining_Lifetime_Perc"]) ||
-            (index = [self indexOfAttributeByName:@"Media_Wearout_Indicator"]) ||
-            (index = [self indexOfAttributeByName:@"Perc_Rated_Life_Used"]) ||
-            (index = [self indexOfAttributeByName:@"Wear_Leveling_Count"]) ||
-            (index = [self indexOfAttributeByName:@"Available_Reservd_Space"])
-            ) {
-            _remainingLifeAttributeIndex = index;
-        }
-        else {
+        if (![self findIndexOfAttributeByName:@"SSD_Life_Left" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Remaining_Lifetime_Perc" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Media_Wearout_Indicator" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Perc_Rated_Life_Used" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Wear_Leveling_Count" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Available_Reservd_Space" outIndex:&_remainingLifeAttributeIndex])
+        {
             return nil;
         }
     }
 
-    ATASMARTAttribute *life = &_smartData.vendorAttributes[_remainingLifeAttributeIndex];
-    
-    return [NSNumber numberWithUnsignedChar:life->current];
+    return [self.attributes objectAtIndex:_remainingLifeAttributeIndex][@"value"];
 }
 
 -(NSUInteger)internalUpdateAlarmLevel
@@ -876,6 +824,8 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
 -(NSNumber *)internalUpdateValue
 {
+    _attributes = nil;
+
     switch (self.selector.unsignedIntegerValue) {
         case kHWMGroupTemperature:
         case kHWMGroupSmartTemperature:
@@ -972,18 +922,14 @@ static void block_device_appeared(void *engine, io_iterator_t iterator)
                             }
 
                             if (bsdName) {
-
-                                if ([HWMSmartPlugInInterfaceWrapper wrapperWithService:object forBsdName:bsdName]) {
-
-                                    [devices addObject:@{@"service" : [NSNumber numberWithUnsignedLongLong:object],
-                                                         @"productName": name,
-                                                         @"bsdName" :bsdName,
-                                                         @"volumesNames" : (volumes ? volumes : bsdName) ,
-                                                         @"serialNumber" : serial,
-                                                         @"revision" : revision,
-                                                         @"rotational" : [NSNumber numberWithBool:medium ? ![medium isEqualToString:@"Solid State"] : TRUE]}
-                                     ];
-                                }
+                                [devices addObject:@{@"service" : [NSNumber numberWithUnsignedLongLong:object],
+                                                     @"productName": name,
+                                                     @"bsdName" :bsdName,
+                                                     @"volumesNames" : (volumes ? volumes : bsdName) ,
+                                                     @"serialNumber" : serial,
+                                                     @"revision" : revision,
+                                                     @"rotational" : [NSNumber numberWithBool:medium ? ![medium isEqualToString:@"Solid State"] : TRUE]}
+                                 ];
                             }
                         }
                     }
@@ -996,13 +942,14 @@ static void block_device_appeared(void *engine, io_iterator_t iterator)
         [(__bridge HWMEngine*)engine systemDidAddBlockStorageDevices:devices];
     });
 }
+
 static void block_device_disappeared(void *engine, io_iterator_t iterator)
 {
     io_object_t object;
     __block NSMutableArray *devices = [NSMutableArray array];
 
     while ((object = IOIteratorNext(iterator))) {
-        NSLog(@"battery device disappeared %u", object);
+        NSLog(@"ATA block storage device disappeared %u", object);
         
         [devices addObject:[NSNumber numberWithUnsignedLongLong:object]];
         
