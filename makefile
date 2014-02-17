@@ -12,6 +12,7 @@ endif
 
 .PHONY: all
 all:
+	xcodebuild build $(OPTIONS) -project Sparkle/Sparkle.xcodeproj -scheme "Sparkle" -configuration Release
 	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Debug
 	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Release
 	xcodebuild build -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Debug
@@ -19,6 +20,7 @@ all:
 
 .PHONY: clean
 clean:
+	xcodebuild clean $(OPTIONS) -project Sparkle/Sparkle.xcodeproj -scheme "Sparkle" -configuration Release
 	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Debug
 	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Release
 	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Debug
