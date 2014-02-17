@@ -17,7 +17,7 @@
                BlueprintIdentifier = "7E2ACD8B1791B4510061C677"
                BuildableName = "Pre-Build"
                BlueprintName = "Pre-Build"
-               ReferencedContainer = "container:Versioning &amp; Destribution.xcodeproj">
+               ReferencedContainer = "container:Versioning And Distribution.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -87,20 +87,6 @@
                BlueprintIdentifier = "1D05ABE313ED0DAD00EADBF6"
                BuildableName = "FakeSMC.kext"
                BlueprintName = "FakeSMC"
-               ReferencedContainer = "container:HWSensors.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7EFF9524182AD5C200C637C8"
-               BuildableName = "FakeSMCKeyStore.kext"
-               BlueprintName = "FakeSMCKeyStore"
                ReferencedContainer = "container:HWSensors.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
