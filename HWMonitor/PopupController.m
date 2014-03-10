@@ -26,6 +26,7 @@
 
 #import "NSTableView+HWMEngineHelper.h"
 #import "NSImage+HighResolutionLoading.h"
+#import "NSView+NSLayoutConstraintFilter.h"
 
 @implementation PopupController
 
@@ -54,9 +55,9 @@
         
         _statusItemView = [[StatusItemView alloc] initWithFrame:NSMakeRect(0, 0, 22, 22) statusItem:_statusItem];
 
-        _statusItemView.image = [NSImage loadImageNamed:@"scale" ofType:@"png"];
-        _statusItemView.alternateImage = [NSImage loadImageNamed:@"scale-white" ofType:@"png"];
-        
+        [_statusItemView setImage:[NSImage imageNamed:@"scale"]];
+        [_statusItemView setAlternateImage:[NSImage imageNamed:@"scale-white"]];
+
         [_statusItemView setAction:@selector(togglePanel:)];
         [_statusItemView setTarget:self];
 
@@ -79,19 +80,21 @@
             //    [Localizer localizeView:_toolbarView];
             
             // Make main menu font size smaller
-            NSFont* font = [NSFont menuFontOfSize:13];
-            NSDictionary* fontAttribute = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, nil];
-            
-            for (id subItem in [_mainMenu itemArray]) {
-                if ([subItem isKindOfClass:[NSMenuItem class]]) {
-                    NSMenuItem* menuItem = subItem;
-                    NSString* title = [menuItem title];
-                    
-                    NSMutableAttributedString *attributedTitle = [[NSMutableAttributedString alloc] initWithString:title attributes:fontAttribute];
-                    
-                    [menuItem setAttributedTitle:attributedTitle];
-                }
-            }
+//            NSFont* font = [NSFont menuFontOfSize:13];
+//            NSDictionary* fontAttribute = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, nil];
+//
+//            [_mainMenu setFont:font];
+//
+//            for (id subItem in [_mainMenu itemArray]) {
+//                if ([subItem isKindOfClass:[NSMenuItem class]]) {
+//                    NSMenuItem* menuItem = subItem;
+//                    NSString* title = [menuItem title];
+//                    
+//                    NSMutableAttributedString *attributedTitle = [[NSMutableAttributedString alloc] initWithString:title attributes:fontAttribute];
+//                    
+//                    [menuItem setAttributedTitle:attributedTitle];
+//                }
+//            }
 
             [(OBMenuBarWindow*)self.window setColorTheme:self.monitorEngine.configuration.colorTheme];
             [(JLNFadingScrollView *)_scrollView setFadeColor:self.monitorEngine.configuration.colorTheme.listBackgroundColor];
@@ -176,13 +179,14 @@
     OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
 
     if (resizeToContent) {
-        __block CGFloat height = menubarWindow.toolbarHeight + 6;
+
+        __block CGFloat height = 6;
 
         [_sensorsAndGroupsCollectionSnapshot enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             height += [self tableView:_tableView heightOfRow:idx];
         }];
 
-        if (height > menubarWindow.screen.visibleFrame.size.height) {
+        if (height + menubarWindow.toolbarHeight > menubarWindow.screen.visibleFrame.size.height) {
             height = menubarWindow.screen.visibleFrame.size.height - menubarWindow.toolbarHeight;
             [_scrollView setHasVerticalScroller:YES];
         }
@@ -190,19 +194,13 @@
             [_scrollView setHasVerticalScroller:NO];
         }
 
+        NSLayoutConstraint *constraint = [_tableView.enclosingScrollView constraintForAttribute:NSLayoutAttributeHeight];
+
         if (animated) {
-            [[menubarWindow animator] setFrame:NSMakeRect(menubarWindow.frame.origin.x,
-                                                          menubarWindow.frame.origin.y + (menubarWindow.frame.size.height - height),
-                                                          menubarWindow.frame.size.width,
-                                                          height)
-                                       display:YES];
+            [[constraint animator] setConstant:height];
         }
         else {
-            [menubarWindow setFrame:NSMakeRect(menubarWindow.frame.origin.x,
-                                               menubarWindow.frame.origin.y + (menubarWindow.frame.size.height - height),
-                                               menubarWindow.frame.size.width,
-                                               height)
-                            display:YES];
+            [constraint setConstant:height];
         }
     }
 
@@ -218,9 +216,9 @@
         NSArray *oldSensorsAndGroups = [_sensorsAndGroupsCollectionSnapshot copy];
         _sensorsAndGroupsCollectionSnapshot = [_monitorEngine.sensorsAndGroups copy];
 
-        [self layoutContent:YES orderFront:NO animated:YES];
-
         [_tableView updateWithObjectValues:_sensorsAndGroupsCollectionSnapshot previousObjectValues:oldSensorsAndGroups];
+
+        [self layoutContent:YES orderFront:NO animated:YES];
     }];
 
 }

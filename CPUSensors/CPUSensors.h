@@ -74,7 +74,7 @@
 
 #define MSR_IA32_TIME_STAMP_COUNTER         0x10
 
-#define kCPUSensorsMaxCpus                  24
+#define kCPUSensorsMaxCpus                  32
 
 extern "C" int cpu_number(void);
 extern "C" void mp_rendezvous_no_intrs(void (*action_func)(void *), void * arg);
@@ -116,7 +116,7 @@ protected:
     
 public:
     virtual bool			start(IOService *provider);
-    virtual IOReturn        setPowerState(unsigned long powerState, IOService *device);
+    //virtual IOReturn        setPowerState(unsigned long powerState, IOService *device);
     virtual void            stop(IOService* provider);
     virtual void			free(void);
 };

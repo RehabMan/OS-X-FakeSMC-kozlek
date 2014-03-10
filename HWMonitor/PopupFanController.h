@@ -6,20 +6,26 @@
 //  Copyright (c) 2014 kozlek. All rights reserved.
 //
 
-@class HWMColorTheme, HWMSmcFanSensor;
+@class HWMColorTheme, HWMSmcFanController;
 
-@interface PopupFanController : NSViewController
+@interface PopupFanController : NSViewController <NSTableViewDataSource, NSTableViewDelegate>
 {
-    NSDate *_lastUpdated;
+    NSArray *_levelsSnapshot;
 }
 
-@property (nonatomic, strong) HWMSmcFanSensor * sensor;
-@property (nonatomic, strong) HWMColorTheme * colorTheme;
+@property (nonatomic, strong) HWMSmcFanController * controller;
 
-@property (assign) IBOutlet NSButton *controlledCheck;
-@property (assign) IBOutlet NSSlider *targetSlider;
-@property (assign) IBOutlet NSTextField *targetTextField;
+@property (readonly) NSArray * inputSources;
 
-- (IBAction)sliderHasMoved:(id)sender;
+//@property (assign) IBOutlet NSButton *controlledCheck;
+//@property (assign) IBOutlet NSSlider *targetSlider;
+//@property (assign) IBOutlet NSTextField *targetTextField;
+
+@property (assign) IBOutlet NSTextField *inputLabel;
+@property (assign) IBOutlet NSTextField *outputLabel;
+@property (assign) IBOutlet NSPopUpButton *inputsPopUp;
+@property (assign) IBOutlet NSTableView *levelsTableView;
+
+//- (IBAction)sliderHasMoved:(id)sender;
 
 @end

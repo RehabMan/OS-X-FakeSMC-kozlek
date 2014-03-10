@@ -28,7 +28,7 @@
 
 #import "HWMSmcFanSensor.h"
 #import "smc.h"
-#import "SmcHelper.h"
+#import "SmcHelper+HWMonitorHelper.h"
 #import "HWMEngine.h"
 #import "HWMConfiguration.h"
 
@@ -36,57 +36,8 @@
 
 @implementation HWMSmcFanSensor
 
-@dynamic controlled;
 @dynamic descriptor;
 @dynamic number;
-@dynamic max;
-@dynamic min;
-@dynamic speed;
-
-
--(void)setControlled:(NSNumber *)controlled
-{
-    if (controlled) {
-
-        SMCVal_t info;
-
-        if (kIOReturnSuccess == SMCReadKey((io_connect_t)self.service.unsignedLongValue, KEY_FAN_MANUAL, &info)) {
-
-            NSNumber *value;
-
-            if ((value = [SmcHelper decodeNumericValueFromBuffer:&info.bytes length:info.dataSize type:info.dataType])) {
-
-                UInt16 manual = value.unsignedShortValue;
-
-                if (!bit_get(manual, BIT(self.number.unsignedShortValue))) {
-                    bit_write(self.controlled.boolValue, manual, BIT(self.number.unsignedShortValue));
-                    [SmcHelper writeKey:@KEY_FAN_MANUAL value:[NSNumber numberWithUnsignedShort:manual] connection:(io_connect_t)self.service.unsignedLongLongValue];
-                }
-            }
-        }
-
-        [self willChangeValueForKey:@"controlled"];
-        [self setPrimitiveValue:controlled forKey:@"controlled"];
-        [self didChangeValueForKey:@"controlled"];
-    }
-}
-
--(void)setSpeed:(NSNumber *)speed
-{
-    if (self.controlled && self.controlled.boolValue && self.max && self.min && self.number && speed) {
-
-        if (self.engine.isRunningOnMac) {
-            [SmcHelper writeKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_MIN, self.number.unsignedCharValue] value:speed connection:(io_connect_t)self.service.unsignedLongLongValue];
-
-        }
-        else {
-            [SmcHelper writeKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_TARGET, self.number.unsignedCharValue] value:speed connection:(io_connect_t)self.service.unsignedLongLongValue];
-        }
-
-        [self willChangeValueForKey:@"speed"];
-        [self setPrimitiveValue:speed forKey:@"speed"];
-        [self didChangeValueForKey:@"speed"];
-    }
-}
+@dynamic controller;
 
 @end

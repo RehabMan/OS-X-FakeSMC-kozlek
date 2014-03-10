@@ -15,6 +15,7 @@
 #import "NSPopover+Message.h"
 #import "PopupAtaSmartReportController.h"
 #import "NSTableHeaderCell+PopupThemedHeader.h"
+#import "NSView+NSLayoutConstraintFilter.h"
 
 @implementation PopupAtaSmartSensorCell
 
@@ -65,9 +66,7 @@
 
     HWMAtaSmartSensor *sensor = self.objectValue;
 
-    [NSTableHeaderCell setGlobalColorTheme:sensor.engine.configuration.colorTheme];
-
-    __block PopupAtaSmartReportController *controller = nil;
+    PopupAtaSmartReportController *controller = nil;
 
     _popover = [PopupSensorCell globalPopover];
 
@@ -79,24 +78,24 @@
         [PopupSensorCell destroyGlobalPopover];
         _popover = [PopupSensorCell globalPopover];
 
-        controller = [[PopupAtaSmartReportController alloc] initWithNibName:@"PopupAtaSmartReportController" bundle:nil];
+        controller = [[PopupAtaSmartReportController alloc] initWithNibName:NSStringFromClass([PopupAtaSmartReportController class]) bundle:nil];
 
         _popover.contentViewController = controller;
     }
 
-    [controller setSensor:sensor];
+    _popover.delegate = nil;
 
-    _popover.animates = YES;
     _popover.behavior = NSPopoverBehaviorTransient;
+    _popover.appearance = sensor.engine.configuration.colorTheme.useDarkIcons ? NSPopoverAppearanceMinimal : NSPopoverAppearanceHUD;
 
     _popover.delegate = controller;
 
-    [_popover showRelativeToRect:self.frame ofView:self preferredEdge:NSMinXEdge];
+    [controller setSensor:sensor];
 
-    //dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
-        [_popover setContentSize:NSMakeSize(controller.view.frame.size.width,
-                                            (controller.tableView.rowHeight + 1) * (sensor.attributes.count + 1) + 7)];
-    //});
+    //NSLayoutConstraint *constraint = [controller.tableView.enclosingScrollView constraintForAttribute:NSLayoutAttributeHeight];
+    //[[constraint animator] setConstant:(controller.tableView.rowHeight + 1) * (sensor.attributes.count + 1)];
+    [_popover showRelativeToRect:self.frame ofView:self preferredEdge:NSMinXEdge];
+    [_popover setContentSize:NSMakeSize(controller.view.frame.size.width, (controller.tableView.rowHeight + 1) * (sensor.attributes.count + 1) + 7)];
 }
 
 - (void)hideSmartPopover

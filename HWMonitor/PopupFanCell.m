@@ -8,9 +8,11 @@
 
 #import "PopupFanCell.h"
 #import "HWMSmcFanSensor.h"
-#import "Localizer.h"
 #import "HWMEngine.h"
 #import "HWMConfiguration.h"
+#import "HWMColorTheme.h"
+#import "HWMSmcFanController.h"
+#import "Localizer.h"
 #import "PopupFanController.h"
 
 @implementation PopupFanCell
@@ -36,7 +38,11 @@
 
 -(void)mouseEntered:(NSEvent *)theEvent
 {
-    [self performSelector:@selector(showFanController:) withObject:self afterDelay:0.5];
+    HWMSmcFanSensor *fan = self.objectValue;
+
+    if (fan.controller) {
+        [self performSelector:@selector(showFanController:) withObject:self afterDelay:0.5];
+    }
 
     [super mouseEntered:theEvent];
 }
@@ -60,7 +66,7 @@
 {
     HWMSmcFanSensor *fan = self.objectValue;
 
-    if ([fan number] && [fan min] && [fan max] && [fan speed]) {
+    if ([fan number] && fan.controller.min && fan.controller.max) {
 
         //[PopupSensorCell destroyGlobalPopover];
 
@@ -77,22 +83,20 @@
 
             _popover = [PopupSensorCell globalPopover];
 
-            controller = [[PopupFanController alloc] initWithNibName:@"PopupFanController" bundle:[NSBundle mainBundle]];
+            controller = [[PopupFanController alloc] initWithNibName:NSStringFromClass([PopupFanController class]) bundle:nil];
 
             [Localizer localizeView:controller.view];
 
             _popover.contentViewController = controller;
         }
 
-        [controller setColorTheme:self.colorTheme];
-        [controller setSensor:self.objectValue];
-
         _popover.delegate = nil;
 
-        _popover.animates = YES;
         _popover.behavior = NSPopoverBehaviorTransient;
+        _popover.appearance = fan.engine.configuration.colorTheme.useDarkIcons ? NSPopoverAppearanceMinimal : NSPopoverAppearanceHUD;
 
         [_popover showRelativeToRect:self.frame ofView:self preferredEdge:NSMinXEdge];
+        [controller setController:fan.controller];
     }
 }
 

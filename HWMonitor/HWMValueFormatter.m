@@ -86,7 +86,7 @@ static NSDictionary *gHWMValueFormatterStrippedFormatLocalizationCache;
             case kHWMGroupBattery:
             case kHWMGroupSmartRemainingLife:
                 return [NSString stringWithFormat:@"%1.0f%%", floatValue];
-                
+
             default:
                 break;
         }
@@ -156,7 +156,7 @@ static NSDictionary *gHWMValueFormatterStrippedFormatLocalizationCache;
             case kHWMGroupBattery:
             case kHWMGroupSmartRemainingLife:
                 return [NSString stringWithFormat:@"%1.0f%%", floatValue];
-                
+
             default:
                 break;
         }

@@ -39,8 +39,8 @@ bool PTIDSensors::updateTemperatures()
     OSObject *object;
     
     if (kIOReturnSuccess == acpiDevice->evaluateObject("TSDD", &object) && object) {
+
         OSSafeRelease(temperatures);
-        
         temperatures = OSDynamicCast(OSArray, object);
         
         //setProperty("temperatures", temperatures);
@@ -58,8 +58,8 @@ bool PTIDSensors::updateTachometers()
     OSObject *object;
     
     if (kIOReturnSuccess == acpiDevice->evaluateObject("OSDD", &object) && object) {
+
         OSSafeRelease(tachometers);
-        
         tachometers = OSDynamicCast(OSArray, object);
         
         //setProperty("tachometers", tachometers);
@@ -299,3 +299,10 @@ bool PTIDSensors::start(IOService * provider)
 	return true;
 }
 
+void PTIDSensors::free()
+{
+    OSSafeRelease(temperatures);
+    OSSafeRelease(tachometers);
+
+    super::free();
+}

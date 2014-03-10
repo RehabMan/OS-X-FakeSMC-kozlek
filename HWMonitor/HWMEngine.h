@@ -54,9 +54,11 @@ typedef enum {
 
     NSArray *_smcAndDevicesSensors;
     NSTimer *_smcAndDevicesSensorsUpdateLoopTimer;
+    NSDate *_smcAndDevicesSensorsLastUpdated;
 
     NSArray *_ataSmartSensors;
     NSTimer *_ataSmartSensorsUpdateLoopTimer;
+    NSDate *_ataSmartSensorsLastUpdated;
 }
 
 @property (nonatomic, strong) NSBundle * bundle;
@@ -78,6 +80,7 @@ typedef enum {
 @property (readonly) IBOutlet NSArray * graphsAndGroups;
 @property (readonly) IBOutlet NSArray * favorites;
 
++(HWMEngine*)defaultEngine;
 +(HWMEngine*)engineWithBundle:(NSBundle*)bundle;
 
 -(void)rebuildSensorsList;

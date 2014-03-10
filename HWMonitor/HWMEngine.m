@@ -12,6 +12,8 @@
 #import "HWMSensorsGroup.h"
 #import "HWMSmcSensor.h"
 #import "HWMSmcFanSensor.h"
+#import "HWMSmcFanController.h"
+#import "HWMSmcFanControlLevel.h"
 #import "HWMAtaSmartSensor.h"
 #import "HWMBatterySensor.h"
 #import "HWMConfiguration.h"
@@ -34,6 +36,8 @@
 
 NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSensorsHasBenUpdatedNotification";
 
+static HWMEngine* gDefaultEngine = nil;
+
 @implementation HWMEngine
 
 @synthesize iconsWithSensorsAndGroups = _iconsWithSensorsAndGroups;
@@ -46,15 +50,14 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 #pragma mark
 #pragma mark Global methods
 
++(HWMEngine*)defaultEngine
+{
+    return gDefaultEngine;
+}
+
 +(HWMEngine*)engineWithBundle:(NSBundle*)bundle;
 {
-    HWMEngine *me = [[HWMEngine alloc] init];
-
-    if (me) {
-        me.bundle = bundle;
-    }
-
-    return me;
+    return [[HWMEngine alloc] initWithBundle:bundle];
 }
 
 #pragma mark
@@ -275,6 +278,25 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
     if (self) {
         _bundle = [NSBundle mainBundle];
+
+        if (!gDefaultEngine) {
+            gDefaultEngine = self;
+        }
+    }
+
+    return self;
+}
+
+-(id)initWithBundle:(NSBundle*)bundle
+{
+    self = [super init];
+
+    if (self) {
+        _bundle = bundle;
+
+        if (!gDefaultEngine) {
+            gDefaultEngine = self;
+        }
     }
 
     return self;
@@ -568,8 +590,18 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 -(void)updateSmcAndDeviceSensors
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+
         if (_engineState == kHWMEngineNotInitialized)
             return;
+
+        NSTimeInterval nineTenths = _configuration.smcSensorsUpdateRate.floatValue * 0.9f;
+
+        if (_smcAndDevicesSensorsLastUpdated && fabs(_smcAndDevicesSensorsLastUpdated.timeIntervalSinceNow) < nineTenths) {
+            return;
+        }
+        else {
+            _smcAndDevicesSensorsLastUpdated = [NSDate date];
+        }
 
         if (!_smcAndDevicesSensors) {
 
@@ -589,7 +621,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
         for (HWMSensor *sensor in _smcAndDevicesSensors) {
             BOOL doUpdate = NO;
 
-            if (_configuration.updateSensorsInBackground.boolValue || sensor.forced.boolValue) {
+//            if (sensor.lastUpdated && fabs(sensor.lastUpdated.timeIntervalSinceNow) < nineTenths) {
+//                continue;
+//            }
+
+            if (_configuration.updateSensorsInBackground.boolValue || sensor.forced.boolValue || sensor.acceptors.count) {
                 doUpdate = YES;
             }
             else {
@@ -636,6 +672,15 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
         if (_engineState == kHWMEngineNotInitialized)
             return;
 
+        NSTimeInterval nineTenths = _configuration.smartSensorsUpdateRate.floatValue * 60 * 0.9f;
+
+        if (_ataSmartSensorsLastUpdated && fabs(_ataSmartSensorsLastUpdated.timeIntervalSinceNow) < nineTenths) {
+            return;
+        }
+        else {
+            _ataSmartSensorsLastUpdated = [NSDate date];
+        }
+
         if (!_ataSmartSensors) {
 
             __block NSMutableArray *sensors = [NSMutableArray array];
@@ -655,13 +700,16 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
             for (HWMAtaSmartSensor *sensor in _ataSmartSensors) {
                 BOOL doUpdate = NO;
 
-                if (_configuration.updateSensorsInBackground.boolValue || sensor.forced.boolValue) {
+//                if (sensor.lastUpdated && fabs(sensor.lastUpdated.timeIntervalSinceNow) < nineTenths) {
+//                    continue;
+//                }
+
+                if (_configuration.updateSensorsInBackground.boolValue || sensor.forced.boolValue || sensor.acceptors.count) {
                     doUpdate = YES;
                 }
                 else {
                     switch (self.updateLoopStrategy) {
                         case kHWMSensorsUpdateLoopForced:
-                            [sensor setLastUpdated:nil];
                             doUpdate = YES;
                             break;
 
@@ -676,9 +724,8 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                     }
                 }
 
-                if (doUpdate && (!sensor.lastUpdated || [sensor.lastUpdated timeIntervalSinceNow] < _configuration.smartSensorsUpdateRate.floatValue * 60 * -0.9)) {
+                if (doUpdate)
                     [sensor doUpdateValue];
-                }
             }
 
             [HWMSmartPluginInterfaceWrapper destroyAllWrappers];
@@ -1494,44 +1541,52 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
         [fan setNumber:[NSNumber numberWithInt:index]];
 
-        SMCVal_t info;
+        if (newFan || !fan.controller) {
+            SMCVal_t info;
 
-        char key[5];
+            char key[5];
 
-        // Min
-        snprintf(key, 5, KEY_FORMAT_FAN_MIN, index);
+            NSNumber *min, *max;
 
-        if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
-            [fan setMin:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType]];
-        }
+            // Min
+            snprintf(key, 5, KEY_FORMAT_FAN_MIN, index);
 
-        // Max
-        snprintf(key, 5, KEY_FORMAT_FAN_MAX, index);
+            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
+                min = [SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType];
+            }
 
-        if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
-            [fan setMax:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType]];
-        }
+            // Max
+            snprintf(key, 5, KEY_FORMAT_FAN_MAX, index);
 
-        if (newFan) {
+            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
+                max = [SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType];
+            }
 
-            if (self.isRunningOnMac) {
-                // Target
-                snprintf(key, 5, KEY_FORMAT_FAN_TARGET, index);
+            if (min && max && [max isGreaterThan:min]) {
+                HWMSmcFanController *controller = [NSEntityDescription insertNewObjectForEntityForName:@"SmcFanController" inManagedObjectContext:self.managedObjectContext];
 
-                if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
-                    [fan setPrimitiveValue:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType] forKey:@"speed"];
+                [controller setMin:min];
+                [controller setMax:max];
+
+                [fan setController:controller];
+
+                if (self.isRunningOnMac) {
+                    // Target
+                    snprintf(key, 5, KEY_FORMAT_FAN_TARGET, index);
+
+                    if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
+                        [controller addOutputLevel:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType] forInputLevel:@0];
+                    }
+                }
+                else {
+                    [controller addOutputLevel:fan.value forInputLevel:@0];
                 }
             }
-            else {
-                [fan setPrimitiveValue:fan.value forKey:@"speed"];
-            }
         }
 
-        if (fan.controlled.boolValue) {
-            // Force SMC fan speed to previousely saved speed
-            [fan setControlled:fan.controlled];
-            [fan setSpeed:fan.speed];
-        }
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [fan.controller inputValueChanged];
+        }];
     }
     else {
         //[self.managedObjectContext deleteObject:fan];
@@ -1713,35 +1768,26 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
     [sensor setService:[attributes objectForKey:@"service"]];
 
-//    // Reuse previousely inserted sensors
-//    if ([self isEqual:sensor.engine]) {
-//        // Update only potentially changed props
-//        [sensor setBsdName:[attributes objectForKey:@"bsdName"]];
-//        [sensor setVolumeNames:[attributes objectForKey:@"volumesNames"]];
-//    }
-//    else {
-        [sensor setSelector:group.selector];
-        [sensor setBsdName:[attributes objectForKey:@"bsdName"]];
-        [sensor setProductName:[attributes objectForKey:@"productName"]];
-        [sensor setVolumeNames:[attributes objectForKey:@"volumesNames"]];
-        [sensor setRevision:revision];
-        [sensor setSerialNumber:serialNumber];
-        [sensor setRotational:[attributes objectForKey:@"rotational"]];
+    [sensor setSelector:group.selector];
+    [sensor setBsdName:[attributes objectForKey:@"bsdName"]];
+    [sensor setProductName:[attributes objectForKey:@"productName"]];
+    [sensor setVolumeNames:[attributes objectForKey:@"volumesNames"]];
+    [sensor setRevision:revision];
+    [sensor setSerialNumber:serialNumber];
+    [sensor setRotational:[attributes objectForKey:@"rotational"]];
 
-        [sensor setTitle:_configuration.useBsdDriveNames.boolValue ? sensor.bsdName : [sensor.productName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-        [sensor setLegend:_configuration.showVolumeNames.boolValue ? sensor.volumeNames : nil];
-        [sensor setIdentifier:@"Drive"];
+    [sensor setTitle:_configuration.useBsdDriveNames.boolValue ? sensor.bsdName : [sensor.productName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+    [sensor setLegend:_configuration.showVolumeNames.boolValue ? sensor.volumeNames : nil];
+    [sensor setIdentifier:@"Drive"];
 
-        [sensor setEngine:self];
+    [sensor setEngine:self];
 
-        [sensor doUpdateValue];
+    [sensor doUpdateValue];
 
-        if (!sensor.value) {
-            //[self.managedObjectContext deleteObject:sensor];
-            [sensor setService:@0];
-            return nil;
-        }
-//    }
+    if (!sensor.value && !sensor.hidden.boolValue) {
+        [sensor setService:@0];
+        return nil;
+    }
 
     return sensor;
 }

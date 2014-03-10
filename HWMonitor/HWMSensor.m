@@ -27,33 +27,34 @@
  */
 
 #import "HWMSensor.h"
+#import "HWMGraph.h"
+#import "HWMSensorController.h"
 #import "HWMSensorsGroup.h"
 #import "HWMEngine.h"
 #import "HWMConfiguration.h"
 #import "HWMValueFormatter.h"
-
-#import "Localizer.h"
 #import "HWMonitorDefinitions.h"
-
+#import "Localizer.h"
 #import <Growl/Growl.h>
 
 @implementation HWMSensor
 
 @dynamic forced;
-@dynamic service;
 @dynamic selector;
+@dynamic service;
 @dynamic type;
 @dynamic value;
-@dynamic group;
 @dynamic graph;
-@dynamic favorite;
+@dynamic group;
+@dynamic controller;
+@dynamic acceptors;
 
 @synthesize alarmLevel = _alarmLevel;
 
 -(void)awakeFromFetch
 {
     [super awakeFromFetch];
-    
+
     [self addObserver:self forKeyPath:@"value" options:NSKeyValueObservingOptionNew context:nil];
 }
 
@@ -99,7 +100,7 @@
     if (!_formattedValue) {
         _formattedValue = [HWMValueFormatter formattedValue:self.value usingRulesOfGroup:self.selector configuration:self.engine.configuration];
     }
-    
+
     return _formattedValue;
 }
 
@@ -108,7 +109,7 @@
     if (!_strippedValue) {
         _strippedValue = [HWMValueFormatter strippedValue:self.value usingRulesOfGroup:self.selector configuration:self.engine.configuration];
     }
-    
+
     return _strippedValue;
 }
 
@@ -158,7 +159,7 @@
                                                    isSticky:YES
                                                clickContext:nil];
                     break;
-                    
+
                 default:
                     break;
             }
@@ -197,7 +198,7 @@
                                                    isSticky:YES
                                                clickContext:nil];
                     break;
-                    
+
                 default:
                     break;
             }
@@ -215,26 +216,31 @@
 {
     NSNumber *value = [self internalUpdateValue];
 
-    if (value && (!self.value || ![value isEqualToNumber:self.value])) {
-        [self willChangeValueForKey:@"value"];
-        [self willChangeValueForKey:@"formattedValue"];
+    if (value) {
 
-        [self setPrimitiveValue:value forKey:@"value"];
+        //_lastUpdated = [NSDate date];
 
-        [self didChangeValueForKey:@"value"];
-        [self didChangeValueForKey:@"formattedValue"];
+        if (value && (!self.value || ![value isEqualToNumber:self.value])) {
+            [self willChangeValueForKey:@"value"];
+            [self willChangeValueForKey:@"formattedValue"];
 
-        if (!self.hidden.boolValue) {
+            [self setPrimitiveValue:value forKey:@"value"];
 
-            NSUInteger alarmLevel = [self internalUpdateAlarmLevel];
+            [self didChangeValueForKey:@"value"];
+            [self didChangeValueForKey:@"formattedValue"];
 
-            if (alarmLevel != _alarmLevel || _alarmLevel == 0) {
-                [self willChangeValueForKey:@"alarmLevel"];
-                _alarmLevel = alarmLevel;
-                [self didChangeValueForKey:@"alarmLevel"];
+            if (!self.hidden.boolValue) {
 
-                if (self.engine.configuration.notifyAlarmLevelChanges.boolValue) {
-                    [self internalSendAlarmNotification];
+                NSUInteger alarmLevel = [self internalUpdateAlarmLevel];
+
+                if (alarmLevel != _alarmLevel || _alarmLevel == 0) {
+                    [self willChangeValueForKey:@"alarmLevel"];
+                    _alarmLevel = alarmLevel;
+                    [self didChangeValueForKey:@"alarmLevel"];
+                    
+                    if (self.engine.configuration.notifyAlarmLevelChanges.boolValue) {
+                        [self internalSendAlarmNotification];
+                    }
                 }
             }
         }

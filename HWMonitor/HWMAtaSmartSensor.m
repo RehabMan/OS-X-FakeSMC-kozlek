@@ -28,6 +28,7 @@
 
 #import "HWMAtaSmartSensor.h"
 
+#import "HWMEngine.h"
 #import "HWMConfiguration.h"
 #import "HWMEngine.h"
 #import "HWMSensorsGroup.h"
@@ -76,13 +77,9 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
 
             if (S_OK == IOCreatePlugInInterfaceForService(service, kIOATASMARTUserClientTypeID, kIOCFPlugInInterfaceID, &pluginInterface, &score)) {
 
-                (*pluginInterface)->AddRef(pluginInterface);
-
                 IOATASMARTInterface ** smartInterface = NULL;
 
                 if (S_OK == (*pluginInterface)->QueryInterface(pluginInterface, CFUUIDGetUUIDBytes(kIOATASMARTInterfaceID), (LPVOID)&smartInterface)) {
-
-                    (*smartInterface)->AddRef(smartInterface);
 
                     wrapper = [[HWMSmartPluginInterfaceWrapper alloc] initWithPluginInterface:pluginInterface smartInterface:smartInterface productName:productName firmware:firmware bsdName:bsdName isRotational:rotational];
 
@@ -90,10 +87,14 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
 
                     break;
                 }
-                else if (smartInterface) {
-                    (*pluginInterface)->Release(pluginInterface);
-                    (*smartInterface)->Release(smartInterface);
-                    IODestroyPlugInInterface(pluginInterface);
+                else {
+                    if (smartInterface) {
+                        (*smartInterface)->Release(smartInterface);
+                    }
+
+                    if (pluginInterface) {
+                        IODestroyPlugInInterface(pluginInterface);
+                    }
 
                     [NSThread sleepForTimeInterval:0.25];
                 }
@@ -119,7 +120,8 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
 {
     if (gIOCFPluginInterfaceCache) {
         [gIOCFPluginInterfaceCache enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-            [obj destroy];
+
+            [(HWMSmartPluginInterfaceWrapper*)obj releaseInterface];
         }];
 
         [gIOCFPluginInterfaceCache removeAllObjects];
@@ -338,6 +340,197 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
     }
 }
 
++(NSString*)getDefaultRawFormatForIdentifier:(NSUInteger)identifier
+{
+    switch (identifier) {
+        case 3:   // Spin-up time
+            return @"raw16(avg16)";
+
+        case 5:   // Reallocated sector count
+        case 196: // Reallocated event count
+            return @"raw16(raw16)";
+
+        case 9:  // Power on hours
+            return @"raw24(raw8)";
+
+        case 190: // Temperature
+        case 194:
+            return @"tempminmax";
+            
+        default:
+            return @"raw48";
+    }
+}
+
++(unsigned long long)getRawValueForAttribute:(ATASMARTAttribute*)attribute format:(NSString*)format
+{
+    NSArray *options = [format componentsSeparatedByString:@":"];
+
+    NSString *type = options.count ? options[0] : format;
+    NSString *byteorder = options.count > 1 ? options[1] : nil;
+
+    if (!byteorder) {
+
+        if ([type isEqualToString:@"raw64"] || [type isEqualToString:@"hex64"]) {
+            byteorder = @"543210wv";
+        }
+        else if ([type isEqualToString:@"raw56"] || [type isEqualToString:@"hex56"] ||
+                 [type isEqualToString:@"raw24/raw32"] || [type isEqualToString:@"msec24hour32"]) {
+            byteorder = @"r543210";
+        }
+        else {
+            byteorder = @"543210";
+        }
+    }
+
+    // Build 64-bit value from selected bytes
+    unsigned long long rawvalue = 0;
+
+    for (int i = 0; i < byteorder.length; i++) {
+
+        unsigned char b;
+
+        switch ([byteorder characterAtIndex:i]) {
+            case '0': b = attribute->rawvalue[0];  break;
+            case '1': b = attribute->rawvalue[1];  break;
+            case '2': b = attribute->rawvalue[2];  break;
+            case '3': b = attribute->rawvalue[3];  break;
+            case '4': b = attribute->rawvalue[4];  break;
+            case '5': b = attribute->rawvalue[5];  break;
+            case 'r': b = attribute->reserv;  break;
+            case 'v': b = attribute->current; break;
+            case 'w': b = attribute->worst;   break;
+            default : b = 0;            break;
+        }
+        rawvalue <<= 8; rawvalue |= b;
+    }
+    
+    return rawvalue;
+}
+
++(NSString*)getFormattedRawValueForAttribute:(ATASMARTAttribute*)attribute format:(NSString*)format
+{
+    // Get 48 bit or 64 bit raw value
+    unsigned long long rawvalue = [HWMSmartPluginInterfaceWrapper getRawValueForAttribute:attribute format:format];
+
+    // Split into bytes and words
+    unsigned char raw[6];
+    raw[0] = (unsigned char) rawvalue;
+    raw[1] = (unsigned char)(rawvalue >>  8);
+    raw[2] = (unsigned char)(rawvalue >> 16);
+    raw[3] = (unsigned char)(rawvalue >> 24);
+    raw[4] = (unsigned char)(rawvalue >> 32);
+    raw[5] = (unsigned char)(rawvalue >> 40);
+    unsigned word[3];
+    word[0] = raw[0] | (raw[1] << 8);
+    word[1] = raw[2] | (raw[3] << 8);
+    word[2] = raw[4] | (raw[5] << 8);
+
+
+    if ([format isEqualToString:@"raw8"]) {
+        return [NSString stringWithFormat:@"%d %d %d %d %d %d", raw[5], raw[4], raw[3], raw[2], raw[1], raw[0]];
+    }
+    else if ([format isEqualToString:@"raw16"]) {
+        return [NSString stringWithFormat:@"%u %u %u", word[2], word[1], word[0]];
+    }
+    else if ([format isEqualToString:@"raw48"] ||
+             [format isEqualToString:@"raw48"] || [format isEqualToString:@"raw64"]) {
+        return [NSString stringWithFormat:@"%llu", rawvalue];
+    }
+    else if ([format isEqualToString:@"hex48"]) {
+        return [NSString stringWithFormat:@"0x%012llx", rawvalue];
+    }
+    else if ([format isEqualToString:@"hex56"]) {
+        return [NSString stringWithFormat:@"0x%014llx", rawvalue];
+    }
+    else if ([format isEqualToString:@"hex64"]) {
+        return [NSString stringWithFormat:@"0x%016llx", rawvalue];
+    }
+    else if ([format isEqualToString:@"raw16(raw16)"]) {
+        NSString *s = [NSString stringWithFormat:@"%u", word[0]];
+        return word[1] || word[2] ? [s stringByAppendingString:[NSString stringWithFormat:@" (%u %u)", word[1], word[2]]] : s;
+    }
+    else if ([format isEqualToString:@"raw16(avg16)"]) {
+        NSString *s = [NSString stringWithFormat:@"%u", word[0]];
+        return word[1] ? [s stringByAppendingString:[NSString stringWithFormat:GetLocalizedAttributeName(@" (Average %u)"), word[1]]] : s;
+    }
+    else if ([format isEqualToString:@"raw24(raw8)"]) {
+        NSString *s = [NSString stringWithFormat:@"%u", (unsigned)(rawvalue & 0x00ffffffULL)];
+        return raw[3] || raw[4] || raw[5] ? [s stringByAppendingString:[NSString stringWithFormat:@" (%d %d %d)", raw[5], raw[4], raw[3]]] : s;
+    }
+    else if ([format isEqualToString:@"raw24/raw24"]) {
+        return [NSString stringWithFormat:@"%u/%u", (unsigned)(rawvalue >> 24), (unsigned)(rawvalue & 0x00ffffffULL)];
+    }
+    else if ([format isEqualToString:@"raw24/raw32"]) {
+        return [NSString stringWithFormat:@"%u/%u", (unsigned)(rawvalue >> 32), (unsigned)(rawvalue & 0xffffffffULL)];
+    }
+    else if ([format isEqualToString:@"min2hour"]) {
+        // minutes
+        unsigned long long temp = word[0]+(word[1]<<16);
+        unsigned long long tmp1 = temp/60;
+        unsigned long long tmp2 = temp%60;
+        NSString *s = [NSString stringWithFormat:@"%lluh+%02llum", tmp1, tmp2];
+        return word[2] ? [s stringByAppendingString:[NSString stringWithFormat:GetLocalizedAttributeName(@" (%u)"), word[2]]] : s;
+    }
+    else if ([format isEqualToString:@"sec2hour"]) {
+        // seconds
+        int64_t hours = rawvalue/3600;
+        int64_t minutes = (rawvalue-3600*hours)/60;
+        int64_t seconds = rawvalue%60;
+        return [NSString stringWithFormat:@"%lluh+%02llum+%0llxus", hours, minutes, seconds];
+    }
+    else if ([format isEqualToString:@"halfmin2hour"]) {
+        // 30-second counter
+        int64_t hours = rawvalue/120;
+        int64_t minutes = (rawvalue-120*hours)/2;
+        return [NSString stringWithFormat:@"%lluh+%02llum", hours, minutes];
+    }
+    else if ([format isEqualToString:@"msec24hour32"]) {
+        // hours + milliseconds
+        unsigned hours = (unsigned)(rawvalue & 0xffffffffULL);
+        unsigned milliseconds = (unsigned)(rawvalue >> 32);
+        unsigned seconds = milliseconds / 1000;
+        return [NSString stringWithFormat:@"%uh+%02um+%02u.%03us",
+                hours, seconds / 60, seconds % 60, milliseconds % 1000];
+    }
+    else if ([format isEqualToString:@"tempminmax"]) {
+        // Search for possible min/max values
+        // 00 HH 00 LL 00 TT (Hitachi/IBM)
+        // 00 00 HH LL 00 TT (Maxtor, Samsung)
+        // 00 00 00 HH LL TT (WDC)
+        unsigned char lo = 0, hi = 0;
+        int cnt = 0;
+        for (int i = 1; i < 6; i++) {
+            if (raw[i])
+                switch (cnt++) {
+                    case 0:
+                        lo = raw[i];
+                        break;
+                    case 1:
+                        if (raw[i] < lo) {
+                            hi = lo; lo = raw[i];
+                        }
+                        else
+                            hi = raw[i];
+                        break;
+                }
+        }
+
+        unsigned char t = raw[0];
+        if (cnt == 0)
+            return [NSString stringWithFormat:@"%d", t];
+        else if (cnt == 2 && 0 < lo && lo <= t && t <= hi && hi < 128)
+            return [NSString stringWithFormat:@"%d (Min/Max %d/%d)", t, lo, hi];
+        else
+            return [NSString stringWithFormat:@"%d (%d %d %d %d %d)", t, raw[5], raw[4], raw[3], raw[2], raw[1]];
+    }
+    else if ([format isEqualToString:@"temp10x"]) {
+        return [NSString stringWithFormat:@"%d.%d", word[0]/10, word[0]%10];
+    }
+
+    return @"?"; // Should not happen
+}
+
 +(NSDictionary*)getAttributeOverrideForProduct:(NSString*)product firmware:(NSString*)firmware
 {
     if (!product)
@@ -391,7 +584,15 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
                             }
                         }
 
-                        overrides = group[@"Attributes"];
+                        __block NSMutableDictionary *arranged = [NSMutableDictionary dictionary];
+
+                        [group[@"Attributes"] enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+                            NSArray *idAndFormat = [key componentsSeparatedByString:@","];
+
+                            [arranged setObject:@{@"name": obj, @"format": idAndFormat[1]} forKey:idAndFormat[0]];
+                        }];
+
+                        overrides = [arranged copy];
 
                         [gSmartAttributeOverrideCache setObject:overrides forKey:key];
                     }
@@ -430,10 +631,9 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
                 bcopy(&smartData.vendorSpecific1, &_vendorSpecificData, sizeof(_vendorSpecificData));
 
                 if (kIOReturnSuccess == (result = (*_smartInterface)->SMARTReadDataThresholds(_smartInterface, &smartDataThresholds))) {
-                    bcopy(&smartDataThresholds.vendorSpecific1, &_vendorSpecificThresholds, sizeof(_vendorSpecificThresholds));
-                }
-                else {
-                    NSLog(@"Failed to read S.M.A.R.T. thresholds");
+                    if (kIOReturnSuccess == (result = (*_smartInterface)->SMARTValidateReadData(_smartInterface, (ATASMARTData*)&smartDataThresholds))) {
+                        bcopy(&smartDataThresholds.vendorSpecific1, &_vendorSpecificThresholds, sizeof(_vendorSpecificThresholds));
+                    }
                 }
 
                 // Prepare SMART attributes list
@@ -455,49 +655,58 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
 
                         ATASmartThresholdAttribute *threshold = &_vendorSpecificThresholds.ThresholdEntries[index];
 
-                        NSString *overridden = _overrides ? [_overrides objectForKey:[NSString stringWithFormat:@"%d",attribute->attributeId]] : nil;
+                        NSString *overriddenName = _overrides ? [_overrides objectForKey:[NSString stringWithFormat:@"%d",attribute->attributeId]][@"name"] : nil;
+                        NSString *overriddenFormat = _overrides ? [_overrides objectForKey:[NSString stringWithFormat:@"%d",attribute->attributeId]][@"format"] : nil;
 
-                        NSString *name = overridden ? overridden : [HWMSmartPluginInterfaceWrapper getDefaultAttributeNameByIdentifier:attribute->attributeId isRotational:_rotational];
+                        NSString *name = overriddenName ? overriddenName : [HWMSmartPluginInterfaceWrapper getDefaultAttributeNameByIdentifier:attribute->attributeId isRotational:_rotational];
+                        NSString *format = overriddenFormat ? overriddenFormat : [HWMSmartPluginInterfaceWrapper getDefaultRawFormatForIdentifier:attribute->attributeId];
 
                         NSString *title = GetLocalizedAttributeName(name);
 
-                        BOOL critical = ATTRIBUTE_FLAGS_PREFAILURE(attribute->flag);
+                        NSInteger level = kHWMSensorLevelDisabled;
 
-                        NSUInteger level = kHWMSensorLevelNormal;
-
-                        if (threshold)
+                        if (threshold && attribute->current && threshold->ThresholdValue)
                         {
-                            if (critical && attribute->current <= threshold->ThresholdValue) {
+                            if (attribute->current < threshold->ThresholdValue) {
                                 level = kHWMSensorLevelExceeded;
+                            }
+                            else if ((float)threshold->ThresholdValue / (float)attribute->current > 0.9) {
+                                level = kHWMSensorLevelHigh;
+                            }
+                            else {
+                                level = kHWMSensorLevelNormal;
                             }
                         }
 
-                        NSColor *titleColor = nil;
+                        if (ATTRIBUTE_FLAGS_PREFAILURE(attribute->flag) && [HWMEngine defaultEngine] && [HWMEngine defaultEngine].configuration.notifyAlarmLevelChanges) {
+                            switch (level) {
+                                case kHWMSensorLevelExceeded:
+                                    [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                                                description:[NSString stringWithFormat:GetLocalizedString(@"'%@' S.M.A.R.T. attribute is critical for %@. Drive failure predicted!"), title, _product]
+                                                           notificationName:NotifierSensorLevelExceededNotification
+                                                                   iconData:nil
+                                                                   priority:0
+                                                                   isSticky:YES
+                                                               clickContext:nil];
+                                    break;
 
-                        switch (level) {
-                            case kHWMSensorLevelExceeded:
-
-                                titleColor = [NSColor redColor];
-
-                                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
-                                                            description:[NSString stringWithFormat:GetLocalizedString(@"'%@' S.M.A.R.T. attribute is critical for %@. Drive failure predicted!"), title, _product]
-                                                       notificationName:NotifierSensorLevelExceededNotification
-                                                               iconData:nil
-                                                               priority:0
-                                                               isSticky:YES
-                                                           clickContext:nil];
-                                break;
+                                default:
+                                    // none
+                                    break;
+                            }
                         }
 
-                        [attributes addObject:@{@"index" : [NSNumber numberWithUnsignedInteger:count++],
+                        [attributes addObject:@{@"level": [NSNumber numberWithInteger:level],
+                                                @"index" : [NSNumber numberWithUnsignedInteger:count++],
                                                 @"id": [NSNumber numberWithUnsignedChar:attribute->attributeId],
                                                 @"name": name,
-                                                @"title":titleColor ? [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:titleColor}] : title,
-                                                @"critical": GetLocalizedString(critical ? @"Pre-Failure" : @"Life-Span"),
+                                                @"title": title,
+                                                @"critical": GetLocalizedString(ATTRIBUTE_FLAGS_PREFAILURE(attribute->flag) ? @"Pre-Failure" : @"Life-Span"),
                                                 @"value": [NSNumber numberWithUnsignedChar:attribute->current],
                                                 @"worst": [NSNumber numberWithUnsignedChar:attribute->worst],
                                                 @"threshold": (threshold ? [NSNumber numberWithUnsignedChar:threshold->ThresholdValue] : @0),
-                                                @"raw": [NSNumber numberWithUnsignedLongLong:RAW_TO_LONG(attribute)]
+                                                @"raw": [NSNumber numberWithUnsignedLongLong:RAW_TO_LONG(attribute)],
+                                                @"rawFormatted": [HWMSmartPluginInterfaceWrapper getFormattedRawValueForAttribute:attribute format:format],
                                                }];
                     }
                 }
@@ -531,15 +740,13 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
     return self;
 }
 
--(void)destroy
+-(void)releaseInterface
 {
     if (self.smartInterface) {
         (*self.smartInterface)->Release(self.smartInterface);
     }
 
     if (self.pluginInterface) {
-        (*self.pluginInterface)->Release(self.pluginInterface);
-
         IODestroyPlugInInterface(self.pluginInterface);
     }
 }
@@ -559,7 +766,6 @@ static void block_device_disappeared(void *engine, io_iterator_t iterator);
 @dynamic rotational;
 
 @synthesize attributes = _attributes;
-@synthesize lastUpdated = _lastUpdated;
 
 static NSDictionary * gAvailableMountedPartitions = nil;
 
@@ -673,27 +879,6 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
     return gAvailableMountedPartitions;
 }
 
--(NSArray *)attributes
-{
-    if (!_attributes) {
-        HWMSmartPluginInterfaceWrapper *wrapper = [HWMSmartPluginInterfaceWrapper getWrapperForBsdName:self.bsdName];
-
-        if (!wrapper) {
-
-            wrapper = [HWMSmartPluginInterfaceWrapper wrapperWithService:(io_service_t)self.service.unsignedLongLongValue
-                                                             productName:self.productName
-                                                                firmware:self.revision
-                                                                 bsdName:self.bsdName
-                                                            isRotational:self.rotational.boolValue];
-        }
-
-        _attributes = wrapper ? [wrapper.attributes copy] : @[];
-        _lastUpdated = [NSDate date];
-    }
-
-    return _attributes;
-}
-
 -(void)initialize
 {
     _temperatureAttributeIndex = -1;
@@ -740,7 +925,7 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
 -(BOOL)findIndexOfAttributeByName:(NSString*)name outIndex:(NSInteger*)index
 {
-    NSArray *results = [self.attributes filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name = %@", name]];
+    NSArray *results = [_attributes filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name = %@", name]];
 
     *index = results && results.count ? [[results objectAtIndex:0][@"index"] unsignedIntegerValue] : -1;
 
@@ -766,7 +951,10 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
         }
     }
 
-    NSNumber *raw = [self.attributes objectAtIndex:_temperatureAttributeIndex][@"raw"];
+    if (!_attributes && !_attributes.count)
+        return nil;
+
+    NSNumber *raw = [_attributes objectAtIndex:_temperatureAttributeIndex][@"raw"];
 
     return [NSNumber numberWithUnsignedShort:raw.unsignedShortValue];
 }
@@ -777,14 +965,18 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
         if (![self findIndexOfAttributeByName:@"SSD_Life_Left" outIndex:&_remainingLifeAttributeIndex] &&
             ![self findIndexOfAttributeByName:@"Remaining_Lifetime_Perc" outIndex:&_remainingLifeAttributeIndex] &&
-            ![self findIndexOfAttributeByName:@"Media_Wearout_Indicator" outIndex:&_remainingLifeAttributeIndex] &&
             ![self findIndexOfAttributeByName:@"Perc_Rated_Life_Used" outIndex:&_remainingLifeAttributeIndex] &&
             ![self findIndexOfAttributeByName:@"Wear_Leveling_Count" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Bad_Block_Count" outIndex:&_remainingLifeAttributeIndex] &&
+            ![self findIndexOfAttributeByName:@"Media_Wearout_Indicator" outIndex:&_remainingLifeAttributeIndex] &&
             ![self findIndexOfAttributeByName:@"Available_Reservd_Space" outIndex:&_remainingLifeAttributeIndex])
         {
             return nil;
         }
     }
+
+    if (!self.attributes && !self.attributes.count)
+        return nil;
 
     return [self.attributes objectAtIndex:_remainingLifeAttributeIndex][@"value"];
 }
@@ -824,7 +1016,21 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
 -(NSNumber *)internalUpdateValue
 {
-    _attributes = nil;
+    if (self.hidden.boolValue)
+        return nil;
+
+    HWMSmartPluginInterfaceWrapper *wrapper = [HWMSmartPluginInterfaceWrapper getWrapperForBsdName:self.bsdName];
+
+    if (!wrapper) {
+
+        wrapper = [HWMSmartPluginInterfaceWrapper wrapperWithService:(io_service_t)self.service.unsignedLongLongValue
+                                                         productName:self.productName
+                                                            firmware:self.revision
+                                                             bsdName:self.bsdName
+                                                        isRotational:self.rotational.boolValue];
+    }
+
+    _attributes = wrapper ? [wrapper.attributes copy] : nil;
 
     switch (self.selector.unsignedIntegerValue) {
         case kHWMGroupTemperature:
@@ -833,7 +1039,7 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
         case kHWMGroupSmartRemainingLife:
             return [self getRemainingLife];
-
+            
     }
 
     return @0;
