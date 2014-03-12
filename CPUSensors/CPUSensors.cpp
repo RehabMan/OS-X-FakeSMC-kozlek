@@ -57,6 +57,15 @@
 
 #include "timer.h"
 
+//REVIEW: avoids problem with Xcode 5.1.0 where -dead_strip eliminates these required symbols
+#include <libkern/OSKextLib.h>
+void* _hack_CPUSensors_dontstrip[] =
+{
+    (void*)&OSKextGetCurrentIdentifier,
+    (void*)&OSKextGetCurrentLoadTag,
+    (void*)&OSKextGetCurrentVersionString,
+};
+
 enum {
     kCPUSensorsCoreThermalSensor           = BIT(0),
     kCPUSensorsPackageThermalSensor        = BIT(1),

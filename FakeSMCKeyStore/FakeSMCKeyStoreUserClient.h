@@ -32,7 +32,7 @@
 
 class FakeSMCKeyStore;
 
-class FakeSMCKeyStoreUserClient : public IOUserClient
+class EXPORT FakeSMCKeyStoreUserClient : public IOUserClient
 {
 	OSDeclareDefaultStructors(FakeSMCKeyStoreUserClient);
 

@@ -5,6 +5,15 @@
 #include "OemInfo.h"
 #include "FakeSMCDefinitions.h"
 
+//REVIEW: avoids problem with Xcode 5.1.0 where -dead_strip eliminates these required symbols
+#include <libkern/OSKextLib.h>
+void* _hack_LPCSensors_dontstrip[] =
+{
+    (void*)&OSKextGetCurrentIdentifier,
+    (void*)&OSKextGetCurrentLoadTag,
+    (void*)&OSKextGetCurrentVersionString,
+};
+
 #define Debug FALSE
 
 #define super IOService

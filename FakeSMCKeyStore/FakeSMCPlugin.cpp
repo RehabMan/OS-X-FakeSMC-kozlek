@@ -32,12 +32,12 @@
 
 #pragma mark FakeSMCPSensor
 
-UInt8 fakeSMCPluginGetIndexFromChar(char c)
+static UInt8 fakeSMCPluginGetIndexFromChar(char c)
 {
 	return c > 96 && c < 103 ? c - 87 : c > 47 && c < 58 ? c - 48 : 0;
 }
 
-bool fakeSMCPluginEncodeFloatValue(float value, const char *type, const UInt8 size, void *outBuffer)
+bool EXPORT fakeSMCPluginEncodeFloatValue(float value, const char *type, const UInt8 size, void *outBuffer)
 {
     if (type && outBuffer) {
 
@@ -62,7 +62,7 @@ bool fakeSMCPluginEncodeFloatValue(float value, const char *type, const UInt8 si
     return false;
 }
 
-bool fakeSMCPluginEncodeIntValue(int value, const char *type, const UInt8 size, void *outBuffer)
+bool EXPORT fakeSMCPluginEncodeIntValue(int value, const char *type, const UInt8 size, void *outBuffer)
 {
     if (type && outBuffer) {
 
@@ -108,7 +108,7 @@ bool fakeSMCPluginEncodeIntValue(int value, const char *type, const UInt8 size, 
     return false;
 }
 
-bool fakeSMCPluginIsValidIntegerType(const char *type)
+bool EXPORT fakeSMCPluginIsValidIntegerType(const char *type)
 {
     if (type) {
         size_t typeLength = strnlen(type, 4);
@@ -131,7 +131,7 @@ bool fakeSMCPluginIsValidIntegerType(const char *type)
     return false;
 }
 
-bool fakeSMCPluginIsValidFloatingType(const char *type)
+bool EXPORT fakeSMCPluginIsValidFloatingType(const char *type)
 {
     if (type) {
 
@@ -151,7 +151,7 @@ bool fakeSMCPluginIsValidFloatingType(const char *type)
     return false;
 }
 
-bool fakeSMCPluginDecodeFloatValue(const char *type, const UInt8 size, const void *data, float *outValue)
+bool EXPORT fakeSMCPluginDecodeFloatValue(const char *type, const UInt8 size, const void *data, float *outValue)
 {
     if (type && data && outValue) {
 
@@ -184,7 +184,7 @@ bool fakeSMCPluginDecodeFloatValue(const char *type, const UInt8 size, const voi
     return false;
 }
 
-bool fakeSMCPluginDecodeIntValue(const char *type, const UInt8 size, const void *data, int *outValue)
+bool EXPORT fakeSMCPluginDecodeIntValue(const char *type, const UInt8 size, const void *data, int *outValue)
 {
     if (type && data && outValue) {
 
@@ -372,7 +372,7 @@ static IORecursiveLock *gFakeSMCPluginLock = 0;
 #define UNLOCK    IORecursiveLockUnlock(gFakeSMCPluginLock)
 
 #define super FakeSMCKeyHandler
-OSDefineMetaClassAndAbstractStructors(FakeSMCPlugin, FakeSMCKeyHandler)
+OSDefineMetaClassAndStructors(FakeSMCPlugin, FakeSMCKeyHandler)
 
 #pragma mark -
 #pragma mark FakeSMCPlugin::methods

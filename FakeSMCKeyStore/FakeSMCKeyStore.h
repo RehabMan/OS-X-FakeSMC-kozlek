@@ -33,7 +33,7 @@
 class FakeSMCKey;
 class FakeSMCKeyHandler;
 
-class FakeSMCKeyStore : public IOService
+class EXPORT FakeSMCKeyStore : public IOService
 {
     OSDeclareDefaultStructors(FakeSMCKeyStore)
 

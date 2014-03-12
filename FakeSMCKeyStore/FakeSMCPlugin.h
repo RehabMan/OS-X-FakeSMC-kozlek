@@ -175,7 +175,7 @@ const struct FakeSMCSensorDefinitionEntry FakeSMCSensorDefinitions[] =
 
 #endif // DEFINE_FAKESMC_SENSOR_PARAMS
 
-UInt8   fakeSMCPluginGetIndexFromChar(char c);
+////UInt8   fakeSMCPluginGetIndexFromChar(char c);
 bool 	fakeSMCPluginIsValidIntegerType(const char *type);
 bool    fakeSMCPluginIsValidFloatingType(const char *type);
 bool    fakeSMCPluginEncodeFloatValue(float value, const char *type, const UInt8 size, void *outBuffer);
@@ -219,7 +219,7 @@ public:
 };
 
 class EXPORT FakeSMCPlugin : public FakeSMCKeyHandler {
-	OSDeclareAbstractStructors(FakeSMCPlugin)
+	OSDeclareDefaultStructors(FakeSMCPlugin)
 
 private:
     virtual IOReturn        readKeyCallback(const char *key, const char *type, const UInt8 size, void *buffer);

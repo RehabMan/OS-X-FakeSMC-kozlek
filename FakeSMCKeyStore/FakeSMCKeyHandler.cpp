@@ -28,7 +28,7 @@
 #include "FakeSMCKeyHandler.h"
 
 #define super IOService
-OSDefineMetaClassAndAbstractStructors(FakeSMCKeyHandler, IOService)
+OSDefineMetaClassAndStructors(FakeSMCKeyHandler, IOService)
 
 UInt32 FakeSMCKeyHandler::getProbeScore()
 {

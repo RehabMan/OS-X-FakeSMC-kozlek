@@ -570,7 +570,7 @@ static NSMutableDictionary * gSmartAttributeOverrideCache = nil;
 
                             BOOL supported = NO;
 
-                            for (pattern in productMatch) {
+                            for (NSString* pattern in productMatch) {
                                 expression = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:nil];
 
                                 if ([expression numberOfMatchesInString:product options:NSMatchingReportCompletion range:NSMakeRange(0, product.length)]) {

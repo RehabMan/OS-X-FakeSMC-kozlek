@@ -56,7 +56,7 @@ struct LPCSensorsTachometerControl {
 #define kLPCSensorsMaxtachometerControls       16
 
 class EXPORT LPCSensors : public FakeSMCPlugin {
-	OSDeclareAbstractStructors(LPCSensors)
+	OSDeclareDefaultStructors(LPCSensors)
 	
 private:
     IOWorkLoop*             workloop;

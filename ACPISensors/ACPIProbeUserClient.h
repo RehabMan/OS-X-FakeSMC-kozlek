@@ -30,9 +30,13 @@
 
 #include <IOKit/IOUserClient.h>
 
+#ifndef EXPORT
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
 class ACPIProbe;
 
-class ACPIProbeUserClient : public IOUserClient
+class EXPORT ACPIProbeUserClient : public IOUserClient
 {
 	OSDeclareDefaultStructors(ACPIProbeUserClient);
 
