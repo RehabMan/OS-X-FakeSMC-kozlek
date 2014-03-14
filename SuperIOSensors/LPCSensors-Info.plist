@@ -3707,6 +3707,8 @@
 					</dict>
 					<key>P8Z77-M PRO</key>
 					<string>P8Z77-M</string>
+					<key>P8Z77-V</key>
+					<string>P8Z77-M</string>
 					<key>P8Z77-M</key>
 					<dict>
 						<key>FANIN0</key>
@@ -4074,6 +4076,20 @@
 					<key>VIN7</key>
 					<string>Power Supply</string>
 					<key>VIN8</key>
+					<string>Power Supply</string>
+					<key>VIN9</key>
+					<string>Power Supply</string>
+					<key>VINA</key>
+					<string>Power Supply</string>
+					<key>VINB</key>
+					<string>Power Supply</string>
+					<key>VINC</key>
+					<string>Power Supply</string>
+					<key>VIND</key>
+					<string>Power Supply</string>
+					<key>VINE</key>
+					<string>Power Supply</string>
+					<key>VINF</key>
 					<string>Power Supply</string>
 				</dict>
 			</dict>
