@@ -11,7 +11,7 @@
 
 //REVIEW: avoids problem with Xcode 5.1.0 where -dead_strip eliminates these required symbols
 #include <libkern/OSKextLib.h>
-void* _hack_ACPISensors_dontstrip[] =
+void* _org_rehabman_dontstrip[] =
 {
     (void*)&OSKextGetCurrentIdentifier,
     (void*)&OSKextGetCurrentLoadTag,
