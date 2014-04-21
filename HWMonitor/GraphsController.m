@@ -44,6 +44,7 @@
 #import "HWMConfiguration.h"
 
 #import "NSTableView+HWMEngineHelper.h"
+#import "NSWindow+BackgroundBlur.h"
 
 //#define GetLocalizedString(key) \
 //[[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
@@ -124,6 +125,8 @@
 {
     [NSApp activateIgnoringOtherApps:YES];
     [super showWindow:sender];
+
+    [self.window setBackgroundBlurRadius:5];
     
     //[self.monitorEngine updateSmcAndDeviceSensors];
 }

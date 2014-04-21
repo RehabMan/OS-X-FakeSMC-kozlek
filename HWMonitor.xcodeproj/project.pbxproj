@@ -54,7 +54,6 @@
 		7E343F6718D3098300795619 /* toolbar_menubar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E343F5F18D3098300795619 /* toolbar_menubar@2x.png */; };
 		7E343F6818D3098300795619 /* toolbar_popup.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E343F6018D3098300795619 /* toolbar_popup.png */; };
 		7E343F6918D3098300795619 /* toolbar_popup@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E343F6118D3098300795619 /* toolbar_popup@2x.png */; };
-		7E35F97D18C1EF320047161A /* NSObject+TDBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E35F97C18C1EF320047161A /* NSObject+TDBindings.m */; };
 		7E36E56A188AB15500BD9744 /* voltages@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E36E53C188AB15500BD9744 /* voltages@2x.png */; };
 		7E36E56B188AB15500BD9744 /* voltages.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E36E53D188AB15500BD9744 /* voltages.png */; };
 		7E36E56C188AB15500BD9744 /* voltages-white@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E36E53E188AB15500BD9744 /* voltages-white@2x.png */; };
@@ -103,7 +102,7 @@
 		7E37BCD518997EBD0046F59A /* hwmonitor@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E37BCD318997EBD0046F59A /* hwmonitor@2x.png */; };
 		7E37BCD618997EBD0046F59A /* hwmonitor.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E37BCD418997EBD0046F59A /* hwmonitor.png */; };
 		7E3A93121848A8A70097F83E /* HWMEngine.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7E3A93101848A8A70097F83E /* HWMEngine.xcdatamodeld */; };
-		7E41500F18A8034000E6CD7F /* smart-overrides.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7E41500E18A8034000E6CD7F /* smart-overrides.plist */; };
+		7E41500F18A8034000E6CD7F /* SmartOverrides.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7E41500E18A8034000E6CD7F /* SmartOverrides.plist */; };
 		7E420FAD1820E2D800331D2B /* Profiles in Resources */ = {isa = PBXBuildFile; fileRef = 7E420FAC1820E2D800331D2B /* Profiles */; };
 		7E48B3CC18BE5A0E00B6B734 /* SmcHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E48B3CB18BE5A0E00B6B734 /* SmcHelper.m */; };
 		7E48B3CF18BE5A1700B6B734 /* SmcHelper+HWMonitorHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E48B3CE18BE5A1700B6B734 /* SmcHelper+HWMonitorHelper.m */; };
@@ -142,6 +141,7 @@
 		7EA50F0517F3771D00FDA3AA /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EA50F0417F3771D00FDA3AA /* Sparkle.framework */; };
 		7EA50F0617F3772500FDA3AA /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7EA50F0417F3771D00FDA3AA /* Sparkle.framework */; };
 		7EBA20DB17ED9C98008E54C5 /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = 7EBA20DA17ED9C98008E54C5 /* dsa_pub.pem */; };
+		7EC95E2218D42FCB00DD7B4D /* NSWindow+BackgroundBlur.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EC95E2118D42FCB00DD7B4D /* NSWindow+BackgroundBlur.m */; };
 		7ECDDE3216DD680E00085FFF /* 04-eye.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ECDDE3016DD680E00085FFF /* 04-eye.png */; };
 		7ECDDE3316DD680E00085FFF /* 04-eye@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ECDDE3116DD680E00085FFF /* 04-eye@2x.png */; };
 		7ECDDE3616DDE5DA00085FFF /* 04-eye-white.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ECDDE3416DDE5DA00085FFF /* 04-eye-white.png */; };
@@ -311,6 +311,7 @@
 		7E309FC718C30FB1001033A1 /* 31-circle-plus@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "31-circle-plus@2x.png"; sourceTree = "<group>"; };
 		7E309FCC18C3167B001033A1 /* PopupLevelCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PopupLevelCell.h; sourceTree = "<group>"; };
 		7E309FCD18C3167B001033A1 /* PopupLevelCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PopupLevelCell.m; sourceTree = "<group>"; };
+		7E31FB5B18D4B2DA0036F842 /* HWMEngine 1.8.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "HWMEngine 1.8.xcdatamodel"; sourceTree = "<group>"; };
 		7E3299CD18B8D0490022FB53 /* org.hwsensors.HWMonitorHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = org.hwsensors.HWMonitorHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E343DBD18D34B2D00AE9B7F /* red-thermometer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "red-thermometer.png"; sourceTree = "<group>"; };
 		7E343DBE18D34B2D00AE9B7F /* red-thermometer@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "red-thermometer@2x.png"; sourceTree = "<group>"; };
@@ -324,8 +325,6 @@
 		7E343F6118D3098300795619 /* toolbar_popup@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "toolbar_popup@2x.png"; sourceTree = "<group>"; };
 		7E34F07318C1BE190041BC84 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7E356DD418B88FB300BCC873 /* HWMEngine 1.6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "HWMEngine 1.6.xcdatamodel"; sourceTree = "<group>"; };
-		7E35F97B18C1EF320047161A /* NSObject+TDBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+TDBindings.h"; sourceTree = "<group>"; };
-		7E35F97C18C1EF320047161A /* NSObject+TDBindings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+TDBindings.m"; sourceTree = "<group>"; };
 		7E36E53C188AB15500BD9744 /* voltages@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "voltages@2x.png"; sourceTree = "<group>"; };
 		7E36E53D188AB15500BD9744 /* voltages.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = voltages.png; sourceTree = "<group>"; };
 		7E36E53E188AB15500BD9744 /* voltages-white@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "voltages-white@2x.png"; sourceTree = "<group>"; };
@@ -376,7 +375,7 @@
 		7E37BCD418997EBD0046F59A /* hwmonitor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = hwmonitor.png; sourceTree = "<group>"; };
 		7E3A93111848A8A70097F83E /* HWMEngine.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HWMEngine.xcdatamodel; sourceTree = "<group>"; };
 		7E3D41CC18B2B67A002F6559 /* ACPIProbeArgument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ACPIProbeArgument.h; path = Shared/ACPIProbeArgument.h; sourceTree = "<group>"; };
-		7E41500E18A8034000E6CD7F /* smart-overrides.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "smart-overrides.plist"; sourceTree = "<group>"; };
+		7E41500E18A8034000E6CD7F /* SmartOverrides.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = SmartOverrides.plist; sourceTree = "<group>"; };
 		7E420FAC1820E2D800331D2B /* Profiles */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Profiles; sourceTree = "<group>"; };
 		7E4408F218639CD3002B2960 /* HWMEngine 1.1.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "HWMEngine 1.1.xcdatamodel"; sourceTree = "<group>"; };
 		7E48B3CA18BE5A0E00B6B734 /* SmcHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SmcHelper.h; path = Shared/SmcHelper.h; sourceTree = "<group>"; };
@@ -441,6 +440,8 @@
 		7EB7E702178340710071B3F0 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = Shared/version.h; sourceTree = "<group>"; };
 		7EB7E707178341D20071B3F0 /* HWMonitorVersion.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HWMonitorVersion.pch; path = Shared/HWMonitorVersion.pch; sourceTree = "<group>"; };
 		7EBA20DA17ED9C98008E54C5 /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
+		7EC95E2018D42FCB00DD7B4D /* NSWindow+BackgroundBlur.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSWindow+BackgroundBlur.h"; sourceTree = "<group>"; };
+		7EC95E2118D42FCB00DD7B4D /* NSWindow+BackgroundBlur.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSWindow+BackgroundBlur.m"; sourceTree = "<group>"; };
 		7ECDDE3016DD680E00085FFF /* 04-eye.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "04-eye.png"; sourceTree = "<group>"; };
 		7ECDDE3116DD680E00085FFF /* 04-eye@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "04-eye@2x.png"; sourceTree = "<group>"; };
 		7ECDDE3416DDE5DA00085FFF /* 04-eye-white.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "04-eye-white.png"; sourceTree = "<group>"; };
@@ -888,10 +889,10 @@
 				7E9A17D217E45ACA003DB018 /* NSString+Size.m */,
 				7E9A17CE17E45938003DB018 /* NSPopover+Message.h */,
 				7E9A17CF17E45938003DB018 /* NSPopover+Message.m */,
-				7E35F97B18C1EF320047161A /* NSObject+TDBindings.h */,
-				7E35F97C18C1EF320047161A /* NSObject+TDBindings.m */,
 				7E2DEA2118C53DC600D97F89 /* NSView+NSLayoutConstraintFilter.h */,
 				7E2DEA2218C53DC600D97F89 /* NSView+NSLayoutConstraintFilter.m */,
+				7EC95E2018D42FCB00DD7B4D /* NSWindow+BackgroundBlur.h */,
+				7EC95E2118D42FCB00DD7B4D /* NSWindow+BackgroundBlur.m */,
 			);
 			name = "Objective-C Categories";
 			sourceTree = "<group>";
@@ -988,7 +989,7 @@
 				7E420FAC1820E2D800331D2B /* Profiles */,
 				7EBA20DA17ED9C98008E54C5 /* dsa_pub.pem */,
 				7EA248F316D8E93A002231B2 /* HWMonitor-Info.plist */,
-				7E41500E18A8034000E6CD7F /* smart-overrides.plist */,
+				7E41500E18A8034000E6CD7F /* SmartOverrides.plist */,
 				7EA248F416D8E93A002231B2 /* InfoPlist.strings */,
 				7EA248F716D8E93A002231B2 /* main.m */,
 				7EA248F916D8E93A002231B2 /* HWMonitor-Prefix.pch */,
@@ -1334,7 +1335,7 @@
 				7E111513188F3EA4006E15A0 /* default.iconset in Resources */,
 				7E36E594188AB15500BD9744 /* battery@2x.png in Resources */,
 				7E36E56F188AB15500BD9744 /* thermometer-white@2x.png in Resources */,
-				7E41500F18A8034000E6CD7F /* smart-overrides.plist in Resources */,
+				7E41500F18A8034000E6CD7F /* SmartOverrides.plist in Resources */,
 				7E36E577188AB15500BD9744 /* tachometers.png in Resources */,
 				7EF28328184C71AA00DD8513 /* Credits.html in Resources */,
 				7E36E574188AB15500BD9744 /* temperatures-white@2x.png in Resources */,
@@ -1427,6 +1428,7 @@
 			files = (
 				7EFD75B6185C73A300C01C2B /* PopupFanCell.m in Sources */,
 				7EA248F816D8E93A002231B2 /* main.m in Sources */,
+				7EC95E2218D42FCB00DD7B4D /* NSWindow+BackgroundBlur.m in Sources */,
 				7E2DEA1D18C467B900D97F89 /* HWMSmcFanControlLevel.m in Sources */,
 				7E1900B0184279CD00C6A0E8 /* HWMGraph.m in Sources */,
 				7E3A93121848A8A70097F83E /* HWMEngine.xcdatamodeld in Sources */,
@@ -1484,7 +1486,6 @@
 				7E9A17CD17E4529C003DB018 /* PopupAtaSmartSensorCell.m in Sources */,
 				7E9A17D017E45938003DB018 /* NSPopover+Message.m in Sources */,
 				7E04D7B518B33E5600B40ADA /* ProbeControllingMenuItem.m in Sources */,
-				7E35F97D18C1EF320047161A /* NSObject+TDBindings.m in Sources */,
 				7E9A17D317E45ACA003DB018 /* NSString+Size.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1752,6 +1753,7 @@
 		7E3A93101848A8A70097F83E /* HWMEngine.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				7E31FB5B18D4B2DA0036F842 /* HWMEngine 1.8.xcdatamodel */,
 				7E063A4618C20DA20083F52F /* HWMEngine 1.7.xcdatamodel */,
 				7E24ABEB188FACF700810B9D /* HWMEngine 1.4.xcdatamodel */,
 				7E622ECA18ABFEC700F62F78 /* HWMEngine 1.5.xcdatamodel */,
@@ -1761,7 +1763,7 @@
 				7ED3178A18814C3E00A7FDF5 /* HWMEngine 1.3.xcdatamodel */,
 				7E3A93111848A8A70097F83E /* HWMEngine.xcdatamodel */,
 			);
-			currentVersion = 7E063A4618C20DA20083F52F /* HWMEngine 1.7.xcdatamodel */;
+			currentVersion = 7E31FB5B18D4B2DA0036F842 /* HWMEngine 1.8.xcdatamodel */;
 			path = HWMEngine.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

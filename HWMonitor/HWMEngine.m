@@ -443,9 +443,11 @@ static HWMEngine* gDefaultEngine = nil;
 
         NSLog(@"Loading profile from %@", [config lastPathComponent]);
 
-        NSArray *rawProfile = [[NSArray alloc] initWithContentsOfFile:config];
+        NSMutableArray *rawProfile = [[NSMutableArray alloc] initWithContentsOfFile:config];
 
         if (rawProfile) {
+
+            [rawProfile addObjectsFromArray:[NSArray arrayWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"FakeSMC" withExtension:@"plist" subdirectory:@"Profiles"]]];
 
             NSMutableArray *adoptedProfile = [[NSMutableArray alloc] init];
 
@@ -455,7 +457,7 @@ static HWMEngine* gDefaultEngine = nil;
                 [adoptedProfile addObject:[NSArray arrayWithObjects:[entries objectAtIndex:0], [entries objectAtIndex:entries.count - 1], nil]];
             }];
 
-            _platformProfile = [NSArray arrayWithArray:adoptedProfile];
+            _platformProfile = [adoptedProfile copy];
         }
     }
 
@@ -1205,7 +1207,7 @@ static HWMEngine* gDefaultEngine = nil;
     [colorTheme setToolbarStartColor:toolbarStartColor];
     [colorTheme setToolbarStrokeColor:toolbarStrokeColor];
     [colorTheme setToolbarTitleColor:toolbarTitleColor];
-    [colorTheme setUseDarkIcons:[NSNumber numberWithBool:useDarkIcons]];
+    [colorTheme setUseBrightIcons:[NSNumber numberWithBool:useDarkIcons]];
 
     return colorTheme;
 }
@@ -1219,12 +1221,12 @@ static HWMEngine* gDefaultEngine = nil;
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.95]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.90]
                    listStrokeColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.35]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.95]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.95] highlightWithLevel:0.63]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.95] highlightWithLevel:0.6]
-                toolbarStrokeColor:[NSColor colorWithCalibratedWhite:0.0 alpha:0.35]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90] highlightWithLevel:0.4]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90] highlightWithLevel:0.6]
+                toolbarStrokeColor:nil//[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90] blendedColorWithFraction:0.8 ofColor:[NSColor colorWithCalibratedWhite:0.6 alpha:1.00]]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
 
@@ -1235,12 +1237,12 @@ static HWMEngine* gDefaultEngine = nil;
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.95]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.90]
                    listStrokeColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.35]
-                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.95]
-                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.95] highlightWithLevel:0.58]
-                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.95] highlightWithLevel:0.55]
-                toolbarStrokeColor:[NSColor colorWithCalibratedWhite:0.0 alpha:0.7]
+                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.90]
+                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.90] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.90] highlightWithLevel:0.55]
+                toolbarStrokeColor:nil//[[NSColor colorWithCalibratedWhite:0.23 alpha:0.95] highlightWithLevel:0.15]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
 
@@ -1251,12 +1253,12 @@ static HWMEngine* gDefaultEngine = nil;
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.65 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.85 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.95 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.95]
-                   listStrokeColor:[NSColor colorWithCalibratedWhite:0.0 alpha:0.55]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.98]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.98] highlightWithLevel:0.58]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.98] highlightWithLevel:0.55]
-                toolbarStrokeColor:[NSColor colorWithCalibratedWhite:0.0 alpha:0.35]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.90]
+                   listStrokeColor:[NSColor colorWithCalibratedWhite:0.0 alpha:0.95]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90] highlightWithLevel:0.55]
+                toolbarStrokeColor:nil//[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90]  blendedColorWithFraction:0.8 ofColor:[NSColor colorWithCalibratedWhite:0.5 alpha:0.90]]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:YES];
 }
@@ -1828,7 +1830,7 @@ static HWMEngine* gDefaultEngine = nil;
     [sensor doUpdateValue];
 
 #ifdef kHWMonitorDebugBattery
-    [sensor setValue:@10];
+    [sensor setValue:[NSNumber numberWithInt:arc4random() % 100]];
 #endif
 
     if (sensor.value) {

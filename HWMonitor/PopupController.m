@@ -27,6 +27,7 @@
 #import "NSTableView+HWMEngineHelper.h"
 #import "NSImage+HighResolutionLoading.h"
 #import "NSView+NSLayoutConstraintFilter.h"
+#import "NSWindow+BackgroundBlur.h"
 
 @implementation PopupController
 
@@ -134,13 +135,6 @@
     }
 
     [self layoutContent:NO orderFront:YES animated:NO];
-    
-//    if (!_windowFilter) {
-//        _windowFilter = [[WindowFilter alloc] initWithWindow:self.window name:@"CIGaussianBlur" andOptions:[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:1.5] forKey:@"inputRadius"]];
-//    }
-//    else {
-//        [_windowFilter setFilterOptions:[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:1.5] forKey:@"inputRadius"]];
-//    }
 
     self.statusItemView.isHighlighted = YES;
 
@@ -207,6 +201,7 @@
     // Order front if needed
     if (orderFront) {
         [menubarWindow makeKeyAndOrderFront:self];
+        [self.window setBackgroundBlurRadius:5];
     }
 }
 

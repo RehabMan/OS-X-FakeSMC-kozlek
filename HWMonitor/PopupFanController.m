@@ -21,6 +21,7 @@
 
 #import "NSTableView+HWMEngineHelper.h"
 #import "NSView+NSLayoutConstraintFilter.h"
+#import "NSWindow+BackgroundBlur.h"
 
 @interface PopupFanController ()
 
@@ -52,16 +53,16 @@
         }];
     }
 
-    COICOPopoverView *container = (COICOPopoverView *)[self view];
     HWMColorTheme *colorTheme = [HWMEngine defaultEngine].configuration.colorTheme;
-    NSColor *textColor = colorTheme.useDarkIcons.boolValue ? colorTheme.itemValueTitleColor : [colorTheme.itemValueTitleColor highlightWithLevel:0.35];
 
-    [container setBackgroundColour:colorTheme.useDarkIcons.boolValue ?
-     [colorTheme.listBackgroundColor colorWithAlphaComponent:0.5]:
-     nil /*[self.colorTheme.listBackgroundColor shadowWithLevel:0.05]*/];
+    NSColor *textColor = colorTheme.groupTitleColor;//colorTheme.useBrightIcons.boolValue ? colorTheme.groupTitleColor : [colorTheme.groupTitleColor highlightWithLevel:0.35];
 
     [_inputLabel setTextColor:textColor];
     [_outputLabel setTextColor:textColor];
+
+    [_enabledSwitch setAlphaValue:colorTheme.useBrightIcons.boolValue ? 0.7 : 1.0];
+    [_inputsPopUp setAlphaValue:colorTheme.useBrightIcons.boolValue ? 0.7 : 1.0];
+    [_inputsPopUp setButtonType:colorTheme.useBrightIcons.boolValue ? NSOnOffButton : NSMomentaryChangeButton];
 
     [self observeValueForKeyPath:@"controller.levels" ofObject:nil change:nil context:(void*)self];
     [self observeValueForKeyPath:@"controller.output.engine.sensorsAndGroups" ofObject:nil change:nil context:nil];
@@ -123,7 +124,7 @@
     [Localizer localizeView:cell];
 
     HWMColorTheme *colorTheme = [HWMEngine defaultEngine].configuration.colorTheme;
-    NSColor *textColor = colorTheme.useDarkIcons.boolValue ? colorTheme.itemValueTitleColor : [colorTheme.itemValueTitleColor highlightWithLevel:0.35];
+    NSColor *textColor = colorTheme.useBrightIcons.boolValue ? colorTheme.itemValueTitleColor : [colorTheme.itemValueTitleColor highlightWithLevel:0.35];
 
     [cell.inputTextField setTextColor:textColor];
     [cell.outputTextField setTextColor:textColor];

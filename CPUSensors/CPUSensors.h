@@ -114,7 +114,7 @@ private:
     UInt64                  busClock;
     UInt8                   baseMultiplier;
     float                   energyUnits;
-    UInt8                   availableCoresCount;
+    UInt8                   coreCount;
 
     float                   multiplier[kCPUSensorsMaxCpus];
     float                   ratio[kCPUSensorsMaxCpus];
@@ -126,6 +126,7 @@ private:
     IOReturn                timerEventAction(void);
     double                  timerEventLastTime;
     double                  timerEventDeltaTime;
+    bool                    timerEventScheduled;
 
     void                    calculateMultiplier(UInt32 index);
     void                    calculateTimedCounters();

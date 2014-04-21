@@ -15,6 +15,8 @@
 
 #import "Localizer.h"
 
+#import "NSWindow+BackgroundBlur.h"
+
 @interface PopupAtaSmartReportController ()
 
 @end
@@ -25,11 +27,6 @@
 {
     _sensor = sensor;
 
-    COICOPopoverView *container = (COICOPopoverView *)[self view];
-
-    [container setBackgroundColour:self.sensor.engine.configuration.colorTheme.useDarkIcons.boolValue ?
-     [self.sensor.engine.configuration.colorTheme.listBackgroundColor colorWithAlphaComponent:0.85] :
-     nil /*[self.colorTheme.listBackgroundColor shadowWithLevel:0.05]*/];
 
 }
 
@@ -47,6 +44,7 @@
 -(void)awakeFromNib
 {
     [Localizer localizeView:_tableView];
+    [_tableView setGridColor:[HWMEngine defaultEngine].configuration.colorTheme.useBrightIcons.boolValue ? [NSColor colorWithCalibratedWhite:0.4 alpha:1.0] : [NSColor colorWithCalibratedWhite:0.8 alpha:1.0]];
 }
 
 - (void)copy:(id)sender;
