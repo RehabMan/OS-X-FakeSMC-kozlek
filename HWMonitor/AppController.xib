@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="4514" systemVersion="13D17" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="5056" systemVersion="13D43" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment defaultVersion="1070" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="4514"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="5056"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="PrefsController">
+        <customObject id="-2" userLabel="File's Owner" customClass="AppController">
             <connections>
                 <outlet property="favoritesTableView" destination="eYG-oD-xEa" id="CkM-vZ-3V2"/>
                 <outlet property="sensorsTableView" destination="SCh-vL-Yku" id="iDT-be-cqz"/>
@@ -67,12 +67,7 @@
             </connections>
         </window>
         <customObject id="265" customClass="LaunchAtLoginController"/>
-        <numberFormatter formatterBehavior="custom10_4" positiveFormat="#,##0.0##" negativeFormat="#,##0.0##" numberStyle="decimal" secondaryGroupingSize="1" minimumIntegerDigits="1" maximumIntegerDigits="309" minimumFractionDigits="1" maximumFractionDigits="3" positivePrefix="x " negativePrefix="x -" id="620" userLabel="Graphs Scale Formatter">
-            <real key="roundingIncrement" value="0.0"/>
-            <metadata>
-                <bool key="localizesFormat" value="YES"/>
-            </metadata>
-        </numberFormatter>
+        <numberFormatter formatterBehavior="custom10_4" positiveFormat="#,##0.0##" negativeFormat="#,##0.0##" numberStyle="decimal" paddingCharacter="*" secondaryGroupingSize="1" minimumIntegerDigits="1" maximumIntegerDigits="309" minimumFractionDigits="1" maximumFractionDigits="3" decimalSeparator="." groupingSeparator="," currencyDecimalSeparator="." plusSign="+" minusSign="-" notANumberSymbol="NaN" perMillSymbol="‰" percentSymbol="%" exponentSymbol="E" positivePrefix="x " positiveSuffix="" negativePrefix="x -" negativeSuffix="" id="620" userLabel="Graphs Scale Formatter"/>
         <view id="2wX-b3-awf" userLabel="General View">
             <rect key="frame" x="0.0" y="0.0" width="550" height="421"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -207,10 +202,10 @@
                     <connections>
                         <binding destination="265" name="value" keyPath="self.launchAtLogin" id="B6a-Sq-CmU">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                <integer key="NSNoSelectionPlaceholder" value="0"/>
-                                <integer key="NSNullPlaceholder" value="0"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                <integer key="NSNullPlaceholder" value="0"/>
                             </dictionary>
                         </binding>
                     </connections>
@@ -230,10 +225,10 @@
                         <action selector="checkForUpdates:" target="-2" id="uaC-Bd-1zJ"/>
                         <binding destination="263" name="value" keyPath="values.SUEnableAutomaticChecks" id="OrE-Kp-hbk">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                <integer key="NSNoSelectionPlaceholder" value="1"/>
-                                <integer key="NSNullPlaceholder" value="1"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
+                                <integer key="NSNullPlaceholder" value="1"/>
                             </dictionary>
                         </binding>
                     </connections>
@@ -436,10 +431,10 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="monitorEngine.configuration.useBigFontInMenubar" id="rl9-6A-Dyd">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                <integer key="NSNoSelectionPlaceholder" value="0"/>
-                                <integer key="NSNullPlaceholder" value="0"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                <integer key="NSNullPlaceholder" value="0"/>
                             </dictionary>
                         </binding>
                     </connections>
@@ -458,10 +453,10 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="monitorEngine.configuration.useShadowEffectsInMenubar" id="TZx-4A-aPo">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                <integer key="NSNoSelectionPlaceholder" value="1"/>
-                                <integer key="NSNullPlaceholder" value="1"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
+                                <integer key="NSNullPlaceholder" value="1"/>
                             </dictionary>
                         </binding>
                     </connections>
@@ -470,14 +465,14 @@
                     <rect key="frame" x="20" y="77" width="560" height="396"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <subviews>
-                        <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="MIw-Be-MBZ" userLabel="Sensors Scroll View - Sensors Table View" customClass="JLNFadingScrollView">
+                        <scrollView autohidesScrollers="YES" horizontalLineScroll="21" horizontalPageScroll="10" verticalLineScroll="21" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="MIw-Be-MBZ" userLabel="Sensors Scroll View - Sensors Table View" customClass="JLNFadingScrollView">
                             <rect key="frame" x="0.0" y="0.0" width="276" height="396"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             <clipView key="contentView" copiesOnScroll="NO" id="hK2-oA-2Lv">
                                 <rect key="frame" x="1" y="1" width="274" height="394"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
-                                    <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" viewBased="YES" id="SCh-vL-Yku" customClass="SensorsTableView">
+                                    <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="19" rowSizeStyle="automatic" viewBased="YES" id="SCh-vL-Yku" customClass="SensorsTableView">
                                         <rect key="frame" x="0.0" y="0.0" width="274" height="394"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <size key="intercellSpacing" width="1" height="2"/>
@@ -624,7 +619,7 @@
                                                                     <constraint firstAttribute="width" constant="18" id="ixL-xK-a4Q"/>
                                                                     <constraint firstAttribute="height" constant="18" id="r0F-qe-U70"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="overlaps" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="hwB-AE-3C4">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="only" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="hwB-AE-3C4">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -644,7 +639,7 @@
                                                                     <constraint firstAttribute="width" constant="18" id="4AX-8b-QG7"/>
                                                                     <constraint firstAttribute="height" constant="18" id="Vg6-oR-0M1"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="310-alarm-clock-white" imagePosition="above" alignment="center" alternateImage="310-alarm-clock" state="on" imageScaling="proportionallyDown" inset="2" id="dEb-iB-Lh5">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="411-roundabout-white" imagePosition="only" alignment="center" alternateImage="411-roundabout" state="on" imageScaling="proportionallyDown" inset="2" id="dEb-iB-Lh5">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -729,7 +724,7 @@
                                                                     <constraint firstAttribute="height" constant="18" id="fbh-0Y-7OK"/>
                                                                     <constraint firstAttribute="width" constant="18" id="xkI-A8-p8d"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="overlaps" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="SBL-5P-x3V">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="only" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="SBL-5P-x3V">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -749,7 +744,7 @@
                                                                     <constraint firstAttribute="height" constant="18" id="AmV-8Z-pCF"/>
                                                                     <constraint firstAttribute="width" constant="18" id="eTG-Kc-K2J"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="310-alarm-clock-white" imagePosition="above" alignment="center" alternateImage="310-alarm-clock" state="on" imageScaling="proportionallyDown" inset="2" id="R9y-Hz-3MC">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="411-roundabout-white" imagePosition="only" alignment="center" alternateImage="411-roundabout" state="on" imageScaling="proportionallyDown" inset="2" id="R9y-Hz-3MC">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -834,7 +829,7 @@
                                                                     <constraint firstAttribute="height" constant="18" id="4de-yB-Zwg"/>
                                                                     <constraint firstAttribute="width" constant="18" id="aFq-Wf-o3H"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="overlaps" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="QNJ-An-NtV">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="only" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="QNJ-An-NtV">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -854,7 +849,7 @@
                                                                     <constraint firstAttribute="width" constant="18" id="jxT-46-xsJ"/>
                                                                     <constraint firstAttribute="height" constant="18" id="pyE-LD-axF"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="310-alarm-clock-white" imagePosition="above" alignment="center" alternateImage="310-alarm-clock" state="on" imageScaling="proportionallyDown" inset="2" id="IFH-EZ-Dhe">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="411-roundabout-white" imagePosition="only" alignment="center" alternateImage="411-roundabout" state="on" imageScaling="proportionallyDown" inset="2" id="IFH-EZ-Dhe">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -939,7 +934,7 @@
                                                                     <constraint firstAttribute="width" constant="18" id="Geu-gs-SiE"/>
                                                                     <constraint firstAttribute="height" constant="18" id="tC6-Ip-lBm"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="overlaps" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="i9b-TM-I3E">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="04-eye-white" imagePosition="only" alignment="center" alternateImage="04-eye" state="on" imageScaling="proportionallyDown" inset="2" id="i9b-TM-I3E">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -959,7 +954,7 @@
                                                                     <constraint firstAttribute="height" constant="18" id="1VK-Ew-LqS"/>
                                                                     <constraint firstAttribute="width" constant="18" id="JRU-Jo-y3V"/>
                                                                 </constraints>
-                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="310-alarm-clock-white" imagePosition="above" alignment="center" alternateImage="310-alarm-clock" state="on" imageScaling="proportionallyDown" inset="2" id="8xC-5W-6u9">
+                                                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="411-roundabout-white" imagePosition="only" alignment="center" alternateImage="411-roundabout" state="on" imageScaling="proportionallyDown" inset="2" id="8xC-5W-6u9">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -1021,14 +1016,14 @@
                                 </userDefinedRuntimeAttribute>
                             </userDefinedRuntimeAttributes>
                         </scrollView>
-                        <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="6Ws-pH-qVq" userLabel="Favorites Scroll View - Sensors Table View" customClass="JLNFadingScrollView">
+                        <scrollView autohidesScrollers="YES" horizontalLineScroll="21" horizontalPageScroll="10" verticalLineScroll="21" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="6Ws-pH-qVq" userLabel="Favorites Scroll View - Sensors Table View" customClass="JLNFadingScrollView">
                             <rect key="frame" x="285" y="0.0" width="275" height="396"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             <clipView key="contentView" copiesOnScroll="NO" id="i8f-2e-Hgn">
                                 <rect key="frame" x="1" y="1" width="273" height="394"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
-                                    <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" viewBased="YES" id="eYG-oD-xEa" customClass="SensorsTableView">
+                                    <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="19" rowSizeStyle="automatic" viewBased="YES" id="eYG-oD-xEa" customClass="SensorsTableView">
                                         <rect key="frame" x="0.0" y="0.0" width="273" height="394"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <size key="intercellSpacing" width="1" height="2"/>
@@ -1522,59 +1517,17 @@
             </userDefinedRuntimeAttributes>
         </view>
         <view id="Pdy-qL-0kX" userLabel="Popup View">
-            <rect key="frame" x="0.0" y="0.0" width="462" height="371"/>
+            <rect key="frame" x="0.0" y="0.0" width="490" height="370"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <button tag="3" translatesAutoresizingMaskIntoConstraints="NO" id="tqc-Xa-Jnh">
-                    <rect key="frame" x="285" y="310" width="159" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <constraints>
-                        <constraint firstAttribute="width" priority="730" constant="155" id="pT9-Db-EnY"/>
-                    </constraints>
-                    <buttonCell key="cell" type="check" title="Use BSD drives names" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Ofp-FQ-kxZ">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <binding destination="-2" name="value" keyPath="self.monitorEngine.configuration.useBsdDriveNames" id="svV-74-rKU">
-                            <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                <integer key="NSNoSelectionPlaceholder" value="0"/>
-                                <integer key="NSNullPlaceholder" value="0"/>
-                                <integer key="NSMultipleValuesPlaceholder" value="0"/>
-                            </dictionary>
-                        </binding>
-                    </connections>
-                </button>
-                <button tag="3" translatesAutoresizingMaskIntoConstraints="NO" id="huO-TT-Loq">
-                    <rect key="frame" x="285" y="285" width="159" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <constraints>
-                        <constraint firstAttribute="width" priority="730" constant="148" id="9bq-Xg-1ZK"/>
-                    </constraints>
-                    <buttonCell key="cell" type="check" title="Show partition name" bezelStyle="regularSquare" imagePosition="left" inset="2" id="KPG-YK-YV7">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <binding destination="-2" name="value" keyPath="monitorEngine.configuration.showVolumeNames" id="Nrf-GQ-avw">
-                            <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                <integer key="NSNoSelectionPlaceholder" value="0"/>
-                                <integer key="NSNullPlaceholder" value="0"/>
-                                <integer key="NSMultipleValuesPlaceholder" value="0"/>
-                            </dictionary>
-                        </binding>
-                    </connections>
-                </button>
-                <scrollView autohidesScrollers="YES" horizontalLineScroll="21" horizontalPageScroll="10" verticalLineScroll="21" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rgF-QA-inm">
-                    <rect key="frame" x="20" y="21" width="250" height="305"/>
+                <scrollView autohidesScrollers="YES" horizontalLineScroll="101" horizontalPageScroll="10" verticalLineScroll="101" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rgF-QA-inm">
+                    <rect key="frame" x="20" y="20" width="250" height="305"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <clipView key="contentView" id="xfO-Xf-kO2">
                         <rect key="frame" x="1" y="1" width="248" height="303"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="J1M-XJ-log" userLabel="Theme Table View">
+                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="97" rowSizeStyle="automatic" viewBased="YES" id="J1M-XJ-log" userLabel="Theme Table View">
                                 <rect key="frame" x="0.0" y="0.0" width="248" height="303"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="4" height="4"/>
@@ -1642,16 +1595,16 @@
                                     </tableColumn>
                                 </tableColumns>
                                 <connections>
-                                    <binding destination="-2" name="selectionIndexes" keyPath="self.themeSelectionIndexes" previousBinding="TWz-zP-4hz" id="smT-ME-qaT"/>
-                                    <binding destination="-2" name="content" keyPath="self.themes" id="TWz-zP-4hz"/>
+                                    <binding destination="-2" name="content" keyPath="self.themePreview" id="6UB-7U-6PA"/>
+                                    <binding destination="-2" name="selectionIndexes" keyPath="self.themeSelectionIndexes" previousBinding="6UB-7U-6PA" id="sgc-Km-my6"/>
                                 </connections>
                             </tableView>
                         </subviews>
                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </clipView>
                     <constraints>
-                        <constraint firstAttribute="width" constant="250" id="E7p-T5-2jG"/>
-                        <constraint firstAttribute="height" constant="305" id="VFc-83-IeM"/>
+                        <constraint firstAttribute="width" constant="250" id="CJa-dx-b90"/>
+                        <constraint firstAttribute="height" constant="305" id="nSa-Az-bkf"/>
                     </constraints>
                     <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="ZpK-b9-Ijl">
                         <rect key="frame" x="1" y="-14" width="0.0" height="15"/>
@@ -1663,10 +1616,11 @@
                     </scroller>
                 </scrollView>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="VtL-Hp-Gjx">
-                    <rect key="frame" x="20" y="334" width="424" height="17"/>
+                    <rect key="frame" x="20" y="333" width="252" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <constraints>
-                        <constraint firstAttribute="width" priority="730" constant="82" id="xp6-Hm-BbG"/>
+                        <constraint firstAttribute="width" constant="248" id="JbA-SZ-gEE"/>
+                        <constraint firstAttribute="height" constant="17" id="rm2-Il-CDX"/>
                     </constraints>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Color theme:" id="c95-e7-sJx">
                         <font key="font" metaFont="system"/>
@@ -1674,20 +1628,158 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="7tX-J5-4BR">
+                    <rect key="frame" x="288" y="18" width="184" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="14" id="Iet-IS-Z9g"/>
+                        <constraint firstAttribute="width" priority="730" constant="153" id="wHp-bZ-4Fl"/>
+                    </constraints>
+                    <buttonCell key="cell" type="check" title="Show sensor legends" bezelStyle="regularSquare" imagePosition="left" inset="2" id="bwe-G3-dfI">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="monitorEngine.configuration.showSensorLegendsInPopup" id="D6w-DI-Cgb">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                <integer key="NSNullPlaceholder" value="0"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </button>
+                <matrix verticalHuggingPriority="750" allowsEmptySelection="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Bl-ND-jKA">
+                    <rect key="frame" x="302" y="263" width="168" height="62"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="62" id="ezN-1i-TQX"/>
+                        <constraint firstAttribute="width" priority="730" constant="120" id="jnZ-Q0-3Mi"/>
+                    </constraints>
+                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    <size key="cellSize" width="168" height="18"/>
+                    <size key="intercellSpacing" width="4" height="4"/>
+                    <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="lQh-t8-mo5">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <cells>
+                        <column>
+                            <buttonCell type="radio" title="Product name" imagePosition="left" alignment="left" state="on" tag="1" inset="2" id="Q1E-Sq-Fw2">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <buttonCell type="radio" title="Partition names" imagePosition="left" alignment="left" inset="2" id="Zw2-wa-Fzx">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <buttonCell type="radio" title="BSD name" imagePosition="left" alignment="left" inset="2" id="byA-oW-Yjt">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </column>
+                    </cells>
+                    <connections>
+                        <binding destination="-2" name="selectedIndex" keyPath="monitorEngine.configuration.driveNameSelector" id="D1r-3B-54W">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                <integer key="NSNullPlaceholder" value="0"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </matrix>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="55s-9M-Nsg">
+                    <rect key="frame" x="288" y="333" width="184" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="17" id="otJ-Zk-e4A"/>
+                        <constraint firstAttribute="width" priority="730" constant="123" id="qmx-GA-XS3"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Show drive title as:" id="cAV-Vq-SBq">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6jX-rv-NJE">
+                    <rect key="frame" x="288" y="225" width="184" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="17" id="W6q-RU-Nbi"/>
+                        <constraint firstAttribute="width" priority="730" constant="141" id="pQT-Am-LMH"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Show drive legend as:" id="ndD-EE-g0d">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <matrix verticalHuggingPriority="750" allowsEmptySelection="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s3g-4E-Hjy">
+                    <rect key="frame" x="302" y="155" width="168" height="62"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="62" id="PNi-rA-S5u"/>
+                        <constraint firstAttribute="width" priority="730" constant="120" id="o3l-as-eAn"/>
+                    </constraints>
+                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    <size key="cellSize" width="168" height="18"/>
+                    <size key="intercellSpacing" width="4" height="4"/>
+                    <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="gzl-FT-e0x">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <cells>
+                        <column>
+                            <buttonCell type="radio" title="Product name" imagePosition="left" alignment="left" state="on" tag="1" inset="2" id="DHG-MP-Iml">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <buttonCell type="radio" title="Partition names" imagePosition="left" alignment="left" inset="2" id="rZQ-sz-XzN">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <buttonCell type="radio" title="BSD name" imagePosition="left" alignment="left" inset="2" id="7HM-KX-Eoe">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </column>
+                    </cells>
+                    <connections>
+                        <binding destination="-2" name="selectedIndex" keyPath="monitorEngine.configuration.driveLegendSelector" id="fph-V0-cVU">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
+                                <integer key="NSNullPlaceholder" value="1"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </matrix>
             </subviews>
             <constraints>
-                <constraint firstAttribute="trailing" secondItem="tqc-Xa-Jnh" secondAttribute="trailing" constant="20" symbolic="YES" id="18v-S1-5gH"/>
-                <constraint firstAttribute="trailing" secondItem="VtL-Hp-Gjx" secondAttribute="trailing" constant="20" symbolic="YES" id="GPQ-c3-xFL"/>
-                <constraint firstAttribute="bottom" secondItem="rgF-QA-inm" secondAttribute="bottom" constant="21" id="SOQ-ZW-ePL"/>
-                <constraint firstItem="tqc-Xa-Jnh" firstAttribute="leading" secondItem="huO-TT-Loq" secondAttribute="leading" id="c2z-YY-Sc2"/>
-                <constraint firstItem="rgF-QA-inm" firstAttribute="top" secondItem="VtL-Hp-Gjx" secondAttribute="bottom" constant="8" symbolic="YES" id="cOL-R4-0mg"/>
-                <constraint firstItem="VtL-Hp-Gjx" firstAttribute="top" secondItem="Pdy-qL-0kX" secondAttribute="top" constant="20" symbolic="YES" id="eGd-pX-tEi"/>
-                <constraint firstAttribute="trailing" secondItem="huO-TT-Loq" secondAttribute="trailing" constant="20" symbolic="YES" id="fFo-YM-daP"/>
-                <constraint firstItem="huO-TT-Loq" firstAttribute="leading" secondItem="rgF-QA-inm" secondAttribute="trailing" constant="17" id="fO8-0n-06z"/>
-                <constraint firstItem="rgF-QA-inm" firstAttribute="top" secondItem="tqc-Xa-Jnh" secondAttribute="top" id="i8N-y2-mPi"/>
-                <constraint firstItem="VtL-Hp-Gjx" firstAttribute="leading" secondItem="Pdy-qL-0kX" secondAttribute="leading" constant="22" id="mSK-uz-nIz"/>
-                <constraint firstItem="rgF-QA-inm" firstAttribute="leading" secondItem="Pdy-qL-0kX" secondAttribute="leading" constant="20" symbolic="YES" id="vzf-Vz-Acm"/>
-                <constraint firstItem="huO-TT-Loq" firstAttribute="top" secondItem="tqc-Xa-Jnh" secondAttribute="bottom" constant="11" id="wLs-cQ-fvi"/>
+                <constraint firstItem="s3g-4E-Hjy" firstAttribute="top" secondItem="6jX-rv-NJE" secondAttribute="bottom" constant="8" id="1cY-JI-HEv"/>
+                <constraint firstAttribute="bottom" secondItem="7tX-J5-4BR" secondAttribute="bottom" constant="20" id="4hY-eE-KoT"/>
+                <constraint firstAttribute="trailing" secondItem="7tX-J5-4BR" secondAttribute="trailing" constant="20" id="6FW-xU-fol"/>
+                <constraint firstItem="55s-9M-Nsg" firstAttribute="top" secondItem="Pdy-qL-0kX" secondAttribute="top" constant="20" id="BOn-9I-LYE"/>
+                <constraint firstAttribute="trailing" secondItem="7Bl-ND-jKA" secondAttribute="trailing" constant="20" id="D7m-Rl-R9V"/>
+                <constraint firstItem="s3g-4E-Hjy" firstAttribute="leading" secondItem="rgF-QA-inm" secondAttribute="trailing" constant="32" id="D8f-9K-ke0"/>
+                <constraint firstItem="7Bl-ND-jKA" firstAttribute="leading" secondItem="rgF-QA-inm" secondAttribute="trailing" constant="32" id="Ecv-KH-CKd"/>
+                <constraint firstItem="rgF-QA-inm" firstAttribute="top" secondItem="VtL-Hp-Gjx" secondAttribute="bottom" constant="8" id="IUR-LT-9Ky"/>
+                <constraint firstItem="rgF-QA-inm" firstAttribute="leading" secondItem="Pdy-qL-0kX" secondAttribute="leading" constant="20" id="InD-tz-na7"/>
+                <constraint firstAttribute="trailing" secondItem="s3g-4E-Hjy" secondAttribute="trailing" constant="20" id="SLE-Wi-bDA"/>
+                <constraint firstAttribute="trailing" secondItem="6jX-rv-NJE" secondAttribute="trailing" constant="20" id="Sgz-Fy-l9j"/>
+                <constraint firstAttribute="bottom" secondItem="rgF-QA-inm" secondAttribute="bottom" constant="20" id="V6j-61-BCY"/>
+                <constraint firstItem="VtL-Hp-Gjx" firstAttribute="top" secondItem="Pdy-qL-0kX" secondAttribute="top" constant="20" id="avf-pD-leO"/>
+                <constraint firstAttribute="trailing" secondItem="55s-9M-Nsg" secondAttribute="trailing" constant="20" id="ddk-b9-c7c"/>
+                <constraint firstItem="55s-9M-Nsg" firstAttribute="leading" secondItem="VtL-Hp-Gjx" secondAttribute="trailing" constant="20" id="hGB-ss-sNk"/>
+                <constraint firstItem="6jX-rv-NJE" firstAttribute="top" secondItem="7Bl-ND-jKA" secondAttribute="bottom" constant="21" id="isQ-WF-dGU"/>
+                <constraint firstItem="6jX-rv-NJE" firstAttribute="leading" secondItem="rgF-QA-inm" secondAttribute="trailing" constant="20" id="ixu-O6-c8B"/>
+                <constraint firstItem="VtL-Hp-Gjx" firstAttribute="leading" secondItem="Pdy-qL-0kX" secondAttribute="leading" constant="22" id="nA2-6Q-wyh"/>
+                <constraint firstItem="7tX-J5-4BR" firstAttribute="leading" secondItem="rgF-QA-inm" secondAttribute="trailing" constant="20" id="rS9-OS-MMb"/>
+                <constraint firstItem="7Bl-ND-jKA" firstAttribute="top" secondItem="55s-9M-Nsg" secondAttribute="bottom" constant="8" id="vWZ-Rg-fyu"/>
             </constraints>
             <userDefinedRuntimeAttributes>
                 <userDefinedRuntimeAttribute type="number" keyPath="alphaValue">
@@ -1696,11 +1788,11 @@
             </userDefinedRuntimeAttributes>
         </view>
         <view id="0i6-hZ-Q6v" userLabel="Graphs View">
-            <rect key="frame" x="0.0" y="0.0" width="500" height="218"/>
+            <rect key="frame" x="0.0" y="0.0" width="500" height="236"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="bua-sr-zup">
-                    <rect key="frame" x="25" y="164" width="448" height="18"/>
+                    <rect key="frame" x="25" y="182" width="448" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="14" id="P1K-9I-OHe"/>
@@ -1713,16 +1805,16 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="self.monitorEngine.configuration.useGraphSmoothing" id="z50-AK-FdP">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                <integer key="NSNoSelectionPlaceholder" value="1"/>
-                                <integer key="NSNullPlaceholder" value="1"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
+                                <integer key="NSNullPlaceholder" value="1"/>
                             </dictionary>
                         </binding>
                     </connections>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="RWJ-wR-9pf">
-                    <rect key="frame" x="25" y="139" width="448" height="18"/>
+                    <rect key="frame" x="25" y="157" width="448" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <constraints>
                         <constraint firstAttribute="width" priority="730" constant="293" id="VPU-Y8-hzR"/>
@@ -1735,16 +1827,16 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="self.monitorEngine.configuration.updateSensorsInBackground" id="8xi-nH-Jhs">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                <integer key="NSNoSelectionPlaceholder" value="0"/>
-                                <integer key="NSNullPlaceholder" value="0"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                <integer key="NSNullPlaceholder" value="0"/>
                             </dictionary>
                         </binding>
                     </connections>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="Lvv-Gq-7DT">
-                    <rect key="frame" x="25" y="114" width="448" height="18"/>
+                    <rect key="frame" x="25" y="132" width="448" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="14" id="6ny-oR-Oa0"/>
@@ -1757,10 +1849,10 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="monitorEngine.configuration.graphsWindowAlwaysTopmost" id="R2M-dR-FCP">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                <integer key="NSNoSelectionPlaceholder" value="1"/>
-                                <integer key="NSNullPlaceholder" value="1"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
+                                <integer key="NSNullPlaceholder" value="1"/>
                             </dictionary>
                         </binding>
                     </connections>
@@ -1787,10 +1879,10 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="self.monitorEngine.configuration.graphsScaleValue" id="osl-3V-jDL">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="4"/>
-                                <integer key="NSNoSelectionPlaceholder" value="4"/>
-                                <integer key="NSNullPlaceholder" value="4"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="4"/>
+                                <integer key="NSNoSelectionPlaceholder" value="4"/>
+                                <integer key="NSNotApplicablePlaceholder" value="4"/>
+                                <integer key="NSNullPlaceholder" value="4"/>
                             </dictionary>
                         </binding>
                     </connections>
@@ -1809,15 +1901,37 @@
                     <connections>
                         <binding destination="-2" name="value" keyPath="self.monitorEngine.configuration.graphsScaleValue" id="iOg-jV-oLa">
                             <dictionary key="options">
-                                <string key="NSNotApplicablePlaceholder">4.0</string>
-                                <string key="NSNoSelectionPlaceholder">4.0</string>
-                                <string key="NSNullPlaceholder">4.0</string>
                                 <string key="NSMultipleValuesPlaceholder">4.0</string>
+                                <string key="NSNoSelectionPlaceholder">4.0</string>
+                                <string key="NSNotApplicablePlaceholder">4.0</string>
+                                <string key="NSNullPlaceholder">4.0</string>
                             </dictionary>
                         </binding>
                         <outlet property="formatter" destination="620" id="28e-tL-KH5"/>
                     </connections>
                 </textField>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="027-Ai-eda">
+                    <rect key="frame" x="25" y="107" width="448" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="14" id="XQY-fV-vXw"/>
+                        <constraint firstAttribute="width" priority="730" constant="153" id="cMH-A9-6gf"/>
+                    </constraints>
+                    <buttonCell key="cell" type="check" title="Show sensor legends" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="qDy-4G-FtF">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="monitorEngine.configuration.showSensorLegendsInGraphs" id="ayi-V7-bzR">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
+                                <integer key="NSNullPlaceholder" value="1"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstAttribute="trailing" secondItem="RWJ-wR-9pf" secondAttribute="trailing" constant="29" id="64D-rn-6JM"/>
@@ -1825,18 +1939,21 @@
                 <constraint firstItem="rfX-Mg-n1n" firstAttribute="leading" secondItem="0i6-hZ-Q6v" secondAttribute="leading" constant="29" id="Js5-24-WcJ"/>
                 <constraint firstItem="Lvv-Gq-7DT" firstAttribute="top" secondItem="RWJ-wR-9pf" secondAttribute="bottom" constant="11" id="QTI-jA-CP1"/>
                 <constraint firstAttribute="bottom" secondItem="3vW-CP-GIC" secondAttribute="bottom" constant="29" id="QpS-TZ-f1I"/>
+                <constraint firstItem="027-Ai-eda" firstAttribute="top" secondItem="Lvv-Gq-7DT" secondAttribute="bottom" constant="11" id="R2v-j4-35i"/>
                 <constraint firstItem="RWJ-wR-9pf" firstAttribute="top" secondItem="bua-sr-zup" secondAttribute="bottom" constant="11" id="RBi-CC-Suj"/>
                 <constraint firstItem="RWJ-wR-9pf" firstAttribute="leading" secondItem="0i6-hZ-Q6v" secondAttribute="leading" constant="27" id="Tpl-1M-ZeV"/>
-                <constraint firstItem="rfb-w2-8ol" firstAttribute="top" secondItem="0i6-hZ-Q6v" secondAttribute="top" constant="140" id="W5X-oe-oMj"/>
                 <constraint firstItem="bua-sr-zup" firstAttribute="leading" secondItem="0i6-hZ-Q6v" secondAttribute="leading" constant="27" id="Wzk-68-m7H"/>
+                <constraint firstItem="rfX-Mg-n1n" firstAttribute="top" secondItem="027-Ai-eda" secondAttribute="bottom" constant="31" id="a4e-3p-Rkq"/>
                 <constraint firstItem="3vW-CP-GIC" firstAttribute="top" secondItem="rfX-Mg-n1n" secondAttribute="bottom" constant="8" symbolic="YES" id="aH2-01-evQ"/>
                 <constraint firstAttribute="trailing" secondItem="Lvv-Gq-7DT" secondAttribute="trailing" constant="29" id="as0-8c-TgK"/>
                 <constraint firstAttribute="trailing" secondItem="bua-sr-zup" secondAttribute="trailing" constant="29" id="b1b-mc-lr9"/>
                 <constraint firstItem="Lvv-Gq-7DT" firstAttribute="leading" secondItem="0i6-hZ-Q6v" secondAttribute="leading" constant="27" id="dwY-xh-fPx"/>
+                <constraint firstItem="027-Ai-eda" firstAttribute="leading" secondItem="0i6-hZ-Q6v" secondAttribute="leading" constant="27" id="ejs-PC-yww"/>
                 <constraint firstItem="3vW-CP-GIC" firstAttribute="leading" secondItem="Lvv-Gq-7DT" secondAttribute="leading" id="j2S-fQ-fSn"/>
+                <constraint firstItem="rfb-w2-8ol" firstAttribute="top" secondItem="027-Ai-eda" secondAttribute="bottom" constant="31" id="kuf-9l-ltj"/>
                 <constraint firstItem="rfb-w2-8ol" firstAttribute="leading" secondItem="rfX-Mg-n1n" secondAttribute="trailing" constant="8" id="m6s-8H-ay1"/>
                 <constraint firstItem="3vW-CP-GIC" firstAttribute="centerX" secondItem="0i6-hZ-Q6v" secondAttribute="centerX" id="mXL-Xp-qeN"/>
-                <constraint firstItem="rfX-Mg-n1n" firstAttribute="top" secondItem="Lvv-Gq-7DT" secondAttribute="bottom" constant="38" id="u4b-Sg-NY8"/>
+                <constraint firstAttribute="trailing" secondItem="027-Ai-eda" secondAttribute="trailing" constant="29" id="whE-wV-fHx"/>
                 <constraint firstItem="bua-sr-zup" firstAttribute="top" secondItem="0i6-hZ-Q6v" secondAttribute="top" constant="38" id="xAQ-Ag-to7"/>
             </constraints>
             <userDefinedRuntimeAttributes>
@@ -1849,17 +1966,17 @@
     <resources>
         <image name="04-eye" width="20" height="13"/>
         <image name="04-eye-white" width="20" height="13"/>
-        <image name="310-alarm-clock" width="18" height="17"/>
-        <image name="310-alarm-clock-white" width="18" height="17"/>
         <image name="338-enter-fullscreen" width="18" height="18"/>
         <image name="338-enter-fullscreen-white" width="18" height="18"/>
+        <image name="411-roundabout" width="18" height="14"/>
+        <image name="411-roundabout-white" width="18" height="14"/>
         <image name="Divider" width="1200" height="2"/>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSRefreshTemplate" width="10" height="12"/>
         <image name="theme_default" width="130" height="80"/>
-        <image name="toolbar_general" width="128" height="128"/>
-        <image name="toolbar_graphs" width="128" height="128"/>
-        <image name="toolbar_menubar" width="128" height="128"/>
-        <image name="toolbar_popup" width="128" height="128"/>
+        <image name="toolbar_general" width="32" height="32"/>
+        <image name="toolbar_graphs" width="32" height="32"/>
+        <image name="toolbar_menubar" width="32" height="32"/>
+        <image name="toolbar_popup" width="32" height="32"/>
     </resources>
 </document>

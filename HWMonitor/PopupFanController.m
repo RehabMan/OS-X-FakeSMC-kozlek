@@ -6,6 +6,26 @@
 //  Copyright (c) 2014 kozlek. All rights reserved.
 //
 
+/*
+ *  Copyright (c) 2013 Natan Zalkin <natan.zalkin@me.com>. All rights reserved.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ */
+
 #import "PopupFanController.h"
 #import "PopupLevelCell.h"
 
@@ -20,7 +40,6 @@
 #import "Localizer.h"
 
 #import "NSTableView+HWMEngineHelper.h"
-#import "NSView+NSLayoutConstraintFilter.h"
 #import "NSWindow+BackgroundBlur.h"
 
 @interface PopupFanController ()
@@ -37,8 +56,8 @@
 
     if (_controller) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            [self removeObserver:self forKeyPath:@"controller.levels"];
-            [self removeObserver:self forKeyPath:@"controller.output.engine.sensorsAndGroups"];
+            [self removeObserver:self forKeyPath:@keypath(self, controller.levels)];
+            [self removeObserver:self forKeyPath:@keypath(self, controller.output.engine.sensorsAndGroups)];
         }];
     }
 
@@ -48,53 +67,79 @@
 
     if (_controller) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            [self addObserver:self forKeyPath:@"controller.levels" options:NSKeyValueObservingOptionNew context:nil];
-            [self addObserver:self forKeyPath:@"controller.output.engine.sensorsAndGroups" options:NSKeyValueObservingOptionNew context:nil];
+            [self addObserver:self forKeyPath:@keypath(self, controller.levels) options:NSKeyValueObservingOptionNew context:nil];
+            [self addObserver:self forKeyPath:@keypath(self, controller.output.engine.sensorsAndGroups) options:NSKeyValueObservingOptionNew context:nil];
         }];
     }
 
-    HWMColorTheme *colorTheme = [HWMEngine defaultEngine].configuration.colorTheme;
+    HWMEngine *engine = [HWMEngine sharedEngine];
+    HWMColorTheme *colorTheme = engine.configuration.colorTheme;
 
-    NSColor *textColor = colorTheme.groupTitleColor;//colorTheme.useBrightIcons.boolValue ? colorTheme.groupTitleColor : [colorTheme.groupTitleColor highlightWithLevel:0.35];
+    //[_inputLabel setTextColor:colorTheme.groupTitleColor];
+    //[_outputLabel setTextColor:colorTheme.groupTitleColor];
 
-    [_inputLabel setTextColor:textColor];
-    [_outputLabel setTextColor:textColor];
-
-    [_enabledSwitch setAlphaValue:colorTheme.useBrightIcons.boolValue ? 0.7 : 1.0];
-    [_inputsPopUp setAlphaValue:colorTheme.useBrightIcons.boolValue ? 0.7 : 1.0];
+    [_enabledSwitch setAlphaValue:colorTheme.useBrightIcons.boolValue ? 0.80 : 1.0];
+    [_inputsPopUp setAlphaValue:colorTheme.useBrightIcons.boolValue ? 0.80 : 1.0];
     [_inputsPopUp setButtonType:colorTheme.useBrightIcons.boolValue ? NSOnOffButton : NSMomentaryChangeButton];
 
-    [self observeValueForKeyPath:@"controller.levels" ofObject:nil change:nil context:(void*)self];
-    [self observeValueForKeyPath:@"controller.output.engine.sensorsAndGroups" ofObject:nil change:nil context:nil];
+    NSFont *digitalFont = [NSFont fontWithName:@"Let's go Digital Regular" size:20];
+    NSColor *valueTextColor = colorTheme.useBrightIcons.boolValue ? [colorTheme.itemValueTitleColor shadowWithLevel:0.15] : [colorTheme.itemValueTitleColor highlightWithLevel:0.35];
+
+    [_minLabel setFont:digitalFont];
+    [_minLabel setTextColor:valueTextColor];
+    [_maxLabel setFont:digitalFont];
+    [_maxLabel setTextColor:valueTextColor];
+
+    [self observeValueForKeyPath:@keypath(self, controller.levels) ofObject:nil change:nil context:(void*)self];
+    [self observeValueForKeyPath:@keypath(self, controller.output.engine.sensorsAndGroups) ofObject:nil change:nil context:nil];
+
+    [self rangeSwitchChanged:nil];
+}
+
+-(void)rangeSwitchChanged:(id)sender
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        [_rangeHeightConstraint setConstant:_rangeSwitch.state ? 50 : 0];
+    }];
 }
 
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-    if ([keyPath isEqualToString:@"controller.levels"]) {
+    if ([keyPath isEqualToString:@keypath(self, controller.levels)]) {
+
         NSArray *oldLevelsSnapshot = [_levelsSnapshot copy];
         _levelsSnapshot = [self.controller.levels.array copy];
-        NSLayoutConstraint *constraint = [_levelsTableView.enclosingScrollView constraintForAttribute:NSLayoutAttributeHeight];
+
         if (context) {
-            [_levelsTableView updateWithObjectValues:_levelsSnapshot previousObjectValues:oldLevelsSnapshot withRemoveAnimation:NSTableViewAnimationEffectNone insertAnimation:NSTableViewAnimationEffectNone];
-            [constraint setConstant:_levelsSnapshot.count * 28];
+            [_levelsTableView updateWithObjectValues:_levelsSnapshot
+                                previousObjectValues:oldLevelsSnapshot
+                               updateHeightOfTheRows:NO
+                                 withRemoveAnimation:NSTableViewAnimationEffectNone
+                                     insertAnimation:NSTableViewAnimationEffectNone];
+            [_levelsHeightConstraint setConstant:_levelsSnapshot.count * 28 + 1];
         }
         else {
-            [_levelsTableView updateWithObjectValues:_levelsSnapshot previousObjectValues:oldLevelsSnapshot withRemoveAnimation:NSTableViewAnimationEffectFade insertAnimation:NSTableViewAnimationEffectFade];
-            [[constraint animator] setConstant:_levelsSnapshot.count * 28];
+            [_levelsTableView updateWithObjectValues:_levelsSnapshot
+                                previousObjectValues:oldLevelsSnapshot
+                               updateHeightOfTheRows:NO
+                                 withRemoveAnimation:NSTableViewAnimationSlideDown
+                                     insertAnimation:NSTableViewAnimationSlideDown];
+
+            [[_levelsHeightConstraint animator] setConstant:_levelsSnapshot.count * 28 + 1];
         }
     }
-    else if ([keyPath isEqualToString:@"controller.output.engine.sensorsAndGroups"]) {
-        [self willChangeValueForKey:@"inputSources"];
+    else if ([keyPath isEqualToString:@keypath(self, controller.output.engine.sensorsAndGroups)]) {
+        [self willChangeValueForKey:@keypath(self, inputSources)];
         _inputSources = [self.controller.output.engine.sensorsAndGroups filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"className != %@ AND (selector == %@ OR selector == %@)", @"HWMSensorsGroup", @kHWMGroupTemperature, @kHWMGroupSmartTemperature]];
-        [self didChangeValueForKey:@"inputSources"];
+        [self didChangeValueForKey:@keypath(self, inputSources)];
     }
 }
 
 -(void)dealloc
 {
     if (_controller) {
-        [self removeObserver:self forKeyPath:@"controller.levels"];
-        [self removeObserver:self forKeyPath:@"controller.output.engine.sensorsAndGroups"];
+        [self removeObserver:self forKeyPath:@keypath(self, controller.levels)];
+        [self removeObserver:self forKeyPath:@keypath(self, controller.output.engine.sensorsAndGroups)];
     }
 }
 
@@ -121,10 +166,9 @@
 {
     PopupLevelCell *cell = [tableView makeViewWithIdentifier:@"level" owner:self];
 
-    [Localizer localizeView:cell];
+    HWMColorTheme *colorTheme = [HWMEngine sharedEngine].configuration.colorTheme;
 
-    HWMColorTheme *colorTheme = [HWMEngine defaultEngine].configuration.colorTheme;
-    NSColor *textColor = colorTheme.useBrightIcons.boolValue ? colorTheme.itemValueTitleColor : [colorTheme.itemValueTitleColor highlightWithLevel:0.35];
+    NSColor *textColor = colorTheme.useBrightIcons.boolValue ? [colorTheme.itemValueTitleColor shadowWithLevel:0.15] : [colorTheme.itemValueTitleColor highlightWithLevel:0.35];
 
     [cell.inputTextField setTextColor:textColor];
     [cell.outputTextField setTextColor:textColor];

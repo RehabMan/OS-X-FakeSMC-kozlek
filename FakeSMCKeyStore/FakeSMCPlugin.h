@@ -38,7 +38,10 @@
 #define kFakeSMCCurrentSensor       6
 #define kFakeSMCPowerSensor         7
 
-enum kFakeSMCCategory {
+/**
+ *  Sensor category used to look up for proper sensor definitions
+ */
+enum FakeSMCSensorCategory {
     kFakeSMCCategoryNone = 0,
     kFakeSMCCategoryTemperature,
     kFakeSMCCategoryMultiplier,
@@ -50,13 +53,13 @@ enum kFakeSMCCategory {
 };
 
 struct FakeSMCSensorDefinitionEntry {
-    const char      *name;
-    const char      *key;
-    const char      *type;
-    UInt8           size;
-    kFakeSMCCategory category;
-    UInt8           shift;
-    UInt8           count;
+    const char              *name;
+    const char              *key;
+    const char              *type;
+    UInt8                   size;
+    FakeSMCSensorCategory   category;
+    UInt8                   shift;
+    UInt8                   count;
 };
 
 #ifdef DEFINE_FAKESMC_SENSOR_PARAMS
@@ -102,6 +105,7 @@ const struct FakeSMCSensorDefinitionEntry FakeSMCSensorDefinitions[] =
     
     // Voltages
     {"CPU Core",                "VC0C", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"CPU GFX",                 "VC%XG", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0xF},
     {"CPU VTT",                 "VV1R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
     {"PCH",                     "VN1R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
     {"Memory",                  "VM0R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
@@ -121,7 +125,7 @@ const struct FakeSMCSensorDefinitionEntry FakeSMCSensorDefinitions[] =
     {"CMOS Battery",            "Vb0R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
     {"Battery",                 "VBAT", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
     {"CPU VRM",                 "VS%XC", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0xF},
-    
+
     /*{"GPU Core",                "VC%XG", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 4},*/
     
     // Currents
@@ -248,8 +252,8 @@ protected:
     bool                    getKeyValue(const char *key, void *value);
     
     virtual FakeSMCSensor   *addSensor(const char *key, const char *type, UInt8 size, UInt32 group, UInt32 index, float reference = 0.0f, float gain = 0.0f, float offset = 0.0f);
-    virtual FakeSMCSensor   *addSensor(const char *abbreviation, kFakeSMCCategory category, UInt32 group, UInt32 index, float reference = 0.0f, float gain = 0.0f, float offset = 0.0f);
-    virtual FakeSMCSensor   *addSensor(OSObject *node, kFakeSMCCategory category, UInt32 group, UInt32 index);
+    virtual FakeSMCSensor   *addSensor(const char *abbreviation, FakeSMCSensorCategory category, UInt32 group, UInt32 index, float reference = 0.0f, float gain = 0.0f, float offset = 0.0f);
+    virtual FakeSMCSensor   *addSensor(OSObject *node, FakeSMCSensorCategory category, UInt32 group, UInt32 index);
     virtual bool            addSensor(FakeSMCSensor *sensor);
 	virtual FakeSMCSensor   *addTachometer(UInt32 index, const char *name = 0, FanType type = FAN_RPM, UInt8 zone = 0, FanLocationType location = CENTER_MID_FRONT, SInt8 *fanIndex = 0);
 	virtual FakeSMCSensor   *getSensor(const char *key);
@@ -261,7 +265,10 @@ protected:
     virtual bool            willReadSensorValue(FakeSMCSensor *sensor, float *outValue);
     virtual bool            didWriteSensorValue(FakeSMCSensor *sensor, float value);
     
-public:    
+public:
+    bool                    decodeFloatValueForKey(const char *name, float *outValue);
+    bool                    decodeIntValueForKey(const char *name, int *outValue);
+
 	virtual bool			init(OSDictionary *properties=0);
     virtual bool			start(IOService *provider);
 	virtual void			stop(IOService *provider);

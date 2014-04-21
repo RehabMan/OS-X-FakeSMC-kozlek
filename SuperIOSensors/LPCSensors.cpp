@@ -121,11 +121,16 @@ bool LPCSensors::addTemperatureSensors(OSDictionary *configuration)
 
         if (OSObject* node = configuration->getObject(key)) {
             if (!addSensor(node, kFakeSMCCategoryTemperature, kFakeSMCTemperatureSensor, i)) {
-                if (gpuIndex < 0)
-                    gpuIndex = takeVacantGPUIndex();
 
-                if (gpuIndex >= 0 && checkConfigurationNode(configuration, "GPU Die")) {
+                if (checkConfigurationNode(configuration, "GPU Die")) {
+
+                    if (gpuIndex < 0)
+                        gpuIndex = takeVacantGPUIndex();
+                    else
+                        continue;
+
                     snprintf(key, 5, KEY_FORMAT_GPU_DIODE_TEMPERATURE, gpuIndex);
+
                     if (!addSensorFromConfigurationNode(node, key, TYPE_SP78, TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, i)) {
                         releaseGPUIndex(gpuIndex);
                         gpuIndex = -1;
@@ -150,11 +155,16 @@ bool LPCSensors::addVoltageSensors(OSDictionary *configuration)
 
         if (OSObject* node = configuration->getObject(key)) {
             if (!addSensor(node, kFakeSMCCategoryVoltage, kFakeSMCVoltageSensor, i)) {
-                if (gpuIndex < 0)
-                    gpuIndex = takeVacantGPUIndex();
+                
+                if (checkConfigurationNode(configuration, "GPU Core")) {
 
-                if (gpuIndex >= 0 && checkConfigurationNode(configuration, "GPU Core")) {
+                    if (gpuIndex < 0)
+                        gpuIndex = takeVacantGPUIndex();
+                    else
+                        continue;
+
                     snprintf(key, 5, KEY_FORMAT_GPU_VOLTAGE, gpuIndex);
+
                     if (!addSensorFromConfigurationNode(node, key, TYPE_FP2E, TYPE_FPXX_SIZE, kFakeSMCVoltageSensor, i)) {
                         releaseGPUIndex(gpuIndex);
                         gpuIndex = -1;
@@ -185,12 +195,13 @@ bool LPCSensors::addTachometerSensors(OSDictionary *configuration)
         snprintf(key, 7, "FANIN%X", i);
 
         if (OSString* name = OSDynamicCast(OSString, configuration->getObject(key))){
-            if (addTachometer(i, name->getLength() > 0 ? name->getCStringNoCopy() : 0, FAN_RPM, 0, static_cast<FanLocationType>(location++), &fanIndex)){
+            if (addTachometer(i, name->getLength() > 0 ? name->getCStringNoCopy() : 0, FAN_RPM, 0, (FanLocationType)location++, &fanIndex)){
 
-                if (supportsTachometerControl() && fanIndex > -1) {
+                if (isTachometerControlable(i) && fanIndex > -1) {
 
                     tachometerControls[i].number = fanIndex;
-                    tachometerControls[i].target = 0;
+                    tachometerControls[i].target = -1;
+                    tachometerControls[i].minimum = -1;
 
                     // Minimum RPM and fan control sensor
                     snprintf(key, 5, KEY_FORMAT_FAN_MIN, fanIndex);
@@ -215,17 +226,17 @@ bool LPCSensors::addTachometerSensors(OSDictionary *configuration)
 
 UInt8 LPCSensors::temperatureSensorsLimit()
 {
-    return 3;
+    return 0;
 }
 
 UInt8 LPCSensors::voltageSensorsLimit()
 {
-    return 9;
+    return 0;
 }
 
 UInt8 LPCSensors::tachometerSensorsLimit()
 {
-    return 5;
+    return 0;
 }
 
 float LPCSensors::readTemperature(UInt32 index)
@@ -243,7 +254,7 @@ float LPCSensors::readTachometer(UInt32 index)
 	return 0;
 }
 
-bool LPCSensors::supportsTachometerControl()
+bool LPCSensors::isTachometerControlable(UInt32 index)
 {
     return false;
 }
@@ -307,42 +318,34 @@ bool LPCSensors::didWriteSensorValue(FakeSMCSensor *sensor, float value)
 {
     if (sensor) {
         switch (sensor->getGroup()) {
-            case kLPCSensorsFanManualSwitch: {
-                bool active = false;
-
-                for (int i = 0; i < tachometerSensorsLimit(); i++) {
-                    if (0 == (((UInt16)value >> tachometerControls[sensor->getIndex()].number) & 0x1)) {
-                        tachometerControlCancel(i);
-                    }
-
-                    if (tachometerControls[i].active) {
-                        active = true;
+                
+            case kLPCSensorsFanManualSwitch:
+                for (int index = 0; index < tachometerSensorsLimit(); index++) {
+                    if (isTachometerControlable(index) && !bit_get((UInt16)value, BIT(tachometerControls[index].number))) {
+                        tachometerControlCancel(index);
+                        tachometerControls[index].target = -1.0;
                     }
                 }
-                
                 break;
-            }
 
             case kLPCSensorsFanMinController:
-                tachometerControlInit(sensor->getIndex(), value);
+                if (isTachometerControlable(sensor->getIndex())) {
+                    tachometerControls[sensor->getIndex()].minimum = value;
+                    tachometerControlInit(sensor->getIndex(), value > tachometerControls[sensor->getIndex()].target ? value : tachometerControls[sensor->getIndex()].target);
+                }
                 break;
 
-            case kLPCSensorsFanTargetController: {
-                UInt16 buffer;
-                int manual;
-
-                getKeyValue(KEY_FAN_MANUAL, &buffer);
-
-                if (fakeSMCPluginDecodeIntValue(TYPE_UI16, TYPE_UI16_SIZE, &buffer, &manual)) {
-                    if ((manual >> tachometerControls[sensor->getIndex()].number) & 0x1) {
+            case kLPCSensorsFanTargetController:
+                if (isTachometerControlable(sensor->getIndex())) {
+                    int manual = 0;
+                    if (decodeIntValueForKey(KEY_FAN_MANUAL, &manual) && bit_get(manual, BIT(tachometerControls[sensor->getIndex()].number)) > 0 && value > tachometerControls[sensor->getIndex()].minimum) {
                         tachometerControlInit(sensor->getIndex(), value);
                     }
                 }
                 break;
-            }
 
-            default:
-                return false;
+            default: return false;
+                
         }
 
         return true;
@@ -569,18 +572,22 @@ bool LPCSensors::start(IOService *provider)
 IOReturn LPCSensors::setPowerState(unsigned long powerState, IOService *device)
 {
     switch (powerState) {
-        case 0: // Power Off
-//            if (timerScheduled) {
-//                timerEventSource->cancelTimeout();
-//            }
+        // Power Off
+        case 0:
             willPowerOff();
             break;
 
-        case 1: // Power On
+        // Power On
+        case 1:
+            // Restore fan speed after wake from sleep if it was set before
+            for (int index = 0; index < tachometerSensorsLimit(); index ++) {
+                if (tachometerControls[index].target >= 0) {
+                    tachometerControlInit(index, tachometerControls[index].target);
+                }
+            }
+
             hasPoweredOn();
-//            if (timerScheduled) {
-//                timerEventSource->setTimeoutMS(250);
-//            }
+
             break;
 
         default:

@@ -34,18 +34,19 @@
 #import "GraphsController.h"
 #import "HWMEngine.h"
 
-@interface PrefsController : NSWindowController <NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate, PopupControllerDelegate, HWMEngineDelegate, GrowlApplicationBridgeDelegate>
+@interface AppController : NSWindowController <NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate, PopupControllerDelegate, HWMEngineDelegate, GrowlApplicationBridgeDelegate>
 {
     NSView *_previousView;
-    NSMutableArray *_sensorsAndGroupsCollectionSnapshot;
-    NSMutableArray *_favoritesCollectionSnapshot;
     BOOL _forceUpdateSensors;
 }
 
-@property (assign) IBOutlet HWMEngine *monitorEngine;
+@property (readonly) IBOutlet HWMEngine *monitorEngine;
 
-@property (nonatomic, strong) IBOutlet NSMutableArray *themes;
+@property (nonatomic, strong) IBOutlet NSMutableArray *themePreview;
 @property (nonatomic, strong) IBOutlet NSMutableIndexSet *themeSelectionIndexes;
+
+@property (nonatomic, strong) IBOutlet NSMutableArray *drivePreview;
+@property (nonatomic, strong) IBOutlet NSMutableIndexSet *driveSelectionIndexes;
 
 @property (assign) IBOutlet PopupController *popupController;
 @property (assign) IBOutlet GraphsController *graphsController;
@@ -56,6 +57,9 @@
 
 @property (readonly) BOOL hasDraggedFavoriteItem;
 @property (atomic, assign) NSDragOperation currentItemDragOperation;
+
+@property (readonly) NSArray *sensorsAndGroupsCollectionSnapshot;
+@property (readonly) NSArray *favoritesCollectionSnapshot;
 
 - (IBAction)checkForUpdates:(id)sender;
 - (IBAction)rebuildSensorsList:(id)sender;

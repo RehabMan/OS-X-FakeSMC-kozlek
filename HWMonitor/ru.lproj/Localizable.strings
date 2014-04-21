@@ -265,10 +265,13 @@
 
 "CPU Core" = "Процессор, Ядро";
 "CPU Core %X" = "Процессор, Ядро %X";
+"CPU GFX" = "Процессор, Видео";
+"CPU GFX %X" = "Процессор, Видео %X";
 "CPU Package Multiplier" = "Процессор, Множитель";
 //"CPU Package" = "Процессор, Частота";
-"CPU Core %X, Average" = "Ядро ЦП %1, Средняя";
-"CPU Package, Average" = "Блок ядер ЦП, Средняя";
+"CPU Core %X Average" = "Ядро ЦП %X, Усредненно";
+"CPU Package Average" = "Процессор, Усреднённо";
+"CPU Package Frequency" = "Процессор, Частота";
 
 "GPU Core" = "Видеокарта, Ядро";
 "GPU %X Core" = "Видеокарта %X, Ядро";
@@ -332,4 +335,13 @@
 
 "Threshold:" = "Порог:";
 "Speed:" = "Обороты:";
+"Maximum:" = "Максимум:";
+"Minimum:" = "Минимум:";
+"Range:" = "Предел:";
 
+"Show drive title as:" = "Формат имени дисков:";
+"Show drive legend as:" = "Формат подписи дисков:";
+"Product name" = "Имя продукта";
+"Partition names" = "Имена разделов";
+"BSD name" = "Имя BSD";
+"Show sensor legends" = "Показывать подписи";

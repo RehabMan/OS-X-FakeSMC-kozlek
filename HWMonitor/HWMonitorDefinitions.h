@@ -9,6 +9,8 @@
 #ifndef HWSensors_HWMonitorDefinitions_h
 #define HWSensors_HWMonitorDefinitions_h
 
+#import "EXTKeyPathCoding.h"
+
 // Icons
 #define kHWMonitorIconHWMonitor             @"hwmonitor"
 #define kHWMonitorIconScale                 @"scale"
@@ -36,9 +38,5 @@
 #define NotifierSensorLevelExceededHumanReadableDescription	@"Sensor alarm level exceeded limit"
 #define NotifierSensorLevelHighHumanReadableDescription		@"Sensor high alarm level"
 #define NotifierSensorLevelModerateHumanReadableDescription	@"Sensor moderate alarm level"
-
-
-// TEST BATTERY
-//#define kHWMonitorDebugBattery
 
 #endif

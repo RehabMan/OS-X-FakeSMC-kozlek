@@ -6,6 +6,26 @@
 //  Copyright (c) 2013 kozlek. All rights reserved.
 //
 
+/*
+ *  Copyright (c) 2013 Natan Zalkin <natan.zalkin@me.com>. All rights reserved.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ */
+
 #import "HWMEngine.h"
 #import "HWMConfiguration.h"
 #import "HWMIcon.h"
@@ -21,8 +41,8 @@
 #import "HWMGraph.h"
 #import "HWMGraphsGroup.h"
 #import "HWMFavorite.h"
+#import "HWMSmcFanController.h"
 
-#import "smc.h"
 #import "Localizer.h"
 
 #import "HWMonitorDefinitions.h"
@@ -34,9 +54,10 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSensorsHasBenUpdatedNotification";
+//#define DLog(fmt, ...) NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define DLog(...)
 
-static HWMEngine* gDefaultEngine = nil;
+NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSensorsHasBenUpdatedNotification";
 
 @implementation HWMEngine
 
@@ -50,14 +71,16 @@ static HWMEngine* gDefaultEngine = nil;
 #pragma mark
 #pragma mark Global methods
 
-+(HWMEngine*)defaultEngine
++(HWMEngine*)sharedEngine
 {
-    return gDefaultEngine;
-}
+    static dispatch_once_t onceToken;
+    static HWMEngine *sharedEngine;
 
-+(HWMEngine*)engineWithBundle:(NSBundle*)bundle;
-{
-    return [[HWMEngine alloc] initWithBundle:bundle];
+    dispatch_once(&onceToken, ^{
+        sharedEngine = [[HWMEngine alloc] init];
+    });
+
+    return sharedEngine;
 }
 
 #pragma mark
@@ -114,26 +137,28 @@ static HWMEngine* gDefaultEngine = nil;
     return _managedObjectContext;
 }
 
--(void)setEngineState:(HWMEngineState)engineState
+-(HWMConfiguration *)configuration
 {
-    switch (engineState) {
-        case kHWMEngineStateIdle:
-            if (_engineState == kHWMEngineStateActive) {
-                [self internalStopEngine];
-            }
-            break;
+    if (!_configuration) {
+        // Create or load configuration entity
+        NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Configuration"];
 
-        case kHWMEngineStateActive:
-            if (_engineState == kHWMEngineStateIdle) {
-                [self internalStartEngine];
-            }
-            break;
+        NSError *error;
 
-        default:
-            break;
+        _configuration = [[self.managedObjectContext executeFetchRequest:fetchRequest error:&error] lastObject];
+
+        if (error) {
+            NSLog(@"failed to retrieve configuration %@", error);
+        }
+
+        if (!_configuration) {
+            _configuration = [NSEntityDescription insertNewObjectForEntityForName:@"Configuration" inManagedObjectContext:self.managedObjectContext];
+            
+            _configuration.colorThemeIndex = @0;
+        }
     }
 
-    _engineState = engineState;
+    return _configuration;
 }
 
 -(HWMSensorsUpdateLoopStrategy)updateLoopStrategy
@@ -170,7 +195,7 @@ static HWMEngine* gDefaultEngine = nil;
 
             // Sensors and groups
 
-            for (HWMSensorsGroup *group in _configuration.sensorGroups) {
+            for (HWMSensorsGroup *group in self.configuration.sensorGroups) {
                 NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"service != 0"]];
 
                 if (sensors.count) {
@@ -199,7 +224,7 @@ static HWMEngine* gDefaultEngine = nil;
 
             NSMutableArray *items = [[NSMutableArray alloc] init];
 
-            for (HWMSensorsGroup *group in _configuration.sensorGroups) {
+            for (HWMSensorsGroup *group in self.configuration.sensorGroups) {
                 NSArray *sensors = [[group.sensors array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"service != 0 AND hidden == NO"]];
 
                 if (sensors && sensors.count) {
@@ -225,7 +250,7 @@ static HWMEngine* gDefaultEngine = nil;
 
             NSMutableArray *items = [[NSMutableArray alloc] init];
 
-            for (HWMGraphsGroup *group in _configuration.graphGroups) {
+            for (HWMGraphsGroup *group in self.configuration.graphGroups) {
 
                 NSArray *graphs = [[group.graphs array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"sensor.service != 0"]];
 
@@ -252,7 +277,7 @@ static HWMEngine* gDefaultEngine = nil;
 
             NSMutableArray *items = [[NSMutableArray alloc] init];
 
-            for (HWMFavorite *favorite in _configuration.favorites) {
+            for (HWMFavorite *favorite in self.configuration.favorites) {
                 if ([favorite.item isKindOfClass:[HWMSensor class]] && ![(HWMSensor*)favorite.item service].unsignedLongLongValue) {
                     continue;
                 }
@@ -278,10 +303,6 @@ static HWMEngine* gDefaultEngine = nil;
 
     if (self) {
         _bundle = [NSBundle mainBundle];
-
-        if (!gDefaultEngine) {
-            gDefaultEngine = self;
-        }
     }
 
     return self;
@@ -293,10 +314,6 @@ static HWMEngine* gDefaultEngine = nil;
 
     if (self) {
         _bundle = bundle;
-
-        if (!gDefaultEngine) {
-            gDefaultEngine = self;
-        }
     }
 
     return self;
@@ -304,83 +321,6 @@ static HWMEngine* gDefaultEngine = nil;
 
 #pragma mark
 #pragma mark Private Methods
-
-- (void)initialize
-{
-    [self assignPlatformProfile];
-
-    // Create or load configuration entity
-    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Configuration"];
-
-    NSError *error;
-
-    _configuration = [[self.managedObjectContext executeFetchRequest:fetchRequest error:&error] lastObject];
-
-    if (error) {
-        NSLog(@"failed to retrieve configuration %@", error);
-    }
-
-    if (!_configuration) {
-        _configuration = [NSEntityDescription insertNewObjectForEntityForName:@"Configuration" inManagedObjectContext:self.managedObjectContext];
-
-        _configuration.colorThemeIndex = @0;
-    }
-
-    // Create color themes
-    [self insertColorThemes];
-
-    // Load icons
-    [self loadIconNamed:@"red-thermometer" asTemplate:NO];
-
-    [self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
-    [self loadIconNamed:kHWMonitorIconThermometer];
-    [self loadIconNamed:kHWMonitorIconScale];
-    [self loadIconNamed:kHWMonitorIconDevice];
-    [self loadIconNamed:kHWMonitorIconTemperatures];
-    [self loadIconNamed:kHWMonitorIconHddTemperatures];
-    [self loadIconNamed:kHWMonitorIconSsdLife];
-    [self loadIconNamed:kHWMonitorIconMultipliers];
-    [self loadIconNamed:kHWMonitorIconFrequencies];
-    [self loadIconNamed:kHWMonitorIconTachometers];
-    [self loadIconNamed:kHWMonitorIconVoltages];
-    [self loadIconNamed:kHWMonitorIconBattery];
-
-    // Cleanup icons
-    fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Icon"];
-
-    NSArray *icons = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
-
-    [icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        HWMIcon *icon = (HWMIcon*)obj;
-
-        if (!icon.regular && !icon.alternate) {
-            [self.managedObjectContext deleteObject:obj];
-        }
-    }];
-
-    // Update groups
-    [self insertGroups];
-
-    // Detect sensors
-    [self rebuildSensorsList];
-
-    _engineState = kHWMEngineStateIdle;
-
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidMountNotification object:nil];
-	[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidRenameVolumeNotification object:nil];
-
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceWillSleep:) name:NSWorkspaceWillSleepNotification object:nil];
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceDidWake:) name:NSWorkspaceDidWakeNotification object:nil];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
-
-    [self addObserver:self forKeyPath:@"configuration.useFahrenheit" options:NSKeyValueObservingOptionNew context:nil];
-    [self addObserver:self forKeyPath:@"configuration.smcSensorsUpdateRate" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
-    [self addObserver:self forKeyPath:@"configuration.smartSensorsUpdateRate" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
-    [self addObserver:self forKeyPath:@"configuration.showVolumeNames" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
-    [self addObserver:self forKeyPath:@"configuration.enableFanControl" options:NSKeyValueObservingOptionNew context:nil];
-}
 
 - (void)assignPlatformProfile
 {
@@ -521,10 +461,63 @@ static HWMEngine* gDefaultEngine = nil;
     return icon;
 }
 
+-(void)detectSensors
+{
+    //[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+
+    DLog(@"");
+
+    if (_engineState == kHWMEngineStateActive) {
+        [self internalStopEngine];
+    }
+
+    NSError *error;
+
+    // SMC SENSORS
+
+    // Add FakeSMCKeyStore keys first
+    _fakeSmcConnection = [self insertSmcSensorsWithServiceName:"FakeSMCKeyStore" excludingKeys:nil];
+
+    NSFetchRequest *sensorsFetch = [[NSFetchRequest alloc] initWithEntityName:@"Sensor"];
+
+    // Keys added from FakeSMCKeyStore
+    NSArray *excludedKeys = [[[self.managedObjectContext executeFetchRequest:sensorsFetch error:&error] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"service != 0"]] valueForKey:@"name"];
+
+    // Add keys from AppleSMC
+    _appleSmcConnection = [self insertSmcSensorsWithServiceName:"AppleSMC" excludingKeys:[NSSet setWithArray:excludedKeys]];
+
+    // Close AppleSMC connection if no keys where obtained from it
+    NSArray *appleSmcKeys = [[self.managedObjectContext executeFetchRequest:sensorsFetch error:&error] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"service == %d", _appleSmcConnection]];
+
+    if (appleSmcKeys.count == 0) {
+        SMCClose(_appleSmcConnection);
+        _appleSmcConnection = 0;
+    }
+
+    // Update graphs
+    [self insertGraphs];
+
+    // SMART
+    [HWMAtaSmartSensor startWatchingForBlockStorageDevicesWithEngine:self];
+
+    // BATTERIES
+    [HWMBatterySensor startWatchingForBatteryDevicesWithEngine:self];
+
+    // Save context
+    [self saveConfiguration];
+
+    [self setNeedsUpdateLists];
+
+    if (_engineState == kHWMEngineStateActive) {
+        [self internalStartEngine];
+    }
+    //}];
+}
+
 - (void)initSmcAndDevicesTimer
 {
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        if (_smcAndDevicesSensorsUpdateLoopTimer && _smcAndDevicesSensorsUpdateLoopTimer.timeInterval == _configuration.smcSensorsUpdateRate.floatValue) {
+    //[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        if (_smcAndDevicesSensorsUpdateLoopTimer && _smcAndDevicesSensorsUpdateLoopTimer.timeInterval == self.configuration.smcSensorsUpdateRate.floatValue) {
             return;
         }
 
@@ -532,16 +525,16 @@ static HWMEngine* gDefaultEngine = nil;
             [_smcAndDevicesSensorsUpdateLoopTimer invalidate];
         }
 
-        _smcAndDevicesSensorsUpdateLoopTimer = [NSTimer timerWithTimeInterval:_configuration.smcSensorsUpdateRate.floatValue target:self selector:@selector(updateSmcAndDeviceSensors) userInfo:nil repeats:YES];
+        _smcAndDevicesSensorsUpdateLoopTimer = [NSTimer timerWithTimeInterval:self.configuration.smcSensorsUpdateRate.floatValue target:self selector:@selector(updateSmcAndDeviceSensors) userInfo:nil repeats:YES];
 
         [[NSRunLoop mainRunLoop] addTimer:_smcAndDevicesSensorsUpdateLoopTimer forMode:NSRunLoopCommonModes];
-    }];
+    //}];
 }
 
 - (void)initAtaSmartTimer
 {
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        if (_ataSmartSensorsUpdateLoopTimer && _ataSmartSensorsUpdateLoopTimer.timeInterval == _configuration.smartSensorsUpdateRate.floatValue * 60.0f) {
+    //[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        if (_ataSmartSensorsUpdateLoopTimer && _ataSmartSensorsUpdateLoopTimer.timeInterval == self.configuration.smartSensorsUpdateRate.floatValue * 60.0f) {
             return;
         }
 
@@ -549,56 +542,230 @@ static HWMEngine* gDefaultEngine = nil;
             [_ataSmartSensorsUpdateLoopTimer invalidate];
         }
 
-        _ataSmartSensorsUpdateLoopTimer = [NSTimer timerWithTimeInterval:_configuration.smartSensorsUpdateRate.floatValue * 60.0f target:self selector:@selector(updateAtaSmartSensors) userInfo:nil repeats:YES];
+        _ataSmartSensorsUpdateLoopTimer = [NSTimer timerWithTimeInterval:self.configuration.smartSensorsUpdateRate.floatValue * 60.0f target:self selector:@selector(updateAtaSmartSensors) userInfo:nil repeats:YES];
 
         [[NSRunLoop mainRunLoop] addTimer:_ataSmartSensorsUpdateLoopTimer forMode:NSRunLoopCommonModes];
 
-    }];
+    //}];
 }
 
+/**
+ *  Start initialized engine. This method doesn't check and change engine state
+ */
 -(void)internalStartEngine
 {
-    if (!_smcAndDevicesSensorsUpdateLoopTimer || ![_smcAndDevicesSensorsUpdateLoopTimer isValid]) {
-        [self initSmcAndDevicesTimer];
-    }
+    //if (_engineState == kHWMEngineStateIdle) {
+        if (!_smcAndDevicesSensorsUpdateLoopTimer || ![_smcAndDevicesSensorsUpdateLoopTimer isValid]) {
+            [self initSmcAndDevicesTimer];
+        }
 
-    if (!_ataSmartSensorsUpdateLoopTimer || ![_ataSmartSensorsUpdateLoopTimer isValid]) {
-        [self initAtaSmartTimer];
-    }
+        if (!_ataSmartSensorsUpdateLoopTimer || ![_ataSmartSensorsUpdateLoopTimer isValid]) {
+            [self initAtaSmartTimer];
+        }
+    //}
 }
 
+/**
+ *  Stop active engine; stop timers, close connections and device watchers. Doesn't check and change engine state
+ */
 -(void)internalStopEngine
 {
-    if (_smcAndDevicesSensorsUpdateLoopTimer) {
-        [_smcAndDevicesSensorsUpdateLoopTimer invalidate];
-        _smcAndDevicesSensorsUpdateLoopTimer = 0;
-    }
+    //if (_engineState == kHWMEngineStateActive) {
+        if (_smcAndDevicesSensorsUpdateLoopTimer) {
+            [_smcAndDevicesSensorsUpdateLoopTimer invalidate];
+            _smcAndDevicesSensorsUpdateLoopTimer = 0;
+        }
 
-    if (_ataSmartSensorsUpdateLoopTimer) {
-        [_ataSmartSensorsUpdateLoopTimer invalidate];
-        _ataSmartSensorsUpdateLoopTimer = 0;
+        if (_ataSmartSensorsUpdateLoopTimer) {
+            [_ataSmartSensorsUpdateLoopTimer invalidate];
+            _ataSmartSensorsUpdateLoopTimer = 0;
+        }
+
+        [HWMAtaSmartSensor stopWatchingForBlockStorageDevices];
+        [HWMBatterySensor stopWatchingForBatteryDevices];
+    //}
+}
+
+-(void)internalCaptureSensorValuesToGraphs
+{
+    if (!self.delegate || (self.delegate && [self.delegate respondsToSelector:@selector(engine:shouldCaptureSensorValuesToGaphsHistoryWithLimit:)])) {
+
+        NSUInteger limit;
+
+        if ([self.delegate engine:self shouldCaptureSensorValuesToGaphsHistoryWithLimit:&limit] || self.configuration.updateSensorsInBackground.boolValue) {
+            for (HWMGraphsGroup *graphsGroup in self.configuration.graphGroups) {
+                [graphsGroup captureSensorValuesToGraphsHistorySetLimit:limit];
+            }
+        }
     }
 }
 
 #pragma mark
 #pragma mark Public Methods
 
--(void)saveContext
+- (void)open
 {
+    DLog(@"");
+
+    if (_engineState > kHWMEngineStateClosed) {
+        return;
+    }
+
+    [self assignPlatformProfile];
+
+    // Create color themes
+    [self insertColorThemes];
+
+    // Load icons
+    [self loadIconNamed:@"red-thermometer" asTemplate:NO];
+
+    [self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconThermometer];
+    [self loadIconNamed:kHWMonitorIconScale];
+    [self loadIconNamed:kHWMonitorIconDevice];
+    [self loadIconNamed:kHWMonitorIconTemperatures];
+    [self loadIconNamed:kHWMonitorIconHddTemperatures];
+    [self loadIconNamed:kHWMonitorIconSsdLife];
+    [self loadIconNamed:kHWMonitorIconMultipliers];
+    [self loadIconNamed:kHWMonitorIconFrequencies];
+    [self loadIconNamed:kHWMonitorIconTachometers];
+    [self loadIconNamed:kHWMonitorIconVoltages];
+    [self loadIconNamed:kHWMonitorIconBattery];
+
     NSError *error;
 
-    if (![self.managedObjectContext save:&error])
+    // Cleanup icons
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Icon"];
+
+    NSArray *icons = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
+
+    [icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        HWMIcon *icon = (HWMIcon*)obj;
+
+        if (!icon.regular && !icon.alternate) {
+            [self.managedObjectContext deleteObject:obj];
+        }
+    }];
+
+    // Update groups
+    [self insertGroups];
+
+    // Detect sensors
+    [self detectSensors];
+
+    _engineState = kHWMEngineStatePaused;
+
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidMountNotification object:nil];
+	[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self selector: @selector(workspaceDidMountOrUnmount:) name:NSWorkspaceDidRenameVolumeNotification object:nil];
+
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceWillSleep:) name:NSWorkspaceWillSleepNotification object:nil];
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(workspaceDidWake:) name:NSWorkspaceDidWakeNotification object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
+
+    [self addObserver:self forKeyPath:@keypath(self, configuration.useFahrenheit) options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, configuration.smcSensorsUpdateRate) options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, configuration.smartSensorsUpdateRate) options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
+}
+
+-(void)start
+{
+    DLog(@"");
+    if (_engineState == kHWMEngineStatePaused) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            _engineState = kHWMEngineStateActive;
+            [self internalStartEngine];
+        }];
+    }
+}
+
+-(void)stop
+{
+    DLog(@"");
+    if (_engineState == kHWMEngineStateActive) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            _engineState = kHWMEngineStatePaused;
+            [self internalStopEngine];
+        }];
+    }
+}
+
+-(void)close
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+
+        DLog(@"");
+
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
+
+        [self saveConfiguration];
+
+        for (HWMSensor *sensor in _smcAndDevicesSensors) {
+            if (sensor.service && sensor.service.unsignedLongLongValue) {
+                IOObjectRelease((io_object_t)sensor.service.unsignedLongLongValue);
+                sensor.service = @0;
+            }
+        }
+
+        if (_appleSmcConnection) {
+            SMCClose(_appleSmcConnection);
+            _appleSmcConnection = 0;
+        }
+
+        if (_fakeSmcConnection) {
+            SMCClose(_fakeSmcConnection);
+            _fakeSmcConnection = 0;
+        }
+
+        _configuration = nil;
+        _managedObjectContext = nil;
+        _managedObjectModel = nil;
+        _persistentStoreCoordinator = nil;
+    }];
+}
+
+-(void)saveConfiguration
+{
+    DLog(@"");
+
+    if (_engineState < kHWMEngineStatePaused) {
+        return;
+    }
+
+    NSError *error;
+
+    if (![self.managedObjectContext save:&error]) {
         NSLog(@"failed to save context %@", error);
+    }
+}
+
+-(void)forceDetectSensors
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        DLog(@"");
+
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
+
+        [self detectSensors];
+    }];
 }
 
 -(void)updateSmcAndDeviceSensors
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
 
-        if (_engineState == kHWMEngineNotInitialized)
-            return;
+        DLog(@"");
 
-        NSTimeInterval nineTenths = _configuration.smcSensorsUpdateRate.floatValue * 0.9f;
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
+
+        NSTimeInterval nineTenths = self.configuration.smcSensorsUpdateRate.floatValue * 0.9f;
 
         if (_smcAndDevicesSensorsLastUpdated && fabs(_smcAndDevicesSensorsLastUpdated.timeIntervalSinceNow) < nineTenths) {
             return;
@@ -622,17 +789,15 @@ static HWMEngine* gDefaultEngine = nil;
             _smcAndDevicesSensors = [sensors copy];
         }
 
-        for (HWMSensor *sensor in _smcAndDevicesSensors) {
-            BOOL doUpdate = NO;
+        for (__block HWMSensor *sensor in _smcAndDevicesSensors) {
+
+            BOOL doUpdate = sensor.forced.boolValue || sensor.consumers.count || sensor.controller || self.configuration.updateSensorsInBackground.boolValue;
 
 //            if (sensor.lastUpdated && fabs(sensor.lastUpdated.timeIntervalSinceNow) < nineTenths) {
 //                continue;
 //            }
 
-            if (_configuration.updateSensorsInBackground.boolValue || sensor.forced.boolValue || sensor.acceptors.count) {
-                doUpdate = YES;
-            }
-            else {
+            if (!doUpdate) {
                 switch (self.updateLoopStrategy) {
                     case kHWMSensorsUpdateLoopForced:
                         doUpdate = YES;
@@ -654,16 +819,7 @@ static HWMEngine* gDefaultEngine = nil;
             }
         }
 
-        if (self.delegate && [self.delegate respondsToSelector:@selector(engine:shouldCaptureSensorValuesToGaphsHistoryWithLimit:)]) {
-
-            NSUInteger limit;
-
-            if ([self.delegate engine:self shouldCaptureSensorValuesToGaphsHistoryWithLimit:&limit]) {
-                for (HWMGraphsGroup *graphsGroup in self.configuration.graphGroups) {
-                    [graphsGroup captureSensorValuesToGraphsHistorySetLimit:limit];
-                }
-            }
-        }
+        [self internalCaptureSensorValuesToGraphs];
 
         [[NSNotificationCenter defaultCenter] postNotificationName:HWMEngineSensorValuesHasBeenUpdatedNotification object:self];
     }];
@@ -673,10 +829,13 @@ static HWMEngine* gDefaultEngine = nil;
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
 
-        if (_engineState == kHWMEngineNotInitialized)
-            return;
+        DLog(@"");
 
-        NSTimeInterval nineTenths = _configuration.smartSensorsUpdateRate.floatValue * 60 * 0.9f;
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
+
+        NSTimeInterval nineTenths = self.configuration.smartSensorsUpdateRate.floatValue * 60 * 0.9f;
 
         if (_ataSmartSensorsLastUpdated && fabs(_ataSmartSensorsLastUpdated.timeIntervalSinceNow) < nineTenths) {
             return;
@@ -702,16 +861,14 @@ static HWMEngine* gDefaultEngine = nil;
 
         if (_ataSmartSensors) {
             for (HWMAtaSmartSensor *sensor in _ataSmartSensors) {
-                BOOL doUpdate = NO;
+
+                BOOL doUpdate = sensor.forced.boolValue || sensor.consumers.count || sensor.controller || self.configuration.updateSensorsInBackground.boolValue;
 
 //                if (sensor.lastUpdated && fabs(sensor.lastUpdated.timeIntervalSinceNow) < nineTenths) {
 //                    continue;
 //                }
 
-                if (_configuration.updateSensorsInBackground.boolValue || sensor.forced.boolValue || sensor.acceptors.count) {
-                    doUpdate = YES;
-                }
-                else {
+                if (!doUpdate) {
                     switch (self.updateLoopStrategy) {
                         case kHWMSensorsUpdateLoopForced:
                             doUpdate = YES;
@@ -728,128 +885,83 @@ static HWMEngine* gDefaultEngine = nil;
                     }
                 }
 
-                if (doUpdate)
+                if (doUpdate) {
                     [sensor doUpdateValue];
+                }
             }
 
             [HWMSmartPluginInterfaceWrapper destroyAllWrappers];
 
-            if (self.delegate && [self.delegate respondsToSelector:@selector(engine:shouldCaptureSensorValuesToGaphsHistoryWithLimit:)]) {
-
-                NSUInteger limit;
-
-                if ([self.delegate engine:self shouldCaptureSensorValuesToGaphsHistoryWithLimit:&limit]) {
-                    for (HWMGraphsGroup *graphsGroup in self.configuration.graphGroups) {
-                        [graphsGroup captureSensorValuesToGraphsHistorySetLimit:limit];
-                    }
-                }
-            }
+            [self internalCaptureSensorValuesToGraphs];
 
             [[NSNotificationCenter defaultCenter] postNotificationName:HWMEngineSensorValuesHasBeenUpdatedNotification object:self];
         }
     }];
 }
 
--(void)rebuildSensorsList
-{
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-
-        if (_engineState == kHWMEngineStateActive) {
-            [self internalStopEngine];
-        }
-
-        NSError *error;
-
-        // Nulify "service" attribute for all sensors
-        NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Sensor"];
-
-        NSArray *objects = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
-
-        for (HWMSmcSensor *sensor in objects) {
-            [sensor setService:@0];
-        }
-
-        // SMC
-
-        // FakeSMCKeyStore is prioritized key source
-        SMCOpen("FakeSMCKeyStore", &_fakeSmcConnection);
-        NSArray *fakeSmcKeys = [self getSmcKeysFromConnection:_fakeSmcConnection excludedList:nil];
-        if (!fakeSmcKeys || !fakeSmcKeys.count) SMCClose(_fakeSmcConnection);
-
-        SMCOpen("AppleSMC", &_smcConnection);
-        NSArray *smcKeys = [self getSmcKeysFromConnection:_smcConnection excludedList:fakeSmcKeys];
-        if (!smcKeys || !smcKeys.count) SMCClose(_smcConnection);
-
-        [self insertSmcSensorsWithKeys:fakeSmcKeys connection:_fakeSmcConnection];
-        [self insertSmcSensorsWithKeys:smcKeys connection:_smcConnection];
-
-        // SMART
-        [HWMAtaSmartSensor startWatchingForBlockStorageDevicesWithEngine:self];
-
-        // FANS
-        [self insertSmcFansWithConnection:_fakeSmcConnection keys:fakeSmcKeys];
-        [self insertSmcFansWithConnection:_smcConnection keys:smcKeys];
-
-        // Insert additional GPU fans from FakeSMCKeyStore
-        [self insertSmcGpuFansWithConnection:_fakeSmcConnection keys:fakeSmcKeys];
-
-        // BATTERIES
-        [HWMBatterySensor startWatchingForBatteryDevicesWithEngine:self];
-
-        // Update graphs
-        [self insertGraphs];
-
-        // Save context
-        if (![self.managedObjectContext save:&error])
-            NSLog(@"saving context on rebuildSensorsList error %@", error);
-
-        [self setNeedsUpdateLists];
-
-        if (_engineState == kHWMEngineStateActive) {
-            [self internalStartEngine];
-        }
-
-    }];
-}
-
 -(void)setNeedsUpdateLists
 {
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+    DLog(@"");
+
     [self setNeedsUpdateSensorLists];
     [self setNeedsUpdateGraphsList];
+    }];
 }
 
 -(void)setNeedsUpdateSensorLists
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        [self willChangeValueForKey:@"iconsWithSensorsAndGroups"];
-        _iconsWithSensorsAndGroups = nil;
-        [self didChangeValueForKey:@"iconsWithSensorsAndGroups"];
 
-        [self willChangeValueForKey:@"sensorsAndGroups"];
-        _sensorsAndGroups = nil;
-        [self didChangeValueForKey:@"sensorsAndGroups"];
+        DLog(@"");
 
-        [self willChangeValueForKey:@"favorites"];
-        _favorites = nil;
-        [self didChangeValueForKey:@"favorites"];
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
 
         _smcAndDevicesSensors = nil;
         _ataSmartSensors = nil;
+
+        [self willChangeValueForKey:@keypath(self, iconsWithSensorsAndGroups)];
+        _iconsWithSensorsAndGroups = nil;
+        [self didChangeValueForKey:@keypath(self, iconsWithSensorsAndGroups)];
+
+        [self willChangeValueForKey:@keypath(self, sensorsAndGroups)];
+        _sensorsAndGroups = nil;
+        [self didChangeValueForKey:@keypath(self, sensorsAndGroups)];
+
+        [self willChangeValueForKey:@keypath(self, favorites)];
+        _favorites = nil;
+        [self didChangeValueForKey:@keypath(self, favorites)];
     }];
 }
 
 -(void)setNeedsUpdateGraphsList
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        [self willChangeValueForKey:@"graphsAndGroups"];
+
+        DLog(@"");
+
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
+
+        [self willChangeValueForKey:@keypath(self, graphsAndGroups)];
         _graphsAndGroups = nil;
-        [self didChangeValueForKey:@"graphsAndGroups"];
+        [self didChangeValueForKey:@keypath(self, graphsAndGroups)];
     }];
 }
 
 -(void)setNeedsRecalculateSensorValues
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+
+        DLog(@"");
+
+        if (_engineState < kHWMEngineStatePaused) {
+            return;
+        }
+
         NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"Sensor"];
 
         NSError *error;
@@ -862,29 +974,17 @@ static HWMEngine* gDefaultEngine = nil;
 
         if (sensors) {
             [sensors enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                [obj willChangeValueForKey:@"value"];
-                [obj didChangeValueForKey:@"value"];
-                [obj willChangeValueForKey:@"formattedValue"];
-                [obj didChangeValueForKey:@"formattedValue"];
-                [obj willChangeValueForKey:@"strippedValue"];
-                [obj didChangeValueForKey:@"strippedValue"];
+                HWMSensor *sensor = obj;
+
+                [obj willChangeValueForKey:@keypath(sensor, value)];
+                [obj didChangeValueForKey:@keypath(sensor, value)];
+                [obj willChangeValueForKey:@keypath(sensor, formattedValue)];
+                [obj didChangeValueForKey:@keypath(sensor, formattedValue)];
+                [obj willChangeValueForKey:@keypath(sensor, strippedValue)];
+                [obj didChangeValueForKey:@keypath(sensor, strippedValue)];
             }];
         }
     }];
-}
-
--(void)startEngine
-{
-    [self internalStartEngine];
-
-    self.engineState = kHWMEngineStateActive;
-}
-
--(void)stopEngine
-{
-    [self internalStopEngine];
-
-    self.engineState = kHWMEngineStateIdle;
 }
 
 #pragma mark
@@ -902,32 +1002,32 @@ static HWMEngine* gDefaultEngine = nil;
 
             [favorite setItem:item];
 
-            [[_configuration mutableOrderedSetValueForKey:@"favorites"] insertObject:favorite atIndex:index];
+            [[self.configuration mutableOrderedSetValueForKey:@keypath(self, favorites)] insertObject:favorite atIndex:index];
 
-            [self willChangeValueForKey:@"favorites"];
+            [self willChangeValueForKey:@keypath(self, favorites)];
             _favorites = nil;
-            [self didChangeValueForKey:@"favorites"];
+            [self didChangeValueForKey:@keypath(self, favorites)];
 
     }
 }
 
 -(void)moveFavoritesItemAtIndex:(NSUInteger)fromIndex toIndex:(NSUInteger)toIndex
 {
-    [[_configuration mutableOrderedSetValueForKey:@"favorites"] moveObjectsAtIndexes:[NSIndexSet indexSetWithIndex:fromIndex] toIndex:toIndex > fromIndex ? toIndex - 1 : toIndex < _configuration.favorites.count ? toIndex : _configuration.favorites.count];
+    [[self.configuration mutableOrderedSetValueForKey:@keypath(self, favorites)] moveObjectsAtIndexes:[NSIndexSet indexSetWithIndex:fromIndex] toIndex:toIndex > fromIndex ? toIndex - 1 : toIndex < self.configuration.favorites.count ? toIndex : self.configuration.favorites.count];
 
-    [self willChangeValueForKey:@"favorites"];
+    [self willChangeValueForKey:@keypath(self, favorites)];
     _favorites = nil;
-    [self didChangeValueForKey:@"favorites"];
+    [self didChangeValueForKey:@keypath(self, favorites)];
 }
 
 -(void)removeItemFromFavoritesAtIndex:(NSUInteger)index
 {
-        if (!_configuration.favorites.count)
+        if (!self.configuration.favorites.count)
             return;
 
-        HWMFavorite *favorite = [_configuration.favorites objectAtIndex:index];
+        HWMFavorite *favorite = [self.configuration.favorites objectAtIndex:index];
 
-        [[_configuration mutableOrderedSetValueForKey:@"favorites"] removeObjectAtIndex:index];
+        [[self.configuration mutableOrderedSetValueForKey:@"favorites"] removeObjectAtIndex:index];
 
         [self.managedObjectContext deleteObject:favorite];
 
@@ -941,29 +1041,20 @@ static HWMEngine* gDefaultEngine = nil;
 
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-    if ([keyPath isEqual:@"configuration.useFahrenheit"]) {
+    if ([keyPath isEqual:@keypath(self, configuration.useFahrenheit)]) {
         [self setNeedsRecalculateSensorValues];
         
     }
-    else if ([keyPath isEqual:@"configuration.smcSensorsUpdateRate"]) {
-        [self performSelectorInBackground:@selector(initSmcAndDevicesTimer) withObject:nil];
-
+    else if ([keyPath isEqual:@keypath(self, configuration.smcSensorsUpdateRate)]) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [self initSmcAndDevicesTimer];
+        }];
     }
-    else if ([keyPath isEqual:@"configuration.smartSensorsUpdateRate"]) {
-        [self performSelectorInBackground:@selector(initAtaSmartTimer) withObject:nil];
-
+    else if ([keyPath isEqual:@keypath(self, configuration.smartSensorsUpdateRate)]) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [self initAtaSmartTimer];
+        }];
     }
-    else if ([keyPath isEqual:@"configuration.showVolumeNames"]) {
-        [self willChangeValueForKey:@"sensorsAndGroups"];
-        [self didChangeValueForKey:@"sensorsAndGroups"];
-
-    }
-}
-
--(void)awakeFromNib
-{
-    [self initialize];
-    //[self startEngine];
 }
 
 -(void)workspaceDidMountOrUnmount:(id)sender
@@ -986,10 +1077,10 @@ static HWMEngine* gDefaultEngine = nil;
         }
 
         // Force update some sensors info
-        [_configuration willChangeValueForKey:@"useBsdDriveNames"];
-        [_configuration didChangeValueForKey:@"useBsdDriveNames"];
-        [_configuration willChangeValueForKey:@"showVolumeNames"];
-        [_configuration didChangeValueForKey:@"showVolumeNames"];
+        [self.configuration willChangeValueForKey:@keypath(self.configuration, driveNameSelector)];
+        [self.configuration didChangeValueForKey:@keypath(self.configuration, driveNameSelector)];
+        //[_configuration willChangeValueForKey:@keypath(_configuration, showSensorLegendsInPopup)];
+        //[_configuration didChangeValueForKey:@keypath(_configuration, showSensorLegendsInPopup)];
 
         [self setNeedsUpdateLists];
     }
@@ -997,33 +1088,16 @@ static HWMEngine* gDefaultEngine = nil;
 
 -(void)workspaceWillSleep:(id)sender
 {
-    [self saveContext];
+    [self saveConfiguration];
 
-    if (self.engineState == kHWMEngineStateActive) {
+    if (_engineState == kHWMEngineStateActive) {
         [self internalStopEngine];
     }
-
-    if (_smcConnection) {
-        SMCClose(_smcConnection);
-        _smcConnection = 0;
-    }
-
-    if (_fakeSmcConnection) {
-        SMCClose(_fakeSmcConnection);
-        _fakeSmcConnection = 0;
-    }
-
-    [HWMAtaSmartSensor stopWatchingForBlockStorageDevices];
-    [HWMBatterySensor stopWatchingForBatteryDevices];
 }
 
 -(void)workspaceDidWake:(id)sender
 {
-    [self rebuildSensorsList];
-
-    if (self.engineState == kHWMEngineStateActive) {
-        [self internalStartEngine];
-    }
+    [self forceDetectSensors];
 }
 
 - (void)systemDidAddBlockStorageDevices:(NSArray*)devices
@@ -1118,27 +1192,17 @@ static HWMEngine* gDefaultEngine = nil;
 
 - (void)applicationWillTerminate:(id)sender
 {
-    [self removeObserver:self forKeyPath:@"configuration.useFahrenheit"];
-    [self removeObserver:self forKeyPath:@"configuration.smcSensorsUpdateRate"];
-    [self removeObserver:self forKeyPath:@"configuration.smartSensorsUpdateRate"];
-    [self removeObserver:self forKeyPath:@"configuration.showVolumeNames"];
+    [self removeObserver:self forKeyPath:@keypath(self, configuration.useFahrenheit)];
+    [self removeObserver:self forKeyPath:@keypath(self, configuration.smcSensorsUpdateRate)];
+    [self removeObserver:self forKeyPath:@keypath(self, configuration.smartSensorsUpdateRate)];
 
-    [self internalStopEngine];
-    [HWMAtaSmartSensor stopWatchingForBlockStorageDevices];
-    [HWMBatterySensor stopWatchingForBatteryDevices];
-
-    [self saveContext];
-
-    for (HWMSensor *sensor in _smcAndDevicesSensors) {
-        if (sensor.service && sensor.service.unsignedLongLongValue) {
-            IOObjectRelease((io_object_t)sensor.service.unsignedLongLongValue);
-        }
+    if (self.engineState == kHWMEngineStateActive) {
+        [self internalStopEngine];
     }
-    if (_smcConnection)
-        SMCClose(_smcConnection);
 
-    if (_fakeSmcConnection)
-        SMCClose(_fakeSmcConnection);
+    [self saveConfiguration];
+
+    [self close];
 }
 
 #pragma mark
@@ -1146,14 +1210,14 @@ static HWMEngine* gDefaultEngine = nil;
 
 -(HWMColorTheme*)getColorThemeByName:(NSString*)name
 {
-    NSArray *themes = [[_configuration.colorThemes array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
+    NSArray *themes = [[self.configuration.colorThemes array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
 
     return themes && themes.count ? [themes objectAtIndex:0] : nil;
 }
 
 -(HWMColorTheme*)getColorThemeByIndex:(NSUInteger)index
 {
-    return [_configuration.colorThemes objectAtIndex:index];
+    return [self.configuration.colorThemes objectAtIndex:index];
     /*NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:@"ColorTheme"];
 
      [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"order == %d", index]];
@@ -1191,7 +1255,7 @@ static HWMEngine* gDefaultEngine = nil;
         colorTheme = [NSEntityDescription insertNewObjectForEntityForName:@"ColorTheme" inManagedObjectContext:self.managedObjectContext];
 
         [colorTheme setName:name];
-        [colorTheme setConfiguration:_configuration];
+        [colorTheme setConfiguration:self.configuration];
     }
 
     [colorTheme setGroupEndColor:groupEndColor];
@@ -1221,12 +1285,12 @@ static HWMEngine* gDefaultEngine = nil;
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.90]
-                   listStrokeColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.35]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90] highlightWithLevel:0.4]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90] highlightWithLevel:0.6]
-                toolbarStrokeColor:nil//[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.90] blendedColorWithFraction:0.8 ofColor:[NSColor colorWithCalibratedWhite:0.6 alpha:1.00]]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.93]
+                   listStrokeColor:nil//[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.93]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.93] highlightWithLevel:0.4]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.93] highlightWithLevel:0.6]
+                toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.1 alpha:1.00]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
 
@@ -1237,12 +1301,12 @@ static HWMEngine* gDefaultEngine = nil;
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.90]
-                   listStrokeColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.35]
-                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.90]
-                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.90] highlightWithLevel:0.30]
-                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.90] highlightWithLevel:0.55]
-                toolbarStrokeColor:nil//[[NSColor colorWithCalibratedWhite:0.23 alpha:0.95] highlightWithLevel:0.15]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.93]
+                   listStrokeColor:nil//[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
+                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.93]
+                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.93] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.93] highlightWithLevel:0.55]
+                toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.1 alpha:1.00]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
 
@@ -1253,12 +1317,12 @@ static HWMEngine* gDefaultEngine = nil;
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.65 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.85 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.95 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.90]
-                   listStrokeColor:[NSColor colorWithCalibratedWhite:0.0 alpha:0.95]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90] highlightWithLevel:0.30]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90] highlightWithLevel:0.55]
-                toolbarStrokeColor:nil//[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.90]  blendedColorWithFraction:0.8 ofColor:[NSColor colorWithCalibratedWhite:0.5 alpha:0.90]]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.93]
+                   listStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.93]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.93] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.93] highlightWithLevel:0.55]
+                toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:YES];
 }
@@ -1268,7 +1332,7 @@ static HWMEngine* gDefaultEngine = nil;
 
 -(HWMSensorsGroup*)getGroupBySelector:(NSUInteger)selector
 {
-    NSArray *groups = [[_configuration.sensorGroups array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"selector == %d", selector]];
+    NSArray *groups = [[self.configuration.sensorGroups array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"selector == %d", selector]];
     return groups && groups.count ? [groups objectAtIndex:0] : nil;
 }
 
@@ -1279,7 +1343,7 @@ static HWMEngine* gDefaultEngine = nil;
     if (!group) {
         group = [NSEntityDescription insertNewObjectForEntityForName:@"SensorsGroup" inManagedObjectContext:self.managedObjectContext];
 
-        [group setConfiguration:_configuration];
+        [group setConfiguration:self.configuration];
     }
 
     [group setName:name];
@@ -1330,18 +1394,15 @@ static HWMEngine* gDefaultEngine = nil;
     if (!connection)
         return nil;
 
-    SMCVal_t val;
-
-    SMCReadKey(connection, "#KEY", &val);
-
-    UInt32 count = [SmcHelper decodeNumericValueFromBuffer:val.bytes length:val.dataSize type:val.dataType].unsignedIntValue;
-
     NSMutableArray *array = [[NSMutableArray alloc] init];
+
+    UInt32 count = [SmcHelper readNumericKey:@"#KEY" connection:connection].unsignedIntValue;
 
     for (UInt32 index = 0; index < count; index++) {
         SMCKeyData_t  inputStructure;
         SMCKeyData_t  outputStructure;
-
+        SMCVal_t val;
+        
         memset(&inputStructure, 0, sizeof(SMCKeyData_t));
         memset(&outputStructure, 0, sizeof(SMCKeyData_t));
         memset(&val, 0, sizeof(SMCVal_t));
@@ -1398,7 +1459,7 @@ static HWMEngine* gDefaultEngine = nil;
     return sensor;
 }
 
--(void)insertSmcSensorsWithKeys:(NSArray*)keys connection:(io_connect_t)connection selector:(NSUInteger)selector
+-(void)insertSmcSensorsWithKeys:(NSSet*)keys connection:(io_connect_t)connection selector:(NSUInteger)selector
 {
     if (!connection || !selector)
         return;
@@ -1461,23 +1522,23 @@ static HWMEngine* gDefaultEngine = nil;
 
                 NSString *keyFormat = [NSString stringWithFormat:@"%@%%X%@", [key substringToIndex:formater.location], [key substringFromIndex:formater.location + formater.length + 3]];
 
-                for (NSUInteger index = 0; index < count; index++) {
+                for (NSUInteger offset = 0; offset < count; offset++) {
 
-                    NSString *formattedKey = [NSString stringWithFormat:keyFormat, start + index];
+                    NSString *formattedKey = [NSString stringWithFormat:keyFormat, start + offset];
 
-                    if ([keys indexOfObject:formattedKey] != NSNotFound /*&& [excludedKeys indexOfObject:formattedKey] == NSNotFound*/) {
+                    if ([keys containsObject:formattedKey]) {
 
                         SMCVal_t info;
 
                         if (kIOReturnSuccess == SMCReadKey(connection, [formattedKey cStringUsingEncoding:NSASCIIStringEncoding], &info)) {
 
-                            [self insertSmcSensorWithConnection:connection name:formattedKey type:[NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding] title:[NSString stringWithFormat:GetLocalizedString(title), shift + index] selector:selector group:group];
+                            [self insertSmcSensorWithConnection:connection name:formattedKey type:[NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding] title:[NSString stringWithFormat:GetLocalizedString(title), shift + offset] selector:selector group:group];
 
                         }
                     }
                 }
             }
-            else if ([keys indexOfObject:key] != NSNotFound /*&& [excludedKeys indexOfObject:key] == NSNotFound*/) {
+            else if ([keys containsObject:key]) {
 
                 SMCVal_t info;
 
@@ -1491,7 +1552,7 @@ static HWMEngine* gDefaultEngine = nil;
     }];
 }
 
--(void)insertSmcSensorsWithKeys:(NSArray*)keys connection:(io_connect_t)connection
+-(void)insertSmcSensorsWithKeys:(NSSet*)keys connection:(io_connect_t)connection
 {
     [self insertSmcSensorsWithKeys:keys connection:connection selector:kHWMGroupTemperature];
     [self insertSmcSensorsWithKeys:keys connection:connection selector:kHWMGroupMultiplier];
@@ -1499,6 +1560,53 @@ static HWMEngine* gDefaultEngine = nil;
     [self insertSmcSensorsWithKeys:keys connection:connection selector:kHWMGroupVoltage];
     [self insertSmcSensorsWithKeys:keys connection:connection selector:kHWMGroupCurrent];
     [self insertSmcSensorsWithKeys:keys connection:connection selector:kHWMGroupPower];
+}
+
+-(io_connect_t)insertSmcSensorsWithServiceName:(const char*)service excludingKeys:(NSSet*)excludedKeys
+{
+    io_connect_t connection;
+
+    if (kIOReturnSuccess == SMCOpen(service, &connection)) {
+
+        NSMutableSet *keys = [[NSMutableSet alloc] init];
+
+        UInt32 count = [SmcHelper readNumericKey:@"#KEY" connection:connection].unsignedIntValue;
+
+        for (UInt32 index = 0; index < count; index++) {
+            SMCKeyData_t  inputStructure;
+            SMCKeyData_t  outputStructure;
+            SMCVal_t val;
+
+            memset(&inputStructure, 0, sizeof(SMCKeyData_t));
+            memset(&outputStructure, 0, sizeof(SMCKeyData_t));
+            memset(&val, 0, sizeof(SMCVal_t));
+
+            inputStructure.data8 = SMC_CMD_READ_INDEX;
+            inputStructure.data32 = index;
+
+            if (kIOReturnSuccess == SMCCall(connection, KERNEL_INDEX_SMC, &inputStructure, &outputStructure)) {
+                [keys addObject:[NSString stringWithFormat:@"%c%c%c%c",
+                                 (unsigned int) outputStructure.key >> 24,
+                                 (unsigned int) outputStructure.key >> 16,
+                                 (unsigned int) outputStructure.key >> 8,
+                                 (unsigned int) outputStructure.key]];
+            }
+        }
+
+        NSMutableSet *strippedKeys = keys.mutableCopy;
+
+        [strippedKeys minusSet:excludedKeys];
+
+        if (keys.count) {
+            [self insertSmcSensorsWithKeys:strippedKeys connection:connection];
+            [self insertSmcFansWithConnection:connection keys:keys];
+            [self insertSmcGpuFansWithConnection:connection keys:keys];
+        }
+        
+        return connection;
+    }
+    
+    return 0;
 }
 
 #pragma mark
@@ -1514,7 +1622,7 @@ static HWMEngine* gDefaultEngine = nil;
 
 -(HWMSmcSensor*)insertSmcFanWithConnection:(io_connect_t)connection descriptor:(NSString*)descriptor name:(NSString*)name type:(NSString*)type title:(NSString*)title selector:(NSUInteger)selector group:(HWMSensorsGroup*)group
 {
-    HWMSmcFanSensor *fan = [self getSmcFanSensorByDescriptor:descriptor fromGroup:group];
+    __block HWMSmcFanSensor *fan = [self getSmcFanSensorByDescriptor:descriptor fromGroup:group];
 
     BOOL newFan = NO;
 
@@ -1526,6 +1634,9 @@ static HWMEngine* gDefaultEngine = nil;
         [fan setGroup:group];
 
         newFan = YES;
+    }
+    else if (fan.service.unsignedLongLongValue != 0) {
+        return fan;
     }
 
     [fan setTitle:title];
@@ -1545,27 +1656,11 @@ static HWMEngine* gDefaultEngine = nil;
 
         [fan setNumber:[NSNumber numberWithInt:index]];
 
+        NSNumber *min = [SmcHelper readNumericKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_MIN, index] connection:connection];
+
+        NSNumber *max = [SmcHelper readNumericKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_MAX, index] connection:connection];
+
         if (newFan || !fan.controller) {
-            SMCVal_t info;
-
-            char key[5];
-
-            NSNumber *min, *max;
-
-            // Min
-            snprintf(key, 5, KEY_FORMAT_FAN_MIN, index);
-
-            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
-                min = [SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType];
-            }
-
-            // Max
-            snprintf(key, 5, KEY_FORMAT_FAN_MAX, index);
-
-            if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
-                max = [SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType];
-            }
-
             if (min && max && [max isGreaterThan:min]) {
                 HWMSmcFanController *controller = [NSEntityDescription insertNewObjectForEntityForName:@"SmcFanController" inManagedObjectContext:self.managedObjectContext];
 
@@ -1575,40 +1670,48 @@ static HWMEngine* gDefaultEngine = nil;
                 [fan setController:controller];
 
                 if (self.isRunningOnMac) {
-                    // Target
-                    snprintf(key, 5, KEY_FORMAT_FAN_TARGET, index);
 
-                    if (kIOReturnSuccess == SMCReadKey(connection, key, &info)) {
-                        [controller addOutputLevel:[SmcHelper decodeNumericValueFromBuffer:info.bytes length:info.dataSize type:info.dataType] forInputLevel:@0];
-                    }
+                    NSNumber *target = [SmcHelper readNumericKey:[NSString stringWithFormat:@KEY_FORMAT_FAN_TARGET, index] connection:connection];
+
+                    [controller addOutputLevel:target forInputLevel:@30];
                 }
                 else {
-                    [controller addOutputLevel:fan.value forInputLevel:@0];
+                    [controller addOutputLevel:fan.value forInputLevel:@30];
                 }
             }
         }
 
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            [fan.controller inputValueChanged];
-        }];
+        if (fan.controller) {
+            if (!min || !max || [max isLessThan:min]) {
+                NSManagedObject *controller = fan.controller;
+                [fan setController:nil];
+                [self.managedObjectContext deleteObject:controller];
+            }
+            else {
+                [fan.controller updateCurrentLevel];
+            }
+        }
+
+        return fan;
     }
     else {
         //[self.managedObjectContext deleteObject:fan];
         [fan setService:@0];
-        return nil;
     }
 
-    return fan;
+    return nil;
 }
 
-- (void)insertSmcFansWithConnection:(io_connect_t)connection keys:(NSArray*)keys
+
+- (void)insertSmcFansWithConnection:(io_connect_t)connection keys:(NSSet*)keys
 {
     HWMSensorsGroup *group = [self getGroupBySelector:kHWMGroupTachometer];
 
     for (int i=0; i<0xf; i++) {
+
         NSString *key = [NSString stringWithFormat:@KEY_FORMAT_FAN_ID,i];
 
-        if ([keys indexOfObject:key] != NSNotFound) {
+        if ([keys containsObject:key]) {
 
             SMCVal_t info;
 
@@ -1673,15 +1776,16 @@ static HWMEngine* gDefaultEngine = nil;
 
 }
 
-- (void)insertSmcGpuFansWithConnection:(io_connect_t)connection keys:(NSArray*)keys
+- (void)insertSmcGpuFansWithConnection:(io_connect_t)connection keys:(NSSet*)keys
 {
     HWMSensorsGroup *group = [self getGroupBySelector:kHWMGroupTachometer];
 
     // GPU Fans
     for (int i=0; i < 0xf; i++) {
+        
         NSString *key = [NSString stringWithFormat:@KEY_FORMAT_FAN_ID,i];
 
-        if ([keys indexOfObject:key] != NSNotFound) {
+        if ([keys containsObject:key]) {
             SMCVal_t info;
 
             if (kIOReturnSuccess == SMCReadKey(connection, [key cStringUsingEncoding:NSASCIIStringEncoding], &info)) {
@@ -1780,8 +1884,7 @@ static HWMEngine* gDefaultEngine = nil;
     [sensor setSerialNumber:serialNumber];
     [sensor setRotational:[attributes objectForKey:@"rotational"]];
 
-    [sensor setTitle:_configuration.useBsdDriveNames.boolValue ? sensor.bsdName : [sensor.productName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-    [sensor setLegend:_configuration.showVolumeNames.boolValue ? sensor.volumeNames : nil];
+    [sensor setLegend:sensor.volumeNames];
     [sensor setIdentifier:@"Drive"];
 
     [sensor setEngine:self];
@@ -1876,7 +1979,7 @@ static NSUInteger gHWMGraphColorIndex = 0;
 
 -(HWMGraphsGroup*)getGraphsGroupByName:(NSString*)name
 {
-    NSArray *graphs = [[_configuration.graphGroups array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
+    NSArray *graphs = [[self.configuration.graphGroups array] filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
     
     return graphs && graphs.count ? [graphs objectAtIndex:0] : nil;
 }
@@ -1888,7 +1991,7 @@ static NSUInteger gHWMGraphColorIndex = 0;
     if (!group) {
         group = [NSEntityDescription insertNewObjectForEntityForName:@"GraphsGroup" inManagedObjectContext:self.managedObjectContext];
         
-        [group setConfiguration:_configuration];
+        [group setConfiguration:self.configuration];
     }
     
     [group setName:name];
@@ -1915,7 +2018,7 @@ static NSUInteger gHWMGraphColorIndex = 0;
 {
     NSMutableArray *sensors = [[NSMutableArray alloc] init];
     
-    [_configuration.sensorGroups enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    [self.configuration.sensorGroups enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         [sensors addObjectsFromArray:[[(HWMSensorsGroup*)obj sensors] array]];
     }];
     

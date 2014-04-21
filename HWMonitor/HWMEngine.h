@@ -6,24 +6,42 @@
 //  Copyright (c) 2013 kozlek. All rights reserved.
 //
 
+/*
+ *  Copyright (c) 2013 Natan Zalkin <natan.zalkin@me.com>. All rights reserved.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ */
+
 #import <Foundation/Foundation.h>
 
 extern NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification;
 
-typedef enum {
-    kHWMEngineNotInitialized = 0,
-    kHWMEngineStateIdle,
-    kHWMEngineStateActive,
-} HWMEngineState;
+typedef NS_ENUM(NSUInteger, HWMEngineState) {
+    kHWMEngineStateClosed       = 0,
+    kHWMEngineStatePaused       = 2,
+    kHWMEngineStateActive       = 3,
+};
 
-typedef enum {
+typedef NS_ENUM(NSUInteger, HWMSensorsUpdateLoopStrategy) {
     kHWMSensorsUpdateLoopRegular = 0,
     kHWMSensorsUpdateLoopForced,
     kHWMSensorsUpdateLoopOnlyFavorites,
-    
     kHWMSensorsUpdateLoopStrategiesCount
-    
-} HWMSensorsUpdateLoopStrategy;
+};
 
 @class HWMColorTheme;
 @class HWMConfiguration;
@@ -47,7 +65,7 @@ typedef enum {
     NSString *_platformName;
     NSArray *_platformProfile;
 
-    io_connect_t _smcConnection;
+    io_connect_t _appleSmcConnection;
     io_connect_t _fakeSmcConnection;
 
     NSMutableArray *_groups;
@@ -70,9 +88,9 @@ typedef enum {
 @property (nonatomic, strong) IBOutlet NSManagedObjectContext * managedObjectContext;
 @property (nonatomic, strong) IBOutlet HWMConfiguration * configuration;
 
-@property (nonatomic, assign) HWMEngineState engineState;
 @property (nonatomic, assign) HWMSensorsUpdateLoopStrategy updateLoopStrategy;
 
+@property (readonly) HWMEngineState engineState;
 @property (readonly) BOOL isRunningOnMac;
 
 @property (readonly) IBOutlet NSArray * iconsWithSensorsAndGroups;
@@ -80,19 +98,20 @@ typedef enum {
 @property (readonly) IBOutlet NSArray * graphsAndGroups;
 @property (readonly) IBOutlet NSArray * favorites;
 
-+(HWMEngine*)defaultEngine;
-+(HWMEngine*)engineWithBundle:(NSBundle*)bundle;
++(HWMEngine*)sharedEngine;
 
--(void)rebuildSensorsList;
--(void)startEngine;
--(void)stopEngine;
--(void)saveContext;
+-(void)open;
+-(void)saveConfiguration;
 -(void)updateSmcAndDeviceSensors;
 -(void)updateAtaSmartSensors;
 -(void)setNeedsRecalculateSensorValues;
 -(void)setNeedsUpdateLists;
 -(void)setNeedsUpdateSensorLists;
 -(void)setNeedsUpdateGraphsList;
+-(void)forceDetectSensors;
+-(void)start;
+-(void)stop;
+-(void)close;
 
 -(void)insertItemIntoFavorites:(HWMItem*)item atIndex:(NSUInteger)index;
 -(void)moveFavoritesItemAtIndex:(NSUInteger)fromIndex toIndex:(NSUInteger)toIndex;

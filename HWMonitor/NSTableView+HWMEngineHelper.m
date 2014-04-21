@@ -61,7 +61,7 @@
                 }
                 else {
                     // Object relocated
-                    if (oldIndex <= newIndex) {
+                    if (oldIndex < newIndex) {
                         [from addIndex:oldCounter.firstIndex];
                         [to addIndex:newIndex];
                     }
@@ -85,7 +85,7 @@
     *movedTo = to;
 }
 
--(void)updateWithObjectValues:(NSArray*)objectValues previousObjectValues:(NSArray*)oldObjectValues withRemoveAnimation:(NSTableViewAnimationOptions)removeAnime insertAnimation:(NSTableViewAnimationOptions)insertAnime;
+-(void)updateWithObjectValues:(NSArray*)objectValues previousObjectValues:(NSArray*)oldObjectValues updateHeightOfTheRows:(BOOL)updateHeights withRemoveAnimation:(NSTableViewAnimationOptions)removeAnime insertAnimation:(NSTableViewAnimationOptions)insertAnime;
 {
     NSIndexSet *inserted, *removed, *from, *to;
 
@@ -95,7 +95,7 @@
 
         [self removeRowsAtIndexes:removed withAnimation:removeAnime];
         [self insertRowsAtIndexes:inserted withAnimation:insertAnime];
-
+        
         NSUInteger fromIndex = [from firstIndex];
         NSUInteger toIndex = [to firstIndex];
         while (fromIndex != NSNotFound && toIndex != NSNotFound) {
@@ -105,19 +105,21 @@
         }
 
     } completionHandler:^{
-        [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-            [[NSAnimationContext currentContext] setDuration:[[NSAnimationContext currentContext] duration]];
-            [self noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, objectValues.count)]];
-        } completionHandler:^{
-
-        }];
-
+        if (updateHeights) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                [NSAnimationContext beginGrouping];
+                //[[NSAnimationContext currentContext] setDuration:[[NSAnimationContext currentContext] duration]];
+                [self noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, objectValues.count)]];
+                [NSAnimationContext endGrouping];
+            }];
+        }
     }];
 }
 
 -(void)updateWithObjectValues:(NSArray*)oldObjects previousObjectValues:(NSArray*)newObjects
 {
     [self updateWithObjectValues:oldObjects previousObjectValues:newObjects
+           updateHeightOfTheRows:YES
              withRemoveAnimation:NSTableViewAnimationSlideUp
                  insertAnimation:NSTableViewAnimationSlideDown];
 }

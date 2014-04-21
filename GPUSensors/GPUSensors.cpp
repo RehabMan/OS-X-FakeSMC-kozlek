@@ -63,6 +63,11 @@ bool GPUSensors::acceleratorLoadedCheck()
     return true;
 }
 
+bool GPUSensors::startupCheck(IOService *provider)
+{
+    return true;
+}
+
 bool GPUSensors::managedStart(IOService *provider)
 {
     return true;
@@ -89,6 +94,9 @@ bool GPUSensors::start(IOService *provider)
         HWSensorsFatalLog("no PCI device");
         return false;
     }
+
+    if (!startupCheck(provider))
+        return false;
 
     if (shouldWaitForAccelerator()) {
         if (!(workloop = getWorkLoop())) {

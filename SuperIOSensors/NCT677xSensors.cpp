@@ -94,7 +94,7 @@ float NCT677xSensors::readTemperature(UInt32 index)
 {
     if (index < tempLimit) {
         
-        int value; 
+        int value = 0;
         
         switch (model) {
             case NCT6771F:
@@ -121,7 +121,7 @@ float NCT677xSensors::readVoltage(UInt32 index)
 {
     if (index < voltLimit) {
         
-        float value;
+        float value = 0;
         
         switch (model) {
             case NCT6771F:
@@ -162,9 +162,9 @@ float NCT677xSensors::readTachometer(UInt32 index)
     return 0;
 }
 
-bool NCT677xSensors::supportsTachometerControl()
+bool NCT677xSensors::isTachometerControlable(UInt32 index)
 {
-    return true;
+    return index < tachometerSensorsLimit();
 }
 
 UInt8 NCT677xSensors::readTachometerControl(UInt32 index)

@@ -39,6 +39,7 @@
 #import "Localizer.h"
 
 #import "HWMEngine.h"
+#import "HWMSensor.h"
 #import "HWMGraph.h"
 #import "HWMGraphsGroup.h"
 #import "HWMConfiguration.h"
@@ -52,28 +53,43 @@
 @implementation GraphsController
 
 @synthesize selectedItem = _selectedItem;
+@synthesize graphsAndGroupsCollectionSnapshot = _graphsAndGroupsCollectionSnapshot;
 
 #pragma mark
 #pragma mark Properties
 
+-(HWMEngine *)monitorEngine
+{
+    return [HWMEngine sharedEngine];
+}
+
 -(HWMonitorItem *)selectedItem
 {
-    if (_graphsTableView.selectedRow >= 0 && _graphsTableView.selectedRow < _graphsAndGroupsCollectionSnapshot.count) {
-        id item = [_graphsAndGroupsCollectionSnapshot objectAtIndex:_graphsTableView.selectedRow];
+    if (_graphsTableView.selectedRow >= 0 && _graphsTableView.selectedRow < self.graphsAndGroupsCollectionSnapshot.count) {
+        id item = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:_graphsTableView.selectedRow];
 
         if (item != _selectedItem) {
-            [self willChangeValueForKey:@"selectedItem"];
+            [self willChangeValueForKey:@keypath(self, selectedItem)];
             _selectedItem = item;
-            [self didChangeValueForKey:@"selectedItem"];
+            [self didChangeValueForKey:@keypath(self, selectedItem)];
         }
     }
     else {
-        [self willChangeValueForKey:@"selectedItem"];
+        [self willChangeValueForKey:@keypath(self, selectedItem)];
         _selectedItem = nil;
-        [self didChangeValueForKey:@"selectedItem"];
+        [self didChangeValueForKey:@keypath(self, selectedItem)];
     }
     
     return _selectedItem;
+}
+
+-(NSArray *)graphsAndGroupsCollectionSnapshot
+{
+    if (!_graphsAndGroupsCollectionSnapshot) {
+        _graphsAndGroupsCollectionSnapshot = [self.monitorEngine.graphsAndGroups copy];
+    }
+
+    return _graphsAndGroupsCollectionSnapshot;
 }
 
 #pragma mark
@@ -81,26 +97,9 @@
 
 -(id)init
 {
-    self = [super initWithWindowNibName:@"GraphsController"];
+    self = [super initWithWindowNibName:NSStringFromClass([GraphsController class])];
     
     if (self) {
-
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            [Localizer localizeView:self.window];
-            [self.window setLevel:_monitorEngine.configuration.graphsWindowAlwaysTopmost.boolValue ? NSFloatingWindowLevel : NSNormalWindowLevel];
-
-            [self rebuildViews];
-
-//            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sensorValuesHasBeenUpdated) name:HWMEngineSensorValuesHasBeenUpdatedNotification object:_monitorEngine];
-            
-            [_graphsTableView registerForDraggedTypes:[NSArray arrayWithObject:kHWMonitorGraphsItemDataType]];
-            [_graphsTableView setDraggingSourceOperationMask:NSDragOperationMove | NSDragOperationDelete forLocal:YES];
-
-            [self addObserver:self forKeyPath:@"monitorEngine.graphsAndGroups" options:NSKeyValueObservingOptionNew context:nil];
-            [self addObserver:self forKeyPath:@"monitorEngine.configuration.graphsWindowAlwaysTopmost" options:NSKeyValueObservingOptionNew context:nil];
-            [self addObserver:self forKeyPath:@"monitorEngine.configuration.useGraphSmoothing" options:NSKeyValueObservingOptionNew context:nil];
-            [self addObserver:self forKeyPath:@"monitorEngine.configuration.graphsScaleValue" options:NSKeyValueObservingOptionNew context:nil];
-        }];
 
     }
     
@@ -109,25 +108,44 @@
 
 -(void)dealloc
 {
-    [self removeObserver:self forKeyPath:@"monitorEngine.graphsAndGroups"];
-    [self removeObserver:self forKeyPath:@"monitorEngine.configuration.graphsWindowAlwaysTopmost"];
-    [self removeObserver:self forKeyPath:@"monitorEngine.configuration.useGraphSmoothing"];
-    [self removeObserver:self forKeyPath:@"monitorEngine.configuration.graphsScaleValue"];
+    [self removeObserver:self forKeyPath:@keypath(self, monitorEngine.graphsAndGroups)];
+    [self removeObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.graphsWindowAlwaysTopmost)];
+    [self removeObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.useFahrenheit)];
+    [self removeObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.useGraphSmoothing)];
+    [self removeObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.graphsScaleValue)];
+    [self removeObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.showSensorLegendsInGraphs)];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
--(void)awakeFromNib
+-(void)windowDidLoad
 {
+    [super windowDidLoad];
 
+    [Localizer localizeView:self.window];
+    [self.window setLevel:self.monitorEngine.configuration.graphsWindowAlwaysTopmost.boolValue ? NSFloatingWindowLevel : NSNormalWindowLevel];
+
+    [self reloadGraphsTableView:self];
+    [self rebuildViews];
+
+    //            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sensorValuesHasBeenUpdated) name:HWMEngineSensorValuesHasBeenUpdatedNotification object:_monitorEngine];
+
+    [_graphsTableView registerForDraggedTypes:[NSArray arrayWithObject:kHWMonitorGraphsItemDataType]];
+    [_graphsTableView setDraggingSourceOperationMask:NSDragOperationMove | NSDragOperationDelete forLocal:YES];
+
+    [self addObserver:self forKeyPath:@keypath(self, monitorEngine.graphsAndGroups) options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.graphsWindowAlwaysTopmost) options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.useFahrenheit) options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.useGraphSmoothing) options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.graphsScaleValue) options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.showSensorLegendsInGraphs) options:NSKeyValueObservingOptionNew context:nil];
 }
 
 -(void)showWindow:(id)sender
 {
     [NSApp activateIgnoringOtherApps:YES];
-    [super showWindow:sender];
-
-    [self.window setBackgroundBlurRadius:5];
     
+    [self.window makeKeyAndOrderFront:self];
+    [self.window setBackgroundBlurRadius:4];
     //[self.monitorEngine updateSmcAndDeviceSensors];
 }
 
@@ -136,9 +154,11 @@
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         
         NSArray *oldGraphsAndGroups = [_graphsAndGroupsCollectionSnapshot copy];
-        _graphsAndGroupsCollectionSnapshot = [self.monitorEngine.graphsAndGroups copy];
 
-        [_graphsTableView updateWithObjectValues:_graphsAndGroupsCollectionSnapshot previousObjectValues:oldGraphsAndGroups];
+        _graphsAndGroupsCollectionSnapshot = nil;
+
+        [_graphsTableView updateWithObjectValues:self.graphsAndGroupsCollectionSnapshot
+                            previousObjectValues:oldGraphsAndGroups];
     }];
 }
 
@@ -152,7 +172,7 @@
             [_graphViews removeAllObjects];
         }
 
-        for (HWMGraphsGroup *group in _monitorEngine.configuration.graphGroups) {
+        for (HWMGraphsGroup *group in self.monitorEngine.configuration.graphGroups) {
             if (group.graphs && group.graphs.count) {
                 GraphsView *graphView = [[GraphsView alloc] init];
 
@@ -179,18 +199,20 @@
 
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-    if (_monitorEngine) {
-        if ([keyPath isEqual:@"monitorEngine.graphsAndGroups"]) {
+    if (self.monitorEngine) {
+        if ([keyPath isEqual:@keypath(self, monitorEngine.graphsAndGroups)]) {
             [self reloadGraphsTableView:self];
             [self rebuildViews];
         }
-        else if ([keyPath isEqual:@"monitorEngine.configuration.graphsWindowAlwaysTopmost"]) {
-            [self.window setLevel:_monitorEngine.configuration.graphsWindowAlwaysTopmost.boolValue ? NSFloatingWindowLevel : NSNormalWindowLevel];
+        else if ([keyPath isEqual:@keypath(self, monitorEngine.configuration.showSensorLegendsInGraphs)]) {
+            [self reloadGraphsTableView:self];
         }
-        else if ([keyPath isEqual:@"monitorEngine.configuration.useGraphSmoothing"]) {
-            [self setNeedDisplayGraphs:self];
+        else if ([keyPath isEqual:@keypath(self, monitorEngine.configuration.graphsWindowAlwaysTopmost)]) {
+            [self.window setLevel:self.monitorEngine.configuration.graphsWindowAlwaysTopmost.boolValue ? NSFloatingWindowLevel : NSNormalWindowLevel];
         }
-        else if ([keyPath isEqual:@"monitorEngine.configuration.graphsScaleValue"]) {
+        else if ([keyPath isEqual:@keypath(self, monitorEngine.configuration.useFahrenheit)] ||
+                 [keyPath isEqual:@keypath(self, monitorEngine.configuration.useGraphSmoothing)] ||
+                 [keyPath isEqual:@keypath(self, monitorEngine.configuration.graphsScaleValue)]) {
             [self setNeedDisplayGraphs:self];
         }
     }
@@ -217,17 +239,26 @@
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
 {
-    return _graphsAndGroupsCollectionSnapshot.count;
+    return self.graphsAndGroupsCollectionSnapshot.count;
 }
 
 -(CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row
 {
-    return [[_graphsAndGroupsCollectionSnapshot objectAtIndex:row] isKindOfClass:[HWMGraph class]] ? 19 : 21;
+    NSObject *item = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:row];
+
+    if ([item isKindOfClass:[HWMGraph class]]) {
+        HWMGraph *graph = (HWMGraph*)item;
+
+        return graph.sensor.legend && self.monitorEngine.configuration.showSensorLegendsInGraphs.boolValue ? 32 : 19;
+    }
+
+    // Group
+    return 21;
 }
 
 - (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row
 {
-    return ![[_graphsAndGroupsCollectionSnapshot objectAtIndex:row] isKindOfClass:[HWMGraphsGroup class]];
+    return ![[self.graphsAndGroupsCollectionSnapshot objectAtIndex:row] isKindOfClass:[HWMGraphsGroup class]];
 }
 
 //-(BOOL)tableView:(NSTableView *)tableView isGroupRow:(NSInteger)row
@@ -237,12 +268,12 @@
 
 -(id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-    return [_graphsAndGroupsCollectionSnapshot objectAtIndex:row];
+    return [self.graphsAndGroupsCollectionSnapshot objectAtIndex:row];
 }
 
 -(NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-    id item = [_graphsAndGroupsCollectionSnapshot objectAtIndex:row];
+    id item = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:row];
     id view = [tableView makeViewWithIdentifier:[item identifier] owner:self];
     return view;
 }
@@ -253,7 +284,7 @@
         return NO;
     }
     
-    id item = [_graphsAndGroupsCollectionSnapshot objectAtIndex:[rowIndexes firstIndex]];
+    id item = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:[rowIndexes firstIndex]];
     
     if ([item isKindOfClass:[HWMGraph class]]) {
         NSData *indexData = [NSKeyedArchiver archivedDataWithRootObject:rowIndexes];
@@ -281,7 +312,7 @@
     NSData* rowData = [pboard dataForType:kHWMonitorGraphsItemDataType];
     NSIndexSet* rowIndexes = [NSKeyedUnarchiver unarchiveObjectWithData:rowData];
     NSInteger fromRow = [rowIndexes firstIndex];
-    id fromItem = [_graphsAndGroupsCollectionSnapshot objectAtIndex:fromRow];
+    id fromItem = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:fromRow];
     
     _currentItemDragOperation = NSDragOperationNone;
     
@@ -289,13 +320,13 @@
         
         _currentItemDragOperation = NSDragOperationMove;
         
-        if (toRow < _graphsAndGroupsCollectionSnapshot.count) {
+        if (toRow < self.graphsAndGroupsCollectionSnapshot.count) {
             
             if (toRow == fromRow || toRow == fromRow + 1) {
                 _currentItemDragOperation = NSDragOperationNone;
             }
             else {
-                id toItem = [_graphsAndGroupsCollectionSnapshot objectAtIndex:toRow];
+                id toItem = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:toRow];
                 
                 if ([toItem isKindOfClass:[HWMGraph class]] && [(HWMGraph*)fromItem group] != [(HWMGraph*)toItem group]) {
                     _currentItemDragOperation = NSDragOperationNone;
@@ -303,7 +334,7 @@
             }
         }
         else {
-            id toItem = [_graphsAndGroupsCollectionSnapshot objectAtIndex:toRow - 1];
+            id toItem = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:toRow - 1];
             
             if ([toItem isKindOfClass:[HWMGraph class]] && [(HWMGraph*)fromItem group] != [(HWMGraph*)toItem group]) {
                 _currentItemDragOperation = NSDragOperationNone;
@@ -325,11 +356,11 @@
     NSIndexSet* rowIndexes = [NSKeyedUnarchiver unarchiveObjectWithData:rowData];
     NSInteger fromRow = [rowIndexes firstIndex];
     
-    HWMGraph *fromItem = [_graphsAndGroupsCollectionSnapshot objectAtIndex:fromRow];
+    HWMGraph *fromItem = [self.graphsAndGroupsCollectionSnapshot objectAtIndex:fromRow];
     
-    id checkItem = toRow >= _graphsAndGroupsCollectionSnapshot.count ? [_graphsAndGroupsCollectionSnapshot lastObject] : [_graphsAndGroupsCollectionSnapshot objectAtIndex:toRow];
+    id checkItem = toRow >= self.graphsAndGroupsCollectionSnapshot.count ? [self.graphsAndGroupsCollectionSnapshot lastObject] : [self.graphsAndGroupsCollectionSnapshot objectAtIndex:toRow];
     
-    HWMGraph *toItem = ![checkItem isKindOfClass:[HWMGraph class]] || toRow >= _graphsAndGroupsCollectionSnapshot.count ? nil : checkItem;
+    HWMGraph *toItem = ![checkItem isKindOfClass:[HWMGraph class]] || toRow >= self.graphsAndGroupsCollectionSnapshot.count ? nil : checkItem;
     
     [fromItem.group moveGraphsObjectAtIndex:[fromItem.group.graphs indexOfObject:fromItem]
                                         toIndex:toItem ? [fromItem.group.graphs indexOfObject:toItem] : fromItem.group.graphs.count];

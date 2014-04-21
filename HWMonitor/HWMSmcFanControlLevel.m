@@ -6,9 +6,31 @@
 //  Copyright (c) 2014 kozlek. All rights reserved.
 //
 
+/*
+ *  Copyright (c) 2013 Natan Zalkin <natan.zalkin@me.com>. All rights reserved.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ */
+
 #import "HWMSmcFanControlLevel.h"
 #import "HWMSmcFanController.h"
 
+#import "FakeSMCDefinitions.h"
+#import "HWMonitorDefinitions.h"
 
 @implementation HWMSmcFanControlLevel
 
@@ -17,6 +39,30 @@
 @dynamic controller;
 @dynamic next;
 @dynamic previous;
+
+-(void)setInput:(NSNumber *)input
+{
+    [self willChangeValueForKey:@keypath(self, input)];
+    [self setPrimitiveValue:input forKey:@keypath(self, input)];
+    [self didChangeValueForKey:@keypath(self, input)];
+
+    [NSObject cancelPreviousPerformRequestsWithTarget:self.controller selector:@selector(updateCurrentLevel) object:nil];
+
+    [self.controller performSelector:@selector(updateCurrentLevel) withObject:nil afterDelay:0.5];
+}
+
+-(void)setOutput:(NSNumber *)output
+{
+    [self willChangeValueForKey:@keypath(self, output)];
+    [self setPrimitiveValue:[NSNumber numberWithFloat:ROUND50(output.floatValue)] forKey:@keypath(self, output)];
+    [self didChangeValueForKey:@keypath(self, output)];
+
+    [self.controller calculateOutputRange];
+
+    [NSObject cancelPreviousPerformRequestsWithTarget:self.controller selector:@selector(forceCurrentLevel) object:nil];
+
+    [self.controller performSelector:@selector(forceCurrentLevel) withObject:nil afterDelay:0.5];
+}
 
 -(NSNumber *)minInput
 {
@@ -70,13 +116,13 @@
 
     if (next) {
         [next setPrevious:prev];
-        [next willChangeValueForKey:@"deletable"];
-        [next didChangeValueForKey:@"deletable"];
+        [next willChangeValueForKey:@keypath(self, deletable)];
+        [next didChangeValueForKey:@keypath(self, deletable)];
     }
 
     if (prev) {
-        [prev willChangeValueForKey:@"deletable"];
-        [prev didChangeValueForKey:@"deletable"];
+        [prev willChangeValueForKey:@keypath(self, deletable)];
+        [prev didChangeValueForKey:@keypath(self, deletable)];
     }
 
     [self.managedObjectContext deleteObject:self];
@@ -97,12 +143,13 @@
 
     [level setPrevious:self];
 
-    [self willChangeValueForKey:@"deletable"];
-    [self didChangeValueForKey:@"deletable"];
-    [level willChangeValueForKey:@"deletable"];
-    [level didChangeValueForKey:@"deletable"];
+    [self willChangeValueForKey:@keypath(self, deletable)];
+    [self didChangeValueForKey:@keypath(self, deletable)];
+    [level willChangeValueForKey:@keypath(self, deletable)];
+    [level didChangeValueForKey:@keypath(self, deletable)];
 
     return level;
 }
+
 
 @end

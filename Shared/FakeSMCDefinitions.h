@@ -89,8 +89,10 @@
 #define KEY_CPU_VTT_VOLTAGE                     "VV1R" //
 
 // GPU
-#define KEY_GPU_VOLTAGE                         "VC0G" // GPU 0 Core
-#define KEY_FORMAT_GPU_VOLTAGE                  "VC%XG" // GPU X Core
+#define KEY_IGPU_VOLTAGE                        "VC0G" // GPU 0 Core
+#define KEY_FORMAT_IGPU_VOLTAGE                 "VC%XG" // GPU X Core
+#define KEY_GPU_VOLTAGE                         "VG0C" // GPU 0 Core
+#define KEY_FORMAT_GPU_VOLTAGE                  "VG%XC" // GPU X Core
 
 // Others
 #define KEY_NORTHBRIDGE_VOLTAGE                 "VN0R"  
@@ -243,6 +245,7 @@
 //#define ABS(x) ((x) >= 0 ? (x) : -(x))
 #define SGN(x) ((x) > 0 ? 1.0 : -1.0)
 #define ROUND(x) ((x) + 0.5 > int(x) + 1 ? int(x) + 1 : int(x))
+#define ROUND50(x) (((int)((x) + 25) / 50) * 50)
 
 typedef enum {
     LEFT_LOWER_FRONT, CENTER_LOWER_FRONT, RIGHT_LOWER_FRONT,

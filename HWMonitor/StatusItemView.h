@@ -39,7 +39,7 @@
     NSShadow *_shadow;
 }
 
-@property (nonatomic, strong) HWMEngine *monitorEngine;
+@property (readonly) HWMEngine *monitorEngine;
 
 @property (nonatomic, strong) NSImage *image;
 @property (nonatomic, strong) NSImage *alternateImage;
@@ -47,6 +47,7 @@
 @property (nonatomic, setter = setHighlighted:) BOOL isHighlighted;
 
 @property (nonatomic, readonly) NSRect screenRect;
+
 @property (nonatomic) SEL action;
 @property (nonatomic, unsafe_unretained) id target;
 

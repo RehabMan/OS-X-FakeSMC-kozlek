@@ -12,7 +12,6 @@
 #import "HWMGraphsGroup.h"
 #import "HWMSensorsGroup.h"
 
-#import "smc.h"
 #import "SmcHelper.h"
 #import "FakeSMCDefinitions.h"
 
@@ -21,15 +20,17 @@
 @dynamic graphsScaleValue;
 @dynamic graphsWindowAlwaysTopmost;
 @dynamic notifyAlarmLevelChanges;
-@dynamic showVolumeNames;
+@dynamic showSensorLegendsInGraphs;
+@dynamic showSensorLegendsInPopup;
 @dynamic smartSensorsUpdateRate;
 @dynamic smcSensorsUpdateRate;
 @dynamic updateSensorsInBackground;
 @dynamic useBigFontInMenubar;
-@dynamic useBsdDriveNames;
 @dynamic useFahrenheit;
 @dynamic useGraphSmoothing;
 @dynamic useShadowEffectsInMenubar;
+@dynamic driveLegendSelector;
+@dynamic driveNameSelector;
 @dynamic colorThemeIndex;
 @dynamic colorThemes;
 @dynamic favorites;
@@ -41,13 +42,13 @@
 -(void)setColorThemeIndex:(NSNumber *)colorThemeIndex
 {
     if (![self.colorThemeIndex isEqualToNumber:colorThemeIndex]) {
-        [self willChangeValueForKey:@"colorThemeIndex"];
-        [self setPrimitiveValue:colorThemeIndex forKey:@"colorThemeIndex"];
-        [self didChangeValueForKey:@"colorThemeIndex"];
+        [self willChangeValueForKey:@keypath(self, colorThemeIndex)];
+        [self setPrimitiveValue:colorThemeIndex forKey:@keypath(self, colorThemeIndex)];
+        [self didChangeValueForKey:@keypath(self, colorThemeIndex)];
         
-        [self willChangeValueForKey:@"colorTheme"];
+        [self willChangeValueForKey:@keypath(self, colorTheme)];
         _colorTheme = nil;
-        [self didChangeValueForKey:@"colorTheme"];
+        [self didChangeValueForKey:@keypath(self, colorTheme)];
     }
 }
 

@@ -127,6 +127,12 @@ typedef struct {
 
 @end
 
+typedef enum : NSUInteger {
+    kHWMDriveNameProduct,
+    kHWMDriveNameVolumes,
+    kHWMDriveNameBSD,
+} HWMDriveNameSelector;
+
 @interface HWMAtaSmartSensor : HWMSensor
 {
     NSInteger _temperatureAttributeIndex;
@@ -150,3 +156,5 @@ typedef struct {
 -(void)updateVolumeNames;
 
 @end
+
+NSString* bsdname_from_service(io_registry_entry_t object);

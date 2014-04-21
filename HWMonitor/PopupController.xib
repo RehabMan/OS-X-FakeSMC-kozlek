@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="4514" systemVersion="13C64" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="5056" systemVersion="13D43" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment defaultVersion="1070" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="4514"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="5056"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="PopupController">
             <connections>
                 <outlet property="mainMenu" destination="1556" id="2786"/>
                 <outlet property="scrollView" destination="13" id="ySg-oZ-M5D"/>
+                <outlet property="tableHeightConstraint" destination="YnQ-Ep-f64" id="YZU-xR-Vg8"/>
                 <outlet property="tableView" destination="52" id="125"/>
                 <outlet property="toolbarView" destination="14" id="992"/>
                 <outlet property="window" destination="3" id="123"/>
@@ -29,17 +30,17 @@
                                     <action selector="attachToMenuBar:" target="3" id="1451"/>
                                     <binding destination="-2" name="hidden" keyPath="self.window.attachedToMenuBar" previousBinding="1725" id="2646">
                                         <dictionary key="options">
-                                            <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                            <integer key="NSNoSelectionPlaceholder" value="1"/>
                                             <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                            <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                            <integer key="NSNotApplicablePlaceholder" value="1"/>
                                             <integer key="NSNullPlaceholder" value="1"/>
                                         </dictionary>
                                     </binding>
                                     <binding destination="-2" name="enabled" keyPath="self.window.isVisible" id="1725">
                                         <dictionary key="options">
-                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
                                             <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
                                             <integer key="NSNullPlaceholder" value="0"/>
                                         </dictionary>
                                     </binding>
@@ -51,18 +52,18 @@
                                     <action selector="detachFromMenuBar:" target="3" id="1445"/>
                                     <binding destination="-2" name="hidden" keyPath="self.window.attachedToMenuBar" previousBinding="1727" id="2641">
                                         <dictionary key="options">
-                                            <integer key="NSNullPlaceholder" value="0"/>
-                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
                                             <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                            <integer key="NSNullPlaceholder" value="0"/>
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
                                     </binding>
                                     <binding destination="-2" name="enabled" keyPath="self.window.isVisible" id="1727">
                                         <dictionary key="options">
-                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
                                             <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
                                             <integer key="NSNullPlaceholder" value="0"/>
                                         </dictionary>
                                     </binding>
@@ -324,31 +325,31 @@
                 </menuItem>
             </items>
         </menu>
-        <window title="HWMonitor" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="none" frameAutosaveName="PopupWindow" id="3" customClass="OBMenuBarWindow">
+        <window title="HWMonitor" restorable="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="none" frameAutosaveName="PopupWindow" id="3" customClass="OBMenuBarWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" nonactivatingPanel="YES"/>
             <windowCollectionBehavior key="collectionBehavior" moveToActiveSpace="YES" participatesInCycle="YES"/>
-            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES"/>
-            <rect key="contentRect" x="1187" y="754" width="222" height="300"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="1240" y="753" width="223" height="150"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1058"/>
             <value key="minSize" type="size" width="220" height="19"/>
             <view key="contentView" id="4">
-                <rect key="frame" x="0.0" y="0.0" width="222" height="300"/>
+                <rect key="frame" x="0.0" y="0.0" width="223" height="150"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
-                    <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="17" horizontalPageScroll="10" verticalLineScroll="17" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" horizontalScrollElasticity="none" verticalScrollElasticity="none" findBarPosition="aboveHorizontalRuler" translatesAutoresizingMaskIntoConstraints="NO" id="13" customClass="JLNFadingScrollView">
-                        <rect key="frame" x="0.0" y="0.0" width="222" height="300"/>
+                    <scrollView misplaced="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="27" horizontalPageScroll="10" verticalLineScroll="27" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" horizontalScrollElasticity="none" verticalScrollElasticity="none" findBarPosition="aboveHorizontalRuler" translatesAutoresizingMaskIntoConstraints="NO" id="13" customClass="JLNFadingScrollView">
+                        <rect key="frame" x="0.0" y="0.0" width="223" height="150"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="Ii9-fX-Ldk">
-                            <rect key="frame" x="0.0" y="0.0" width="222" height="300"/>
+                        <clipView key="contentView" misplaced="YES" drawsBackground="NO" copiesOnScroll="NO" id="Ii9-fX-Ldk">
+                            <rect key="frame" x="0.0" y="0.0" width="223" height="150"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="firstColumnOnly" selectionHighlightStyle="none" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" viewBased="YES" id="52" customClass="SensorsTableView">
-                                    <rect key="frame" x="0.0" y="0.0" width="222" height="300"/>
+                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="firstColumnOnly" selectionHighlightStyle="none" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="27" rowSizeStyle="automatic" viewBased="YES" id="52" customClass="SensorsTableView">
+                                    <rect key="frame" x="0.0" y="0.0" width="223" height="150"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
-                                        <tableColumn identifier="List" width="222" minWidth="40" maxWidth="1000" id="55">
+                                        <tableColumn identifier="List" width="223" minWidth="40" maxWidth="1000" id="55">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -362,7 +363,7 @@
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             <prototypeCellViews>
                                                 <tableCellView identifier="Group" id="60" customClass="PopupGroupCell">
-                                                    <rect key="frame" x="0.0" y="0.0" width="222" height="21"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="223" height="21"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <imageView alphaValue="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="65">
@@ -378,7 +379,7 @@
                                                             </connections>
                                                         </imageView>
                                                         <textField verticalHuggingPriority="750" alphaValue="0.50000000000000011" translatesAutoresizingMaskIntoConstraints="NO" id="gc6-vA-Eep">
-                                                            <rect key="frame" x="23" y="3" width="182" height="14"/>
+                                                            <rect key="frame" x="23" y="3" width="183" height="14"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="height" constant="14" id="wNw-GU-Y6E"/>
@@ -407,33 +408,33 @@
                                                     </connections>
                                                 </tableCellView>
                                                 <tableCellView identifier="Sensor" id="57" customClass="PopupSensorCell">
-                                                    <rect key="frame" x="0.0" y="21" width="222" height="27"/>
+                                                    <rect key="frame" x="0.0" y="21" width="223" height="27"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="107">
-                                                            <rect key="frame" x="136" y="11" width="76" height="15"/>
+                                                            <rect key="frame" x="137" y="11" width="76" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="lessThanOrEqual" constant="72" id="9Jv-L1-IK3"/>
                                                             </constraints>
                                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="9999 об/мин" id="110">
                                                                 <font key="font" size="12" name="Helvetica-Bold"/>
-                                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
                                                                 <binding destination="57" name="value" keyPath="objectValue.formattedValue" id="qaV-K4-AWn">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="106">
-                                                            <rect key="frame" x="10" y="0.0" width="202" height="11"/>
+                                                            <rect key="frame" x="10" y="0.0" width="203" height="11"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" controlSize="mini" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Subtitle" id="112">
                                                                 <font key="font" metaFont="miniSystem"/>
@@ -443,23 +444,23 @@
                                                             <connections>
                                                                 <binding destination="57" name="value" keyPath="objectValue.legend" id="Bjg-5U-fL2">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField identifier="Name" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="108">
-                                                            <rect key="frame" x="10" y="11" width="127" height="15"/>
+                                                            <rect key="frame" x="10" y="11" width="128" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="greaterThanOrEqual" priority="750" constant="123" id="1xN-eT-Okz"/>
                                                             </constraints>
                                                             <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Sensor" id="109">
                                                                 <font key="font" size="12" name="Helvetica"/>
-                                                                <color key="textColor" white="0.14900775550000001" alpha="1" colorSpace="calibratedWhite"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
@@ -484,33 +485,33 @@
                                                     </connections>
                                                 </tableCellView>
                                                 <tableCellView identifier="Drive" id="K10-8U-L2z" customClass="PopupAtaSmartSensorCell">
-                                                    <rect key="frame" x="0.0" y="48" width="222" height="27"/>
+                                                    <rect key="frame" x="0.0" y="48" width="223" height="27"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="GSb-uB-rFu">
-                                                            <rect key="frame" x="136" y="11" width="76" height="15"/>
+                                                            <rect key="frame" x="137" y="11" width="76" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="lessThanOrEqual" constant="72" id="3h5-UB-RiQ"/>
                                                             </constraints>
                                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="9999 об/мин" id="iEW-Ak-HlP">
                                                                 <font key="font" size="12" name="Helvetica-Bold"/>
-                                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
                                                                 <binding destination="K10-8U-L2z" name="value" keyPath="objectValue.formattedValue" id="aRb-nG-R7g">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="XNI-l8-ksn">
-                                                            <rect key="frame" x="10" y="0.0" width="202" height="11"/>
+                                                            <rect key="frame" x="10" y="0.0" width="203" height="11"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" controlSize="mini" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Subtitle" id="cJS-Gq-JCj">
                                                                 <font key="font" metaFont="miniSystem"/>
@@ -520,23 +521,23 @@
                                                             <connections>
                                                                 <binding destination="K10-8U-L2z" name="value" keyPath="objectValue.legend" id="ZMg-VR-a1B">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField identifier="Name" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="9Th-Wg-ej6">
-                                                            <rect key="frame" x="10" y="11" width="127" height="15"/>
+                                                            <rect key="frame" x="10" y="11" width="128" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="greaterThanOrEqual" priority="750" constant="123" id="qQh-mo-Ios"/>
                                                             </constraints>
                                                             <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Drive" id="t54-V5-8D9">
                                                                 <font key="font" size="12" name="Helvetica"/>
-                                                                <color key="textColor" white="0.14900775550000001" alpha="1" colorSpace="calibratedWhite"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
@@ -561,33 +562,33 @@
                                                     </connections>
                                                 </tableCellView>
                                                 <tableCellView identifier="Fan" id="cnm-wp-39Z" customClass="PopupFanCell">
-                                                    <rect key="frame" x="0.0" y="75" width="222" height="27"/>
+                                                    <rect key="frame" x="0.0" y="75" width="223" height="27"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="dgF-OZ-Krc">
-                                                            <rect key="frame" x="136" y="11" width="76" height="15"/>
+                                                            <rect key="frame" x="137" y="11" width="76" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="lessThanOrEqual" constant="72" id="dQ7-P9-U0Z"/>
                                                             </constraints>
                                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="9999 об/мин" id="dcL-XI-fYU">
                                                                 <font key="font" size="12" name="Helvetica-Bold"/>
-                                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
                                                                 <binding destination="cnm-wp-39Z" name="value" keyPath="objectValue.formattedValue" id="SbR-Ll-9o0">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="khn-Bp-tT2">
-                                                            <rect key="frame" x="10" y="0.0" width="202" height="11"/>
+                                                            <rect key="frame" x="10" y="0.0" width="203" height="11"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" controlSize="mini" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Subtitle" id="2cM-sq-IgE">
                                                                 <font key="font" metaFont="miniSystem"/>
@@ -597,23 +598,23 @@
                                                             <connections>
                                                                 <binding destination="cnm-wp-39Z" name="value" keyPath="objectValue.legend" id="N1M-Vg-Mn0">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField identifier="Name" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="kLS-rh-4W3">
-                                                            <rect key="frame" x="10" y="11" width="127" height="15"/>
+                                                            <rect key="frame" x="10" y="11" width="128" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="123" id="0TA-Hz-8lU"/>
                                                             </constraints>
                                                             <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Fan" id="AcR-Tg-Kiw">
                                                                 <font key="font" size="12" name="Helvetica"/>
-                                                                <color key="textColor" white="0.14900775550000001" alpha="1" colorSpace="calibratedWhite"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
@@ -638,11 +639,11 @@
                                                     </connections>
                                                 </tableCellView>
                                                 <tableCellView identifier="Battery" id="59" customClass="PopupBatteryCell">
-                                                    <rect key="frame" x="0.0" y="102" width="222" height="27"/>
+                                                    <rect key="frame" x="0.0" y="102" width="223" height="27"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField identifier="Name" horizontalHuggingPriority="249" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="84">
-                                                            <rect key="frame" x="10" y="11" width="159" height="15"/>
+                                                            <rect key="frame" x="10" y="11" width="160" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="155" id="pf7-wr-sIe"/>
@@ -650,7 +651,7 @@
                                                             </constraints>
                                                             <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Battery" id="88">
                                                                 <font key="font" size="12" name="Helvetica"/>
-                                                                <color key="textColor" white="0.14900775550000001" alpha="1" colorSpace="calibratedWhite"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
@@ -658,7 +659,7 @@
                                                             </connections>
                                                         </textField>
                                                         <imageView translatesAutoresizingMaskIntoConstraints="NO" id="83">
-                                                            <rect key="frame" x="206" y="12" width="6" height="13"/>
+                                                            <rect key="frame" x="207" y="12" width="6" height="13"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="height" constant="13" id="92T-mz-j8J"/>
@@ -667,7 +668,7 @@
                                                             <imageCell key="cell" enabled="NO" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NSInfo" id="89"/>
                                                         </imageView>
                                                         <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="82">
-                                                            <rect key="frame" x="10" y="0.0" width="202" height="11"/>
+                                                            <rect key="frame" x="10" y="0.0" width="203" height="11"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" controlSize="mini" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Subtitle" id="92">
                                                                 <font key="font" metaFont="miniSystem"/>
@@ -677,16 +678,16 @@
                                                             <connections>
                                                                 <binding destination="59" name="value" keyPath="objectValue.legend" id="hZy-ZG-hbQ">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
                                                         </textField>
                                                         <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="85">
-                                                            <rect key="frame" x="168" y="11" width="35" height="15"/>
+                                                            <rect key="frame" x="169" y="11" width="35" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="height" constant="15" id="UvQ-8P-bQB"/>
@@ -694,16 +695,16 @@
                                                             </constraints>
                                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="100%" id="86">
                                                                 <font key="font" size="12" name="Helvetica-Bold"/>
-                                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
                                                                 <binding destination="59" name="value" keyPath="objectValue.formattedValue" id="zZN-ld-FG5">
                                                                     <dictionary key="options">
-                                                                        <string key="NSNotApplicablePlaceholder">-</string>
-                                                                        <string key="NSNoSelectionPlaceholder">-</string>
-                                                                        <string key="NSNullPlaceholder">-</string>
                                                                         <string key="NSMultipleValuesPlaceholder">-</string>
+                                                                        <string key="NSNoSelectionPlaceholder">-</string>
+                                                                        <string key="NSNotApplicablePlaceholder">-</string>
+                                                                        <string key="NSNullPlaceholder">-</string>
                                                                     </dictionary>
                                                                 </binding>
                                                             </connections>
@@ -729,15 +730,15 @@
                                                     </connections>
                                                 </tableCellView>
                                                 <tableCellView identifier="Dummy" id="58" customClass="PopupSensorCell">
-                                                    <rect key="frame" x="0.0" y="129" width="222" height="17"/>
+                                                    <rect key="frame" x="0.0" y="129" width="223" height="17"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField identifier="Name" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="93">
-                                                            <rect key="frame" x="0.0" y="1" width="222" height="15"/>
+                                                            <rect key="frame" x="0.0" y="1" width="223" height="15"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="center" title="No sensors found..." id="97">
                                                                 <font key="font" size="12" name="Helvetica"/>
-                                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                <color key="textColor" name="controlLightHighlightColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                         </textField>
@@ -764,7 +765,7 @@
                         </clipView>
                         <constraints>
                             <constraint firstAttribute="width" priority="730" constant="222" id="Tc6-dF-SAK"/>
-                            <constraint firstAttribute="height" constant="300" id="YnQ-Ep-f64"/>
+                            <constraint firstAttribute="height" constant="150" id="YnQ-Ep-f64"/>
                         </constraints>
                         <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" controlSize="mini" horizontal="YES" id="53" customClass="RFOverlayScroller">
                             <rect key="frame" x="-100" y="-100" width="211" height="11"/>
@@ -813,18 +814,18 @@
                         <action selector="orderOut:" target="3" id="1151"/>
                         <binding destination="-2" name="enabled" keyPath="self.window.attachedToMenuBar" id="2507">
                             <dictionary key="options">
-                                <integer key="NSNullPlaceholder" value="0"/>
-                                <integer key="NSNotApplicablePlaceholder" value="0"/>
-                                <integer key="NSNoSelectionPlaceholder" value="0"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                <integer key="NSNullPlaceholder" value="0"/>
                                 <string key="NSValueTransformerName">NSNegateBoolean</string>
                             </dictionary>
                         </binding>
                         <binding destination="-2" name="hidden" keyPath="self.window.attachedToMenuBar" previousBinding="2507" id="2551">
                             <dictionary key="options">
-                                <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                <integer key="NSNoSelectionPlaceholder" value="1"/>
                                 <integer key="NSMultipleValuesPlaceholder" value="1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="1"/>
                                 <integer key="NSNullPlaceholder" value="1"/>
                             </dictionary>
                         </binding>
@@ -877,8 +878,8 @@
         <userDefaultsController representsSharedInstance="YES" id="1200"/>
     </objects>
     <resources>
-        <image name="16-line-chart" width="19" height="19"/>
-        <image name="19-gear" width="19" height="19"/>
+        <image name="16-line-chart" width="15" height="15"/>
+        <image name="19-gear" width="15" height="15"/>
         <image name="37-circle-x" width="15" height="15"/>
         <image name="NSInfo" width="32" height="32"/>
         <image name="NSUser" width="32" height="32"/>

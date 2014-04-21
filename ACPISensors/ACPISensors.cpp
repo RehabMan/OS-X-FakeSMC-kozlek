@@ -21,7 +21,7 @@ void* _org_rehabman_dontstrip[] =
 #define super FakeSMCPlugin
 OSDefineMetaClassAndStructors(ACPISensors, FakeSMCPlugin)
 
-void ACPISensors::addSensorsFromDictionary(OSDictionary *dictionary, kFakeSMCCategory category)
+void ACPISensors::addSensorsFromDictionary(OSDictionary *dictionary, FakeSMCSensorCategory category)
 {
     if (dictionary) {
         
@@ -90,7 +90,7 @@ void ACPISensors::addSensorsFromDictionary(OSDictionary *dictionary, kFakeSMCCat
     }
 }
 
-void ACPISensors::addSensorsFromArray(OSArray *array, kFakeSMCCategory category)
+void ACPISensors::addSensorsFromArray(OSArray *array, FakeSMCSensorCategory category)
 {
     if (array) {
         
