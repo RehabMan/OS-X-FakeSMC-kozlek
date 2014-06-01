@@ -142,6 +142,8 @@ static NSArray *                gATASmartAttributeOverrideDatabase = nil;
 
 +(void)destroyAllWrappers
 {
+    [gATASmartInterfaceWrapperCache removeAllObjects];
+    
     gATASmartInterfaceWrapperCache = nil;
 }
 
@@ -758,6 +760,7 @@ static NSArray *                gATASmartAttributeOverrideDatabase = nil;
 
 -(void)dealloc
 {
+    //NSLog(@"Wrapper deallocated for %@", _bsdName);
     [self releaseInterface];
 }
 
