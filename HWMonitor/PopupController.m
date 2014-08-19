@@ -98,6 +98,8 @@
     {
         _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
         
+        [_statusItem setHighlightMode:NO];
+        
         _statusItemView = [[StatusItemView alloc] initWithFrame:NSMakeRect(0, 0, 22, 22) statusItem:_statusItem];
 
         [_statusItemView setImage:[NSImage loadImageNamed:@"scale" ofType:@"png"]];
@@ -171,19 +173,19 @@
 
 -(void)showWindow:(id)sender
 {
-    OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
+    //OBMenuBarWindow *menubarWindow = (OBMenuBarWindow *)self.window;
 
     if (self.delegate && [self.delegate respondsToSelector:@selector(popupWillOpen:)]) {
         [self.delegate popupWillOpen:self];
     }
 
-    if (!menubarWindow.attachedToMenuBar) {
+    //if (!menubarWindow.attachedToMenuBar) {
         [NSApp activateIgnoringOtherApps:YES];
-    }
+    //}
     
     [self layoutContent:NO orderFront:YES animated:YES];
 
-    self.statusItemView.isHighlighted = YES;
+    //self.statusItemView.isHighlighted = YES;
     
     if (self.delegate && [self.delegate respondsToSelector:@selector(popupDidOpen:)]) {
         [self.delegate popupDidOpen:self];
@@ -198,7 +200,7 @@
     
     [self.window orderOut:nil];
 
-    self.statusItemView.isHighlighted = NO;
+    //self.statusItemView.isHighlighted = NO;
     
     if (self.delegate && [self.delegate respondsToSelector:@selector(popupDidClose:)]) {
         [self.delegate popupDidClose:self];
@@ -247,7 +249,7 @@
     // Order front if needed
     if (orderFront) {
         [menubarWindow makeKeyAndOrderFront:self];
-        [self.window setBackgroundBlurRadius:4];
+        [self.window setBackgroundBlurRadius:32];
     }
 }
 
@@ -317,6 +319,8 @@
         [(OBMenuBarWindow*)self.window setColorTheme:self.monitorEngine.configuration.colorTheme];
         [(JLNFadingScrollView *)_scrollView setFadeColor:self.monitorEngine.configuration.colorTheme.listBackgroundColor];
 
+        //self.window.
+
     }
     else if ([keyPath isEqual:@keypath(self, monitorEngine.configuration.showSensorLegendsInPopup)] ||
              [keyPath isEqual:@keypath(self, monitorEngine.sensorsAndGroups)]) {
@@ -371,8 +375,37 @@
     }
 }
 
-#pragma mark -
-#pragma mark NSTableView delegate
+#pragma mark - NSPopoverDelegate
+
+-(void)popoverWillShow:(NSNotification *)notification
+{
+    if (self.delegate && [self.delegate respondsToSelector:@selector(popupWillOpen:)]) {
+        [self.delegate popupWillOpen:self];
+    }
+}
+
+-(void)popoverDidShow:(NSNotification *)notification
+{
+    if (self.delegate && [self.delegate respondsToSelector:@selector(popupDidOpen:)]) {
+        [self.delegate popupDidOpen:self];
+    }
+}
+
+-(void)popoverWillClose:(NSNotification *)notification
+{
+    if (self.delegate && [self.delegate respondsToSelector:@selector(popupWillClose:)]) {
+        [self.delegate popupWillClose:self];
+    }
+}
+
+-(void)popoverDidClose:(NSNotification *)notification
+{
+    if (self.delegate && [self.delegate respondsToSelector:@selector(popupDidClose:)]) {
+        [self.delegate popupDidClose:self];
+    }
+}
+
+#pragma mark - NSTableViewDelegate
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
     return self.sensorsAndGroupsCollectionSnapshot.count;

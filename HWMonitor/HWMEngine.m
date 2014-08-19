@@ -609,17 +609,17 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     [self loadIconNamed:@"red-thermometer" asTemplate:NO];
 
     [self loadIconNamed:kHWMonitorIconHWMonitor asTemplate:NO];
-    [self loadIconNamed:kHWMonitorIconThermometer];
-    [self loadIconNamed:kHWMonitorIconScale];
-    [self loadIconNamed:kHWMonitorIconDevice];
-    [self loadIconNamed:kHWMonitorIconTemperatures];
-    [self loadIconNamed:kHWMonitorIconHddTemperatures];
-    [self loadIconNamed:kHWMonitorIconSsdLife];
-    [self loadIconNamed:kHWMonitorIconMultipliers];
-    [self loadIconNamed:kHWMonitorIconFrequencies];
-    [self loadIconNamed:kHWMonitorIconTachometers];
-    [self loadIconNamed:kHWMonitorIconVoltages];
-    [self loadIconNamed:kHWMonitorIconBattery];
+    [self loadIconNamed:kHWMonitorIconThermometer asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconScale asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconDevice asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconTemperatures asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconHddTemperatures asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconSsdLife asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconMultipliers asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconFrequencies asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconTachometers asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconVoltages asTemplate:NO];
+    [self loadIconNamed:kHWMonitorIconBattery asTemplate:NO];
 
     NSError *error;
 
@@ -1273,11 +1273,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.93]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.77]
                    listStrokeColor:nil//[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.93]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.93] highlightWithLevel:0.4]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.93] highlightWithLevel:0.6]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.77]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.77] highlightWithLevel:0.4]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.77] highlightWithLevel:0.6]
                 toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.1 alpha:1.00]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
@@ -1289,11 +1289,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.93]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.77]
                    listStrokeColor:nil//[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
-                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.93]
-                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.93] highlightWithLevel:0.30]
-                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.93] highlightWithLevel:0.55]
+                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.77]
+                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.77] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.77] highlightWithLevel:0.55]
                 toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.1 alpha:1.00]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
@@ -1305,11 +1305,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.65 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.85 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.95 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.93]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.77]
                    listStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.93]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.93] highlightWithLevel:0.30]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.93] highlightWithLevel:0.55]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.77]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.77] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.77] highlightWithLevel:0.55]
                 toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:YES];

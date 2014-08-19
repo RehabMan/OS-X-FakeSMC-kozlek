@@ -41,7 +41,7 @@
 
 @class HWMEngine;
 
-@interface PopupController : NSWindowController <NSApplicationDelegate, NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource>
+@interface PopupController : NSWindowController <NSApplicationDelegate, NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource, NSPopoverDelegate>
 
 @property (assign) IBOutlet id <PopupControllerDelegate> delegate;
 
@@ -50,6 +50,7 @@
 @property (readonly) NSStatusItem *statusItem;
 @property (readonly) StatusItemView *statusItemView;
 
+@property (assign) IBOutlet NSPopover *popover;
 @property (assign) IBOutlet NSMenu *mainMenu;
 @property (assign) IBOutlet NSView *toolbarView;
 @property (assign) IBOutlet NSScrollView *scrollView;
