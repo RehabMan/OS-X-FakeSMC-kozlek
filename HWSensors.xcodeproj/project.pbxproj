@@ -1007,6 +1007,7 @@
 				OTHER_CFLAGS = "-fno-stack-protector";
 				"OTHER_LDFLAGS[arch=x86_64]" = "-dead_strip";
 				SDKROOT = macosx10.8;
+				SKIP_INSTALL = YES;
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
@@ -1051,6 +1052,7 @@
 				OTHER_CFLAGS = "-fno-stack-protector";
 				"OTHER_LDFLAGS[arch=x86_64]" = "-dead_strip";
 				SDKROOT = macosx10.8;
+				SKIP_INSTALL = YES;
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;
