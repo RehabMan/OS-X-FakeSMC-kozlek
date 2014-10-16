@@ -45,6 +45,8 @@
 		<dict>
 			<key>RM,Version</key>
 			<string>${PRODUCT_NAME} HWSENSORS_REVISION</string>
+			<key>RM,Build</key>
+			<string>${CONFIGURATION}-${LOGNAME}</string>
 			<key>CFBundleIdentifier</key>
 			<string>FAKESMC_BUNDLE</string>
 			<key>Configuration</key>
