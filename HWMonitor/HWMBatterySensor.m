@@ -221,7 +221,7 @@ static void hid_device_disappeared(void *engine, io_iterator_t iterator)
         case kHWMBatterySensorBluetooth:
             return floatValue < 5 ? kHWMSensorLevelExceeded :
                    floatValue < 10 ? kHWMSensorLevelHigh :
-                   floatValue < 30 ? kHWMSensorLevelModerate :
+                   floatValue < 20 ? kHWMSensorLevelModerate :
                    kHWMSensorLevelNormal;
 
         default:
@@ -236,23 +236,31 @@ static void hid_device_disappeared(void *engine, io_iterator_t iterator)
     io_registry_entry_t service = (io_registry_entry_t)self.service.unsignedLongLongValue;
 
     if (MACH_PORT_NULL != service) {
+
+        NSNumber * value = nil;
+
         switch (self.deviceType) {
             case kHWMBatterySensorInternal: {
                 NSNumber *max = registry_entry_read_number(service, kHWMBatterySensorMaxCapacity);
                 NSNumber *current = registry_entry_read_number(service, kHWMBatterySensorCurrentCapacity);
 
                 if (max && current && [max doubleValue] > 0) {
-                    double percent = (([current doubleValue] / [max doubleValue]) + 0.005) * 100;
-                    return [NSNumber numberWithFloat:percent];
+                    value = [NSNumber numberWithDouble:(([current doubleValue] / [max doubleValue]) + 0.005) * 100];
                 }
 
                 break;
             }
 
             case kHWMBatterySensorBluetooth:
-                return registry_entry_read_number(service, kHWMBatterySensorBatteryPercent);
+                value = registry_entry_read_number(service, kHWMBatterySensorBatteryPercent);
+                break;
         }
 
+        if (!_previousAlaramLevelValue || ![_previousAlaramLevelValue isEqualToNumber:value]) {
+            _previousAlaramLevelValue = [value copy];
+        }
+
+        return value;
     }
 
     return nil;
@@ -260,39 +268,42 @@ static void hid_device_disappeared(void *engine, io_iterator_t iterator)
 
 -(void)internalSendAlarmNotification
 {
-    switch (_alarmLevel) {
-        case kHWMSensorLevelExceeded:
-            [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
-                                        description:[NSString stringWithFormat:GetLocalizedString(@"%@ completely discharged!"), self.title]
-                                   notificationName:NotifierSensorLevelExceededNotification
-                                           iconData:nil
-                                           priority:1000
-                                           isSticky:YES
-                                       clickContext:nil];
-            break;
+    // Draining
+    if (_previousAlaramLevelValue && [self.value isLessThan:_previousAlaramLevelValue]) {
+        switch (_alarmLevel) {
+            case kHWMSensorLevelExceeded:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ completely discharged!"), self.title]
+                                       notificationName:NotifierSensorLevelExceededNotification
+                                               iconData:nil
+                                               priority:1000
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
 
-        case kHWMSensorLevelHigh:
-            [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
-                                        description:[NSString stringWithFormat:GetLocalizedString(@"%@ needs to be recharged"), self.title]
-                                   notificationName:NotifierSensorLevelHighNotification
-                                           iconData:nil
-                                           priority:500
-                                           isSticky:YES
-                                       clickContext:nil];
-            break;
+            case kHWMSensorLevelHigh:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ needs to be recharged"), self.title]
+                                       notificationName:NotifierSensorLevelHighNotification
+                                               iconData:nil
+                                               priority:500
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
 
-        case kHWMSensorLevelModerate:
-            [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
-                                        description:[NSString stringWithFormat:GetLocalizedString(@"%@ is low"), self.title]
-                                   notificationName:NotifierSensorLevelModerateNotification
-                                           iconData:nil
-                                           priority:0
-                                           isSticky:YES
-                                       clickContext:nil];
-            break;
-
-        default:
-            break;
+            case kHWMSensorLevelModerate:
+                [GrowlApplicationBridge notifyWithTitle:GetLocalizedString(@"Sensor alarm level changed")
+                                            description:[NSString stringWithFormat:GetLocalizedString(@"%@ is low"), self.title]
+                                       notificationName:NotifierSensorLevelModerateNotification
+                                               iconData:nil
+                                               priority:0
+                                               isSticky:YES
+                                           clickContext:nil];
+                break;
+                
+            default:
+                break;
+        }
     }
 }
 

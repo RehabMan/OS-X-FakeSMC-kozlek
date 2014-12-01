@@ -44,6 +44,8 @@
 #import "HWMSmcFanController.h"
 #import "HWMTimer.h"
 
+#include <sys/sysctl.h>
+
 #import "Localizer.h"
 
 #import "HWMonitorDefinitions.h"
@@ -331,7 +333,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 #pragma mark
 #pragma mark Overriden Methods
 
-- (id)init;
+-(instancetype)init;
 {
     self = [super init];
 
@@ -342,7 +344,7 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
     return self;
 }
 
--(id)initWithBundle:(NSBundle*)bundle
+-(instancetype)initWithBundle:(NSBundle*)bundle
 {
     self = [super init];
 
@@ -405,7 +407,21 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
     NSString *config;
 
-    if (_platformName) {
+	if ([_platformName hasPrefix:@"MacPro5,1"] == YES || [_platformName hasPrefix:@"MacPro4,1"] == YES)
+	{
+		int cpuCount;
+		size_t count_len;
+		sysctlbyname("hw.packages", &cpuCount, &count_len, NULL, 0);
+
+		NSLog(@"found %lu cpus, switching to patched plist", (unsigned long)cpuCount);
+
+		if (cpuCount == 1)
+			_platformName = @"MacPro5,1_single";
+		else if (cpuCount == 2)
+			_platformName = @"MacPro5,1_dual";
+	}
+
+	if (_platformName) {
         config = [[NSBundle mainBundle] pathForResource:_platformName ofType:@"plist" inDirectory:@"Profiles"];
     }
 
@@ -1266,6 +1282,8 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 
 -(void)insertColorThemes
 {
+    CGFloat defaultOpacity = 0.7;
+
     [self insertColorThemeWithName:@"Default"
                      groupEndColor:[NSColor colorWithCalibratedWhite:0.85 alpha:0.35]
                    groupStartColor:[NSColor colorWithCalibratedWhite:0.95 alpha:0.35]
@@ -1273,11 +1291,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.7]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:defaultOpacity]
                    listStrokeColor:nil//[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.7]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.7] highlightWithLevel:0.4]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:0.7] highlightWithLevel:0.6]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:defaultOpacity]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:defaultOpacity] highlightWithLevel:0.4]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.05 green:0.25 blue:0.85 alpha:defaultOpacity] highlightWithLevel:0.6]
                 toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.1 alpha:1.00]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
@@ -1289,11 +1307,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.45 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.25 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.7]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:defaultOpacity]
                    listStrokeColor:nil//[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
-                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:0.7]
-                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.7] highlightWithLevel:0.30]
-                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:0.7] highlightWithLevel:0.55]
+                   toolbarEndColor:[NSColor colorWithCalibratedWhite:0.23 alpha:defaultOpacity]
+                toolbarShadowColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:defaultOpacity] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedWhite:0.23 alpha:defaultOpacity] highlightWithLevel:0.55]
                 toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.1 alpha:1.00]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:NO];
@@ -1305,11 +1323,11 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                  itemSubTitleColor:[NSColor colorWithCalibratedWhite:0.65 alpha:1.0]
                     itemTitleColor:[NSColor colorWithCalibratedWhite:0.85 alpha:1.0]
                itemValueTitleColor:[NSColor colorWithCalibratedWhite:0.95 alpha:1.0]
-               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:0.65]
+               listBackgroundColor:[NSColor colorWithCalibratedWhite:0.15 alpha:defaultOpacity]
                    listStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
-                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.65]
-                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.65] highlightWithLevel:0.30]
-                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:0.65] highlightWithLevel:0.55]
+                   toolbarEndColor:[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:defaultOpacity]
+                toolbarShadowColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:defaultOpacity] highlightWithLevel:0.30]
+                 toolbarStartColor:[[NSColor colorWithCalibratedRed:0.03 green:0.23 blue:0.8 alpha:defaultOpacity] highlightWithLevel:0.55]
                 toolbarStrokeColor:nil//[NSColor colorWithCalibratedWhite:0.0 alpha:1.0]
                  toolbarTitleColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]
                       useDarkIcons:YES];
@@ -1695,13 +1713,23 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
 {
     HWMSensorsGroup *group = [self getGroupBySelector:kHWMGroupTachometer];
 
-    for (int i=0; i<0xf; i++) {
+	SMCVal_t info;
+
+	UInt32Char_t fnum = "FNum";
+	int totalFans = 15;	// use old value if we can't find number of fans in SMC
+
+	if (kIOReturnSuccess == SMCReadKey(connection, fnum, &info)) {
+
+		totalFans = _strtoul((const char*)info.bytes, info.dataSize, 10);
+
+		NSLog(@"number of fans: %d", totalFans);
+	}
+
+	for (int i=0; i<totalFans; i++) {
 
         NSString *key = [NSString stringWithFormat:@KEY_FORMAT_FAN_ID,i];
 
-        if ([keys containsObject:key]) {
-
-            SMCVal_t info;
+		if ([keys containsObject:key]) {
 
             if (kIOReturnSuccess == SMCReadKey(connection, [key cStringUsingEncoding:NSASCIIStringEncoding], &info)) {
 

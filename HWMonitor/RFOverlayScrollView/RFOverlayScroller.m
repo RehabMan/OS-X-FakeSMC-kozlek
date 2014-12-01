@@ -23,37 +23,45 @@
 
 @implementation RFOverlayScroller
 
--(id)init
+-(instancetype)init
 {
     self = [super init];
 
     if (self) {
-        [self setAlphaValue:NORMAL_OPACITY];
+        [self initialize];
     }
 
     return self;
 }
 
-- (id)initWithFrame:(NSRect)frame
+-(instancetype)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
 
     if (self) {
-        [self setAlphaValue:NORMAL_OPACITY];
+        [self initialize];
     }
 
     return self;
 }
 
-- (id)initWithCoder:(NSCoder *)coder
+-(instancetype)initWithCoder:(NSCoder *)coder
 {
     self = [super initWithCoder:coder];
 
     if (self) {
-        [self setAlphaValue:NORMAL_OPACITY];
+        [self initialize];
     }
     return self;
 }
+
+-(void)initialize
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        [self setAlphaValue:NORMAL_OPACITY];
+    }];
+}
+
 - (void) dealloc
 {
     for (NSTrackingArea *area in [self trackingAreas]) {
@@ -61,11 +69,11 @@
     }
 }
 
--(void)resetCursorRects
-{
-    [self discardCursorRects];
-    [self addCursorRect:self.frame cursor:[NSCursor pointingHandCursor]];
-}
+//-(void)resetCursorRects
+//{
+//    [self discardCursorRects];
+//    [self addCursorRect:self.frame cursor:[NSCursor pointingHandCursor]];
+//}
 
 //- (void)drawRect:(NSRect)dirtyRect
 //{
@@ -76,6 +84,8 @@
 - (void)drawKnobSlotInRect:(NSRect)slotRect highlight:(BOOL)flag
 {
     // Don't draw the background. Should only be invoked when using overlay scrollers
+//    [[NSColor colorWithCalibratedWhite:0.5 alpha:0.5] setFill];
+//    NSRectFill(slotRect);
 }
 
 - (void)drawKnob
@@ -140,7 +150,7 @@
 
 + (BOOL)isCompatibleWithOverlayScrollers
 {
-    return self == [RFOverlayScroller class];
+    return self != [RFOverlayScroller class];
 }
 
 + (CGFloat)zeroWidth

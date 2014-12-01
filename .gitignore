@@ -1,5 +1,5 @@
 .DS_Store
-Build
+.idea
 xcuserdata
 Distribute
 DistributeSL
@@ -14,3 +14,4 @@ Package/*.pkg
 
 
 *.xccheckout
+Build

@@ -51,6 +51,78 @@ enum nouveau_fan_source {
 #define super GPUSensors
 OSDefineMetaClassAndStructors(GeforceSensors, GPUSensors)
 
+bool GeforceSensors::shadowBios()
+{
+    struct nouveau_device *device = &card;
+
+    if (device->bios.data && device->bios.size)
+        return true; // BIOS present already
+
+
+    //try to load bios from registry first from "vbios" property created by Chameleon boolloader
+    if (OSData *vbios = OSDynamicCast(OSData, pciDevice->getProperty("vbios"))) {
+        device->bios.size = vbios->getLength();
+        device->bios.data = (u8*)IOMalloc(card.bios.size);
+        memcpy(device->bios.data, vbios->getBytesNoCopy(), device->bios.size);
+    }
+
+    if (!device->bios.data || !device->bios.size || nouveau_bios_score(device, true) < 1) {
+        if (!nouveau_bios_shadow(device)) {
+            if (device->bios.data && device->bios.size) {
+                IOFree(card.bios.data, card.bios.size);
+                device->bios.data = NULL;
+                device->bios.size = 0;
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool GeforceSensors::mapMemory(IOService *provider)
+{
+    struct nouveau_device *device = &card;
+
+    if (device->mmio && card.card_index >= 0) {
+        // Already mapped
+        return true;
+    }
+
+    if ((card.card_index = takeVacantGPUIndex()) < 0) {
+        nv_error(device, "failed to take vacant GPU index\n");
+        return false;
+    }
+
+    // map device memory
+    if ((device->pcidev = pciDevice)) {
+
+        device->pcidev->setMemoryEnable(true);
+
+        if ((device->mmio = device->pcidev->mapDeviceMemoryWithIndex(0))) {
+            nv_debug(device, "memory mapped successfully\n");
+        }
+        else {
+            nv_error(device, "failed to map memory\n");
+            return false;
+        }
+    }
+    else {
+        HWSensorsErrorLog("(pci%d): [Fatal] failed to assign PCI device", pciDevice->getBusNumber());
+        return false;
+    }
+
+    // identify chipset
+    if (!nouveau_identify(device)) {
+        return false;
+    }
+
+    return true;
+    /*if (!shadowBios()) {
+     nv_error(device, "early VBIOS shadow failed, will try after accelerator started\n");
+     }*/
+}
+
 bool GeforceSensors::willReadSensorValue(FakeSMCSensor *sensor, float *outValue)
 {
     switch (sensor->getGroup()) {
@@ -113,98 +185,57 @@ bool GeforceSensors::shouldWaitForAccelerator()
         return false;
     }
 
-    return true;
-    //return card.card_type < NV_C0 ? true : false; // wait for accelerator to start and only after that prob i2c devices
+    return card.card_type < NV_C0 ? true : false; // wait for accelerator to start and only after that prob i2c devices
 }
 
-bool GeforceSensors::acceleratorLoadedCheck()
+bool GeforceSensors::probIsAcceleratorAlreadyLoaded()
 {
-    bool acceleratorFound = NULL != OSDynamicCast(OSData, pciDevice->getProperty("NVKernelLoaded"));
+    OSData * value = OSDynamicCast(OSData, pciDevice->getProperty("NVKernelLoaded")) ?: OSDynamicCast(OSData, pciDevice->getProperty("nvAcceleratorLoaded"));
 
-    if (!acceleratorFound) {
-        if (OSDictionary *matching = serviceMatching("IOAccelerator")) {
-            if (OSIterator *iterator = getMatchingServices(matching)) {
-                while (IOService *service = (IOService*)iterator->getNextObject()) {
-                    if (pciDevice == service->getParentEntry(gIOServicePlane)) {
-                        acceleratorFound = true;
-                        break;
-                    }
-                }
+    if (value) {
+        const UInt32 * bytes = (const UInt32 *)value->getBytesNoCopy();
 
-                OSSafeRelease(iterator);
-            }
-            
-            OSSafeRelease(matching);
+        if (*bytes) {
+            return true;
         }
     }
 
-    return acceleratorFound;
+
+//    bool acceleratorFound = (NULL != OSDynamicCast(OSData, pciDevice->getProperty("NVKernelLoaded"))) || // Pre 10.10
+//                            (NULL != OSDynamicCast(OSData, pciDevice->getProperty("nvAcceleratorLoaded"))); // 10.10
+
+//    if (OSDictionary *matching = serviceMatching("IOAccelerator")) {
+//        if (OSIterator *iterator = getMatchingServices(matching)) {
+//            while (IOService *service = (IOService*)iterator->getNextObject()) {
+//                if (pciDevice == service->getParentEntry(gIOServicePlane)) {
+//                    acceleratorFound = true;
+//                    break;
+//                }
+//            }
+//
+//            OSSafeRelease(iterator);
+//        }
+//        
+//        OSSafeRelease(matching);
+//    }
+
+    return false;
 }
 
-bool GeforceSensors::shadowBios()
-{
-    struct nouveau_device *device = &card;
-
-    //try to load bios from registry first from "vbios" property created by Chameleon boolloader
-    if (OSData *vbios = OSDynamicCast(OSData, pciDevice->getProperty("vbios"))) {
-        device->bios.size = vbios->getLength();
-        device->bios.data = (u8*)IOMalloc(card.bios.size);
-        memcpy(device->bios.data, vbios->getBytesNoCopy(), device->bios.size);
-    }
-
-    if (!device->bios.data || !device->bios.size || nouveau_bios_score(device, true) < 1) {
-        if (nouveau_bios_shadow(device)) {
-            //nv_info(device, "early shadow VBIOS succeeded\n");
-        }
-        else {
-            if (device->bios.data && device->bios.size) {
-                IOFree(card.bios.data, card.bios.size);
-                device->bios.data = NULL;
-                device->bios.size = 0;
-            }
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool GeforceSensors::startupCheck(IOService *provider)
+bool GeforceSensors::onStartUp(IOService *provider)
 {
     HWSensorsDebugLog("Initializing...");
 
     struct nouveau_device *device = &card;
 
-    if ((card.card_index = takeVacantGPUIndex()) < 0) {
-        nv_fatal(device, "failed to take vacant GPU index\n");
-        return false;
-    }
-
-    // map device memory
-    if ((device->pcidev = pciDevice)) {
-
-        device->pcidev->setMemoryEnable(true);
-
-        if ((device->mmio = device->pcidev->mapDeviceMemoryWithIndex(0))) {
-            nv_debug(device, "memory mapped successfully\n");
-        }
-        else {
-            nv_fatal(device, "failed to map memory\n");
-            return false;
+    if (mapMemory(provider)) {
+        if (device->card_type >= NV_C0) {
+            HWSensorsInfoLog("starting early shadow VBIOS...");
+            shadowBios(); // Early shadow vBIOS for newer cards
         }
     }
     else {
-        HWSensorsFatalLog("(pci%d): [Fatal] failed to assign PCI device", pciDevice->getBusNumber());
         return false;
-    }
-
-    // identify chipset
-    if (!nouveau_identify(device)) {
-        return false;
-    }
-
-    if (!shadowBios()) {
-        nv_error(device, "early VBIOS shadow failed, will try after accelerator started\n");
     }
 
     return true;
@@ -212,17 +243,21 @@ bool GeforceSensors::startupCheck(IOService *provider)
 
 bool GeforceSensors::managedStart(IOService *provider)
 {
-    HWSensorsDebugLog("Starting...");
+    HWSensorsDebugLog("Managed start...");
 
     struct nouveau_device *device = &card;
 
-    if (!device->bios.data || !device->bios.size) {
-        if (!shadowBios()) {
-            nv_fatal(device, "unable to shadow VBIOS\n");
-            releaseGPUIndex(card.card_index);
-            card.card_index = -1;
-            return false;
-        }
+    if (!mapMemory(provider)) {
+        HWSensorsFatalLog("failed to map device memory");
+        return false;
+    }
+
+    // If vBIOS was not shadowed before give it second chance
+    if (!shadowBios()) {
+        nv_fatal(device, "unable to shadow VBIOS\n");
+        releaseGPUIndex(card.card_index);
+        card.card_index = -1;
+        return false;
     }
 
     nouveau_vbios_init(device);

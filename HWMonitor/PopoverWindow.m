@@ -81,7 +81,6 @@
     }
 
     _toolbarView = newToolbarView;
-    _toolbarHeight = _toolbarView.bounds.size.height;
 
     [Localizer localizeView:_toolbarView];
 
@@ -94,6 +93,11 @@
 -(NSView *)toolbarView
 {
     return _toolbarView;
+}
+
+-(CGFloat)toolbarHeight
+{
+    return self.toolbarView.frame.size.height;
 }
 
 -(NSRect)bounds
@@ -117,33 +121,38 @@
     [zoomButton setHidden:YES];
 
     [[self.contentView superview] viewWillStartLiveResize];
-    [[self.contentView superview] viewDidEndLiveResize];
 
     // Position the toolbar view
-    NSRect toolbarRect = NSMakeRect(0, self.frame.size.height - _toolbarHeight, self.frame.size.width, _toolbarHeight);
+    NSRect toolbarRect = NSMakeRect(0, self.frame.size.height - self.toolbarHeight, self.frame.size.width, self.toolbarHeight);
     [self.toolbarView setFrame:toolbarRect];
 
     // Position the content view
     NSRect contentViewFrame = [self.contentView frame];
     CGFloat currentTopMargin = NSHeight(self.frame) - NSHeight(contentViewFrame);
-    CGFloat titleBarHeight = self.toolbarView.frame.size.height + 1;
-    CGFloat delta = titleBarHeight - currentTopMargin;
+    CGFloat delta = self.toolbarHeight - currentTopMargin;
     contentViewFrame.size.height -= delta;
     [self.contentView setFrame:contentViewFrame];
+
+    [[self.contentView superview] viewDidEndLiveResize];
 
     // Redraw the theme frame
     [[self.contentView superview] setNeedsDisplayInRect:toolbarRect];
 }
 
--(id)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag
+- (void)windowDidResizeNotification:(NSNotification *)aNotification
+{
+    [self layoutIfNeeded];
+    [self layoutContent];
+}
+
+-(instancetype)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag
 {
     self = [super initWithContentRect:contentRect styleMask:aStyle backing:bufferingType defer:flag];
 
     if (self) {
 
-        _toolbarHeight = 34;
-
         static dispatch_once_t onceToken;
+
         dispatch_once(&onceToken, ^{
             // Get window's frame view class
             id class = [[[self contentView] superview] class];
@@ -170,6 +179,7 @@
 
             [self layoutContent];
             [self invalidateShadow];
+            
             [self redraw];
 
             [self addObserver:self forKeyPath:@keypath(self, monitorEngine.configuration.colorTheme) options:0 context:nil];
@@ -177,6 +187,8 @@
             [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(redraw) name:NSWindowDidResizeNotification object:self];
             [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(redraw) name:NSWindowDidBecomeKeyNotification object:self];
             [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(redraw) name:NSWindowDidResignKeyNotification object:self];
+
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowDidResizeNotification:) name:NSWindowDidResizeNotification object:self];
         }];
     }
 
@@ -198,8 +210,7 @@
 -(void)orderFront:(id)sender
 {
     [super orderFront:sender];
-
-    [self setStrongBackgroundBlur];
+    [self setHeavyBackgroundBlur];
 }
 
 -(void)redraw

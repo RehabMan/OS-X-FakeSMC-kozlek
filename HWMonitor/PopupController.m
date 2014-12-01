@@ -90,7 +90,7 @@
 #pragma mark -
 #pragma mark Overridden Methods
 
-- (id)init
+- (instancetype)init
 {
     self = [super initWithWindowNibName:NSStringFromClass([PopupController class])];
     
@@ -249,7 +249,7 @@
     // Order front if needed
     if (orderFront) {
         [menubarWindow makeKeyAndOrderFront:self];
-        [self.window setStrongBackgroundBlur];
+        [self.window setHeavyBackgroundBlur];
     }
 }
 
