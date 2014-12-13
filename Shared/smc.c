@@ -181,7 +181,9 @@ kern_return_t SMCReadKey(io_connect_t conn, const UInt32Char_t key, SMCVal_t *va
     memset(val, 0, sizeof(SMCVal_t));
 
     inputStructure.key = _strtoul(key, 4, 16);
-    strcpy(val->key, key);
+    //REVEIW_REHABMAN: mempcy used to avoid deprecated strcpy...
+    //strcpy(val->key, key);
+    memcpy(val->key, key, sizeof(val->key));
 
     result = SMCGetKeyInfo(conn, inputStructure.key, &outputStructure.keyInfo);
     if (result != kIOReturnSuccess)

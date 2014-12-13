@@ -1502,7 +1502,7 @@
 				INFOPLIST_PREFIX_HEADER = Shared/HWMonitorVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				SDKROOT = macosx10.8;
+				SDKROOT = macosx10.9;
 			};
 			name = Debug;
 		};
@@ -1537,7 +1537,7 @@
 				INFOPLIST_PREFIX_HEADER = Shared/HWMonitorVersion.pch;
 				INFOPLIST_PREPROCESS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.9;
 			};
 			name = Release;
 		};
@@ -1548,12 +1548,13 @@
 					"$(SOURCE_ROOT)",
 					"$(SOURCE_ROOT)/Sparkle/Binaries/",
 					"$(SOURCE_ROOT)/HWMonitor",
+					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/Parse",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "HWMonitor/HWMonitor-Prefix.pch";
 				INFOPLIST_FILE = "HWMonitor/HWMonitor-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				TARGET_DIR = HWMonitor;
 				WRAPPER_EXTENSION = app;
 			};
@@ -1566,12 +1567,13 @@
 					"$(SOURCE_ROOT)",
 					"$(SOURCE_ROOT)/Sparkle/Binaries/",
 					"$(SOURCE_ROOT)/HWMonitor",
+					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/Parse",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "HWMonitor/HWMonitor-Prefix.pch";
 				INFOPLIST_FILE = "HWMonitor/HWMonitor-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				TARGET_DIR = HWMonitor;
 				WRAPPER_EXTENSION = app;
 			};
