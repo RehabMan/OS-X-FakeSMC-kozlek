@@ -81,6 +81,11 @@
 				</dict>
 				<key>Keys</key>
 				<dict>
+					<key>ACID</key>
+					<array>
+						<string>ch8*</string>
+						<data>hfwETdgSevQ=</data>
+					</array>
 					<key>NATJ</key>
 					<array>
 						<string>ui8</string>
