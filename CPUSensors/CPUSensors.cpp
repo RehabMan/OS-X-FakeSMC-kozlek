@@ -218,6 +218,7 @@ void CPUSensors::calculateMultiplier(UInt32 index)
         case CPUFAMILY_INTEL_SANDYBRIDGE:
         case CPUFAMILY_INTEL_IVYBRIDGE:
         case CPUFAMILY_INTEL_HASWELL:
+        case CPUFAMILY_INTEL_BROADWELL:
             if (baseMultiplier > 0 && ratio[index] > 1.0)
                 multiplier[index] = ROUND(ratio[index] * (float)baseMultiplier);
             else
@@ -382,6 +383,7 @@ bool CPUSensors::willReadSensorValue(FakeSMCSensor *sensor, float *outValue)
                 case CPUFAMILY_INTEL_SANDYBRIDGE:
                 case CPUFAMILY_INTEL_IVYBRIDGE:
                 case CPUFAMILY_INTEL_HASWELL:
+                case CPUFAMILY_INTEL_BROADWELL:
                     *outValue = multiplier[index] * (float)busClock;
                     break;
 
@@ -602,7 +604,12 @@ bool CPUSensors::start(IOService *provider)
                         if (!platform) platform = OSData::withBytes("j43\0\0\0\0\0", 8); // TODO: got from macbookair6,2 need to check for other platforms
                         mp_rendezvous_no_intrs(read_cpu_tjmax, NULL);
                         break;
-                        
+
+                    case CPUID_MODEL_BROADWELL_ULV: //REVIEW_REHABMAN: get real value from new MacBookAir7,x
+                        if (!platform) platform = OSData::withBytes("j43\0\0\0\0\0", 8); // TODO: got from macbookair6,2 need to check for other platforms
+                        mp_rendezvous_no_intrs(read_cpu_tjmax, NULL);
+                        break;
+
                     default:
                         HWSensorsWarningLog("found unsupported Intel processor, using default Tjmax");
                         cpu_tjmax[0] = 100;
@@ -641,6 +648,7 @@ bool CPUSensors::start(IOService *provider)
             case CPUFAMILY_INTEL_SANDYBRIDGE:
             case CPUFAMILY_INTEL_IVYBRIDGE:
             case CPUFAMILY_INTEL_HASWELL:
+            case CPUFAMILY_INTEL_BROADWELL:
                 break;
 
             default: {
@@ -708,6 +716,7 @@ bool CPUSensors::start(IOService *provider)
         case CPUFAMILY_INTEL_SANDYBRIDGE:
         case CPUFAMILY_INTEL_IVYBRIDGE:
         case CPUFAMILY_INTEL_HASWELL:
+        case CPUFAMILY_INTEL_BROADWELL:
         {
             uint32_t cpuid_reg[4];
             
@@ -725,6 +734,7 @@ bool CPUSensors::start(IOService *provider)
 
     switch (cpuid_info()->cpuid_cpufamily) {
         case CPUFAMILY_INTEL_HASWELL:
+        case CPUFAMILY_INTEL_BROADWELL:
             if ((baseMultiplier = (rdmsr64(MSR_PLATFORM_INFO) >> 8) & 0xFF)) {
                 //mp_rendezvous_no_intrs(init_cpu_turbo_counters, NULL);
                 HWSensorsInfoLog("base CPU multiplier is %d", baseMultiplier);
@@ -794,6 +804,7 @@ bool CPUSensors::start(IOService *provider)
         case CPUFAMILY_INTEL_SANDYBRIDGE:
         case CPUFAMILY_INTEL_IVYBRIDGE:
         case CPUFAMILY_INTEL_HASWELL:
+        case CPUFAMILY_INTEL_BROADWELL:
         {
             mp_rendezvous_no_intrs(read_cpu_rapl, NULL);
 
@@ -826,6 +837,7 @@ bool CPUSensors::start(IOService *provider)
 
                 switch (cpuid_info()->cpuid_cpufamily) {
                     case CPUFAMILY_INTEL_HASWELL:
+                    case CPUFAMILY_INTEL_BROADWELL:
                         // TODO: check DRAM availability for other platforms
                         if (!addSensor(KEY_CPU_PACKAGE_DRAM_POWER, TYPE_SP78, TYPE_SPXX_SIZE, kCPUSensorsPowerDram, 3))
                             HWSensorsWarningLog("failed to add CPU package DRAM power sensor");

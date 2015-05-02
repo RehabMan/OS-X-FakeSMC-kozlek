@@ -162,6 +162,7 @@
 //#define CPUID_MODEL_HASWELL_H        0x??    // Haswell H
 #define CPUID_MODEL_HASWELL_ULT     0x45    /* Haswell ULT */
 #define CPUID_MODEL_HASWELL_ULX     0x46    /* Haswell ULX */
+#define CPUID_MODEL_BROADWELL_ULV   0x4D    /* Broadwell ULV */
 
 #ifndef CPUFAMILY_INTEL_SANDYBRIDGE
 #define CPUFAMILY_INTEL_SANDYBRIDGE 0x5490b78c // From 10.7
@@ -174,6 +175,11 @@
 #ifndef CPUFAMILY_INTEL_HASWELL
 #define CPUFAMILY_INTEL_HASWELL     0x10B282DC // From 10.9
 #endif
+
+#ifndef CPUFAMILY_INTEL_BROADWELL
+#define CPUFAMILY_INTEL_BROADWELL	0x582ed09c // From 10.10
+#endif
+
 //#define CPUFAMILY_INTEL_HASWELL_ULT 0x10B282DC //
 
 //#include <stdint.h>
@@ -669,6 +675,9 @@ cpuid_set_cpufamily(i386_cpu_info_t *info_p)
                     case CPUID_MODEL_HASWELL_ULT:
                     case CPUID_MODEL_HASWELL_ULX:
                         cpufamily = CPUFAMILY_INTEL_HASWELL;
+                        break;
+                    case CPUID_MODEL_BROADWELL_ULV:
+                        cpufamily = CPUFAMILY_INTEL_BROADWELL;
                         break;
             }
             break;
