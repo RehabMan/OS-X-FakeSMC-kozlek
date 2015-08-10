@@ -8,14 +8,24 @@
 
 @class HWMEngine;
 
+@class PopoverWindow;
+
+@protocol PopoverWindowDelegate <NSObject>
+
+-(void)popoverWindowDidDoubleClick:(PopoverWindow*)window;
+
+@end
+
 @interface PopoverWindow : NSPanel
+
+@property (nonatomic, weak) IBOutlet id<PopoverWindowDelegate> popoverWindowDelegate;
 
 @property (nonatomic, strong) IBOutlet NSView * toolbarView;
 @property (readonly) CGFloat toolbarHeight;
 
 @property (readonly) HWMEngine *monitorEngine;
 
--(NSWindow *)window;
 -(void)layoutContent;
+-(void)drawRect:(NSRect)dirtyRect;
 
 @end

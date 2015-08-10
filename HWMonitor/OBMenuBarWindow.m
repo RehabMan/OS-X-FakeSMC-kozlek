@@ -42,8 +42,10 @@ NSString * const OBMenuBarWindowDidResignKey = @"OBMenuBarWindowDidResignKey";
 const CGFloat OBMenuBarWindowArrowHeight = 11.0f;
 const CGFloat OBMenuBarWindowArrowWidth = 22.0f;
 const CGFloat OBMenuBarWindowArrowOffset = 2.0f;
-const CGFloat OBMenuBarWindowArrowRadius = 2.5f;
-const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
+const CGFloat OBMenuBarWindowArrowPinRadius = 2.5f;
+const CGFloat OBMenuBarWindowArrowBaseRadius = 11.0f;
+const CGFloat OBMenuBarWindowCornerRadius = 5.5f;
+const CGFloat OBMenuBarWindowSnapOffset = 30.0f;
 
 @interface OBMenuBarWindow ()
 
@@ -59,7 +61,6 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
 - (void)windowDidMove:(NSNotification *)aNotification;
 - (void)statusItemViewDidMove:(NSNotification *)aNotification;
 - (NSWindow *)window;
-- (void)drawRectOriginal:(NSRect)dirtyRect;
 
 @property (readonly) NSImage *noiseImage;
 @property (readonly) NSImage *activeImage;
@@ -658,9 +659,9 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
     {
         NSRect visibleRect = [[self screen] visibleFrame];
         CGFloat minY = NSMinY(visibleRect);
-        if (NSMaxY(self.frame) - OBMenuBarWindowArrowHeight - 23 < minY)
+        if (NSMaxY(self.frame) - OBMenuBarWindowArrowHeight - OBMenuBarWindowSnapOffset < minY)
         {
-            [self setFrameOrigin:NSMakePoint(self.frame.origin.x, minY - self.frame.size.height + OBMenuBarWindowArrowHeight + 23)];
+            [self setFrameOrigin:NSMakePoint(self.frame.origin.x, minY - self.frame.size.height + OBMenuBarWindowArrowHeight + OBMenuBarWindowSnapOffset)];
         }
     }
     isDragging = NO;
@@ -841,7 +842,8 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
     CGFloat arrowWidth = OBMenuBarWindowArrowWidth;
     CGFloat cornerRadius = OBMenuBarWindowCornerRadius;
     CGFloat hairlineWidth = 1 / self.cachedContentScale;
-    CGFloat strokeWidth = self.cachedContentScale == 1 ? 1 : hairlineWidth * 1.5;
+    CGFloat strokeWidth = self.cachedContentScale == 1 ? 0.5 : hairlineWidth;
+    CGFloat arrowPinRadius = self.cachedContentScale == 1 ? 4 : OBMenuBarWindowArrowPinRadius;
     BOOL isAttached = window.attachedToMenuBar;
 
     // Create the window shape
@@ -871,7 +873,7 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
     NSBezierPath *listPath = [NSBezierPath bezierPath];
 
     [listPath moveToPoint:bottomRight];
-    [listPath lineToPoint:NSMakePoint(listBottomRight.x, listBottomRight.y + cornerRadius * 1.5)];
+    [listPath lineToPoint:NSMakePoint(listBottomRight.x, listBottomRight.y + cornerRadius)];
 
     [listPath appendBezierPathWithArcFromPoint:listBottomRight
                                        toPoint:NSMakePoint(listBottomLeft.x + cornerRadius, listBottomRight.y)
@@ -886,8 +888,8 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
 
     [NSGraphicsContext saveGraphicsState];
 
-//    [listPath setLineWidth:hairlineWidth];
-//    [listPath addClip];
+    [listPath setLineWidth:hairlineWidth];
+    [listPath addClip];
 
     [window.colorTheme.listBackgroundColor setFill];
     [listPath fill];
@@ -918,14 +920,14 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
 
         [toolbarPath appendBezierPathWithArcFromPoint:arrowPointLeft
                                               toPoint:arrowPointMiddle
-                                               radius:cornerRadius * 2];
+                                               radius:OBMenuBarWindowArrowBaseRadius];
         [toolbarPath appendBezierPathWithArcFromPoint:arrowPointMiddle
                                               toPoint:arrowPointRight
-                                               radius:OBMenuBarWindowArrowRadius];
+                                               radius:arrowPinRadius];
 
         [toolbarPath appendBezierPathWithArcFromPoint:arrowPointRight
                                               toPoint:topRight
-                                               radius:cornerRadius * 2];
+                                               radius:OBMenuBarWindowArrowBaseRadius];
         [toolbarPath appendBezierPathWithArcFromPoint:topRight
                                               toPoint:bottomRight
                                                radius:cornerRadius];
@@ -1100,14 +1102,14 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
 
             [strokePath appendBezierPathWithArcFromPoint:arrowPointLeft
                                                   toPoint:arrowPointMiddle
-                                                   radius:cornerRadius * 2];
+                                                   radius:OBMenuBarWindowArrowBaseRadius];
             [strokePath appendBezierPathWithArcFromPoint:arrowPointMiddle
                                                   toPoint:arrowPointRight
-                                                   radius:OBMenuBarWindowArrowRadius];
+                                                   radius:arrowPinRadius];
 
             [strokePath appendBezierPathWithArcFromPoint:arrowPointRight
                                                   toPoint:topRight
-                                                   radius:cornerRadius * 2];
+                                                   radius:OBMenuBarWindowArrowBaseRadius];
             [strokePath appendBezierPathWithArcFromPoint:topRight
                                                   toPoint:bottomRight
                                                    radius:cornerRadius];
@@ -1135,14 +1137,47 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
             [[window.colorTheme.toolbarStrokeColor highlightWithLevel:0.25] set];
         }
 
-//        [toolbarPath setLineWidth:hairlineWidth];
-//        [toolbarPath addClip];
+        [toolbarPath setLineWidth:hairlineWidth];
+        [toolbarPath setLineJoinStyle:NSRoundLineJoinStyle];
+        [toolbarPath addClip];
 
         [strokePath setLineWidth:strokeWidth];
+        [strokePath setLineJoinStyle:NSRoundLineJoinStyle];
         [strokePath stroke];
     }
 
     [NSGraphicsContext restoreGraphicsState];
+
+    //[self setHasShadow:NO];
+
+    /*CGMutablePathRef shadowPath = CGPathCreateMutable();
+
+    CGPathMoveToPoint(shadowPath, NULL, bottomLeft.x, bottomLeft.y);
+    CGPathAddArcToPoint(shadowPath, NULL, bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y, cornerRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, topLeft.x, topLeft.y, topLeft.x, topLeft.y, cornerRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, arrowPointLeft.x, arrowPointLeft.y, arrowPointMiddle.x, arrowPointMiddle.y, OBMenuBarWindowArrowBaseRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, arrowPointMiddle.x, arrowPointMiddle.y, arrowPointRight.x, arrowPointRight.y, arrowPinRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, arrowPointRight.x, arrowPointRight.y, topRight.x, topRight.y, OBMenuBarWindowArrowBaseRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, topRight.x, topRight.y, bottomRight.x, bottomRight.y, cornerRadius);
+    CGPathAddLineToPoint(shadowPath, NULL, bottomRight.x, bottomRight.y);
+    CGPathAddLineToPoint(shadowPath, NULL, listBottomRight.x, listBottomRight.y + cornerRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, listBottomRight.x, listBottomRight.y, listBottomLeft.x + cornerRadius, listBottomRight.y, cornerRadius);
+    CGPathAddArcToPoint(shadowPath, NULL, listBottomLeft.x, listBottomLeft.y, bottomLeft.x, bottomLeft.y, cornerRadius);
+    CGPathAddLineToPoint(shadowPath, NULL, bottomLeft.x, bottomLeft.y);
+    CGPathCloseSubpath(shadowPath);
+
+    NSView * shadowView = [super contentView];
+
+    shadowView.wantsLayer = NO;
+    shadowView.layer.s
+    shadowView.layer.shadowColor = [NSColor blackColor].CGColor;
+    shadowView.layer.shadowOpacity = 0.35f;
+    shadowView.layer.shadowOffset = CGSizeMake(0.0f, 0.0f);
+    shadowView.layer.shadowRadius = 3.0f;
+    shadowView.layer.masksToBounds = NO;
+    shadowView.layer.shadowPath = shadowPath;
+
+    CGPathRelease(shadowPath);*/
 
 }
 
@@ -1205,30 +1240,21 @@ const CGFloat OBMenuBarWindowCornerRadius = 5.0f;
 
 - (void)drawRect:(NSRect)dirtyRect
 {
-    // Only draw the custom window frame for a OBMenuBarWindow object
-    if ([[self window] isKindOfClass:[OBMenuBarWindow class]])
-    {
-        OBMenuBarWindow *window = (OBMenuBarWindow *)[self window];
+    if (!self.toolbarView) {
+        return;
+    }
 
-        if (!window.toolbarView) {
-            return;
-        }
+    if (self.cachedContentScale != self.screen.backingScaleFactor) {
+        [self resetContentImagesScheduleRefresh:YES];
+    }
+    
+    NSImage *content = self.isKeyWindow || self.attachedToMenuBar ? self.activeImage : self.inactiveImage;
 
-        if (window.cachedContentScale != window.screen.backingScaleFactor) {
-            [window resetContentImagesScheduleRefresh:YES];
-        }
-        
-        NSImage *content = window.isKeyWindow || window.attachedToMenuBar ? window.activeImage : window.inactiveImage;
-
-        if (!content) {
-            [window renderContentForKeyWindow:window.isKeyWindow];
-        }
-        else {
-            [content drawInRect:dirtyRect fromRect:dirtyRect operation:NSCompositeCopy fraction:1.0];
-        }
+    if (!content) {
+        [self renderContentForKeyWindow:self.isKeyWindow];
     }
     else {
-        [self drawRectOriginal:dirtyRect];
+        [content drawInRect:dirtyRect fromRect:dirtyRect operation:NSCompositeCopy fraction:1.0];
     }
 }
 

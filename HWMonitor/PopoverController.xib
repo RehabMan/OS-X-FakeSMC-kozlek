@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
@@ -12,7 +12,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customView id="Jcd-u2-bwP" customClass="ViewWithToolbar">
+        <customView id="Jcd-u2-bwP" customClass="PopoverFrameView">
             <rect key="frame" x="0.0" y="0.0" width="222" height="300"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
@@ -48,32 +48,20 @@
                         <action selector="showGraphsWindow:" target="-2" id="ESD-dE-Szl"/>
                     </connections>
                 </button>
-                <button toolTip="History Graphs" alphaValue="0.80000000000000004" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qvW-4L-DYw" userLabel="Graphs Button" customClass="FadingButton">
-                    <rect key="frame" x="9" y="276" width="15" height="15"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="15" id="2GQ-7l-2wp"/>
-                        <constraint firstAttribute="height" constant="15" id="DKj-LN-ZAw"/>
-                    </constraints>
-                    <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="22-circle-minus-white" imagePosition="only" alignment="left" alternateImage="22-circle-minus-white" imageScaling="proportionallyUpOrDown" inset="2" id="lxN-sM-TYZ">
-                        <behavior key="behavior" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                        <string key="keyEquivalent">g</string>
-                        <modifierMask key="keyEquivalentModifierMask" command="YES"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="detach:" target="-2" id="mvJ-D6-Yi5"/>
-                    </connections>
-                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="XrC-Bc-cm0" firstAttribute="leading" secondItem="eXC-3o-43V" secondAttribute="trailing" constant="5" id="BPw-XR-1sM"/>
                 <constraint firstItem="eXC-3o-43V" firstAttribute="bottom" secondItem="XrC-Bc-cm0" secondAttribute="bottom" id="Bm9-QD-g7f"/>
-                <constraint firstItem="qvW-4L-DYw" firstAttribute="leading" secondItem="Jcd-u2-bwP" secondAttribute="leading" constant="9" id="Fik-eP-j7m"/>
                 <constraint firstItem="XrC-Bc-cm0" firstAttribute="top" secondItem="Jcd-u2-bwP" secondAttribute="top" constant="9" id="Jsd-Xv-ePf"/>
                 <constraint firstItem="eXC-3o-43V" firstAttribute="top" secondItem="Jcd-u2-bwP" secondAttribute="top" constant="9" id="QFr-1j-jex"/>
-                <constraint firstItem="qvW-4L-DYw" firstAttribute="top" secondItem="Jcd-u2-bwP" secondAttribute="top" constant="9" id="Zca-y4-MCd"/>
                 <constraint firstAttribute="trailing" secondItem="XrC-Bc-cm0" secondAttribute="trailing" constant="9" id="jxy-4z-N9h"/>
             </constraints>
+            <userDefinedRuntimeAttributes>
+                <userDefinedRuntimeAttribute type="number" keyPath="toolbarHeight">
+                    <real key="value" value="35"/>
+                </userDefinedRuntimeAttribute>
+                <userDefinedRuntimeAttribute type="string" keyPath="toolbarTitle" value="HWMonitor"/>
+            </userDefinedRuntimeAttributes>
         </customView>
         <menu title="Main Menu" systemMenu="main" id="irx-HW-k0g">
             <items>
@@ -243,6 +231,5 @@
     <resources>
         <image name="16-line-chart" width="15" height="15"/>
         <image name="19-gear" width="15" height="15"/>
-        <image name="22-circle-minus-white" width="15" height="15"/>
     </resources>
 </document>
