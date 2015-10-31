@@ -1,6 +1,13 @@
 DIST1=RehabMan-FakeSMC
 DIST2=RehabMan-SL-HWMonitor
 
+VERSION_ERA=$(shell ./print_version.sh)
+ifeq "$(VERSION_ERA)" "10.10-"
+	INSTDIR=/System/Library/Extensions
+else
+	INSTDIR=/Library/Extensions
+endif
+
 ifeq ($(findstring 32,$(BITS)),32)
 OPTIONS:=$(OPTIONS) -arch i386
 endif
@@ -28,25 +35,41 @@ clean:
 
 .PHONY: install
 install:
-	sudo rm -rf /System/Library/Extensions/FakeSMC*.kext
-	sudo cp -R Build/Products/Release/FakeSMC.kext /System/Library/Extensions
-	sudo cp -R Build/Products/Release/CPUSensors.kext /System/Library/Extensions/FakeSMC_CPUSensors.kext
-	sudo cp -R Build/Products/Release/ACPISensors.kext /System/Library/Extensions/FakeSMC_ACPISensors.kext
-	sudo cp -R Build/Products/Release/LPCSensors.kext /System/Library/Extensions/FakeSMC_LPCSensors.kext
-	sudo cp -R Build/Products/Release/GPUSensors.kext /System/Library/Extensions/FakeSMC_GPUSensors.kext
-	if [ "`which tag`" != "" ]; then sudo tag -a Blue /System/Library/Extensions/FakeSMC*.kext; fi
+	sudo rm -rf $(INSTDIR)/FakeSMC*.kext
+	sudo cp -R Build/Products/Release/FakeSMC.kext $(INSTDIR)
+	if [ "`which tag`" != "" ]; then sudo tag -a Blue $(INSTDIR)/FakeSMC*.kext; fi
 	sudo touch /System/Library/Extensions
 	sudo kextcache -update-volume /
 
 .PHONY: install_debug
 install_debug:
-	sudo rm -rf /System/Library/Extensions/FakeSMC*.kext
-	sudo cp -R Build/Products/Debug/FakeSMC.kext /System/Library/Extensions
-	sudo cp -R Build/Products/Debug/CPUSensors.kext /System/Library/Extensions/FakeSMC_CPUSensors.kext
-	sudo cp -R Build/Products/Debug/ACPISensors.kext /System/Library/Extensions/FakeSMC_ACPISensors.kext
-	sudo cp -R Build/Products/Debug/LPCSensors.kext /System/Library/Extensions/FakeSMC_LPCSensors.kext
-	sudo cp -R Build/Products/Debug/GPUSensors.kext /System/Library/Extensions/FakeSMC_GPUSensors.kext
-	if [ "`which tag`" != "" ]; then sudo tag -a Purple /System/Library/Extensions/FakeSMC*.kext; fi
+	sudo rm -rf $(INSTDIR)/FakeSMC*.kext
+	sudo cp -R Build/Products/Debug/FakeSMC.kext $(INSTDIR)
+	if [ "`which tag`" != "" ]; then sudo tag -a Purple $(INSTDIR)/FakeSMC*.kext; fi
+	sudo touch /System/Library/Extensions
+	sudo kextcache -update-volume /
+
+.PHONY: install_all
+install_all:
+	sudo rm -rf $(INSTDIR)/FakeSMC*.kext
+	sudo cp -R Build/Products/Release/FakeSMC.kext $(INSTDIR)
+	sudo cp -R Build/Products/Release/CPUSensors.kext $(INSTDIR)/FakeSMC_CPUSensors.kext
+	sudo cp -R Build/Products/Release/ACPISensors.kext $(INSTDIR)/FakeSMC_ACPISensors.kext
+	sudo cp -R Build/Products/Release/LPCSensors.kext $(INSTDIR)/FakeSMC_LPCSensors.kext
+	sudo cp -R Build/Products/Release/GPUSensors.kext $(INSTDIR)/FakeSMC_GPUSensors.kext
+	if [ "`which tag`" != "" ]; then sudo tag -a Blue $(INSTDIR)/FakeSMC*.kext; fi
+	sudo touch /System/Library/Extensions
+	sudo kextcache -update-volume /
+
+.PHONY: install_debug_all
+install_debug_all:
+	sudo rm -rf $(INSTDIR)/FakeSMC*.kext
+	sudo cp -R Build/Products/Debug/FakeSMC.kext $(INSTDIR)
+	sudo cp -R Build/Products/Debug/CPUSensors.kext $(INSTDIR)/FakeSMC_CPUSensors.kext
+	sudo cp -R Build/Products/Debug/ACPISensors.kext $(INSTDIR)/FakeSMC_ACPISensors.kext
+	sudo cp -R Build/Products/Debug/LPCSensors.kext $(INSTDIR)/FakeSMC_LPCSensors.kext
+	sudo cp -R Build/Products/Debug/GPUSensors.kext $(INSTDIR)/FakeSMC_GPUSensors.kext
+	if [ "`which tag`" != "" ]; then sudo tag -a Purple $(INSTDIR)/FakeSMC*.kext; fi
 	sudo touch /System/Library/Extensions
 	sudo kextcache -update-volume /
 
