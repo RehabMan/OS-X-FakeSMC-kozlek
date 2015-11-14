@@ -26,8 +26,8 @@
  *
  */
 
-#import "../Sparkle/SUUpdater.h"
-//#import <Sparkle/SUUpdater.h>
+#import "../Sparkle/Sparkle/SUUpdater.h"
+
 #import <Growl/Growl.h>
 
 #import "PopupController.h"

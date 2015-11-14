@@ -44,7 +44,7 @@
 #define	CPUID_VID_INTEL		"GenuineIntel"
 #define	CPUID_VID_AMD		"AuthenticAMD"
 
-#define CPUID_STRING_UNKNOWN    "Unknown CPU Typ"
+#define CPUID_STRING_UNKNOWN    "Unknown CPU Type"
 
 //#define MSR_CORE_THREAD_COUNT 0x035
 
@@ -163,6 +163,7 @@
 #define CPUID_MODEL_HASWELL_ULT     0x45    /* Haswell ULT */
 #define CPUID_MODEL_HASWELL_ULX     0x46    /* Haswell ULX */
 #define CPUID_MODEL_BROADWELL_ULV   0x4D    /* Broadwell ULV */
+#define CPUID_MODEL_SKYLAKE         0x5E
 
 #ifndef CPUFAMILY_INTEL_SANDYBRIDGE
 #define CPUFAMILY_INTEL_SANDYBRIDGE 0x5490b78c // From 10.7
@@ -178,6 +179,10 @@
 
 #ifndef CPUFAMILY_INTEL_BROADWELL
 #define CPUFAMILY_INTEL_BROADWELL	0x582ed09c // From 10.10
+#endif
+
+#ifndef CPUFAMILY_INTEL_SKYLAKE
+#define CPUFAMILY_INTEL_SKYLAKE     0x37FC219F // From 10.11
 #endif
 
 //#define CPUFAMILY_INTEL_HASWELL_ULT 0x10B282DC //
@@ -679,6 +684,9 @@ cpuid_set_cpufamily(i386_cpu_info_t *info_p)
                     case CPUID_MODEL_BROADWELL_ULV:
                         cpufamily = CPUFAMILY_INTEL_BROADWELL;
                         break;
+                    case CPUID_MODEL_SKYLAKE:
+                        cpufamily = CPUFAMILY_INTEL_SKYLAKE;
+                        break;
             }
             break;
 	}
@@ -722,6 +730,7 @@ cpuid_set_info(void)
             info_p->thread_count = bitfield32((uint32_t)msr, 15,  0);
             break;
         }
+        case CPUFAMILY_INTEL_SKYLAKE:
         case CPUFAMILY_INTEL_HASWELL:
         case CPUFAMILY_INTEL_IVYBRIDGE:
         case CPUFAMILY_INTEL_SANDYBRIDGE:
