@@ -255,6 +255,7 @@ bool IT87xxSensors::initialize()
             break;
         case IT8726F:
         case IT8620E:
+        case IT8628E:
         case IT8728F:
         case IT8752F:
         case IT8771E:
