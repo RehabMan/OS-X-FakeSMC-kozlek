@@ -159,10 +159,9 @@
 #define CPUID_MODEL_HASWELL_DT      0x3C
 #define CPUID_MODEL_IVYBRIDGE_EP    0x3E
 #define CPUID_MODEL_HASWELL_MB      0x3F    /* Haswell MB */
-//#define CPUID_MODEL_HASWELL_H        0x??    // Haswell H
 #define CPUID_MODEL_HASWELL_ULT     0x45    /* Haswell ULT */
 #define CPUID_MODEL_HASWELL_ULX     0x46    /* Haswell ULX */
-#define CPUID_MODEL_BROADWELL_ULV   0x4D
+#define CPUID_MODEL_BROADWELL_ULV   0x3D
 #define CPUID_MODEL_SKYLAKE         0x5E
 
 #ifndef CPUFAMILY_INTEL_SANDYBRIDGE
@@ -184,9 +183,6 @@
 #ifndef CPUFAMILY_INTEL_SKYLAKE
 #define CPUFAMILY_INTEL_SKYLAKE     0x37FC219F // From 10.11
 #endif
-
-
-//#define CPUFAMILY_INTEL_HASWELL_ULT 0x10B282DC //
 
 //#include <stdint.h>
 
