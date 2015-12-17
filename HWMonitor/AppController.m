@@ -192,6 +192,7 @@
 
 -(void)checkForUpdates:(id)sender
 {
+#if 0
     if ([sender isKindOfClass:[NSButton class]]) {
         NSButton *button = (NSButton*)sender;
         
@@ -203,6 +204,7 @@
     else {
         [_sharedUpdater checkForUpdates:sender];
     }
+#endif
 }
 
 -(void)rebuildSensorsList:(id)sender
