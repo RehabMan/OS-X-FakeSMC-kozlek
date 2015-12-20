@@ -823,6 +823,7 @@
 			<string>LPCSensors</string>
 			<key>IONameMatch</key>
 			<array>
+				<string>ITE,IT8628E</string>
 				<string>ITE,IT8512F</string>
 				<string>ITE,IT8505F</string>
 				<string>ITE,IT8712F</string>
@@ -1920,6 +1921,8 @@
 					<key>IT8726F</key>
 					<string>IT8772E</string>
 					<key>IT8620E</key>
+					<string>IT8728F</string>
+					<key>IT8628E</key>
 					<string>IT8728F</string>
 					<key>IT8728F</key>
 					<dict>
