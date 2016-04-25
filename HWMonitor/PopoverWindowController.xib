@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9531" systemVersion="15C50" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9531"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9532"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="PopoverWindowController">
@@ -18,7 +18,7 @@
             <windowCollectionBehavior key="collectionBehavior" moveToActiveSpace="YES" participatesInCycle="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="1240" y="753" width="222" height="257"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1577"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1057"/>
             <value key="minSize" type="size" width="222" height="19"/>
             <view key="contentView" wantsLayer="YES" id="11G-Zt-a3e">
                 <rect key="frame" x="0.0" y="0.0" width="222" height="257"/>
@@ -35,8 +35,8 @@
             <rect key="frame" x="0.0" y="0.0" width="222" height="35"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <button toolTip="Hide Window" misplaced="YES" alphaValue="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="dE0-6T-vtA" userLabel="Hide Popup Button" customClass="FadingButton">
-                    <rect key="frame" x="9" y="11" width="15" height="15"/>
+                <button toolTip="Hide Window" alphaValue="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="dE0-6T-vtA" userLabel="Hide Popup Button" customClass="FadingButton">
+                    <rect key="frame" x="9" y="10" width="15" height="15"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="15" id="Bbm-Dw-ba3"/>
                         <constraint firstAttribute="height" constant="15" id="wfr-dn-pP5"/>
@@ -51,8 +51,8 @@
                         <action selector="closeWindow:" target="-2" id="g3L-RL-eWQ"/>
                     </connections>
                 </button>
-                <button toolTip="Preferences" misplaced="YES" alphaValue="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="Z27-D7-DH9" userLabel="Preferences Button" customClass="FadingButton">
-                    <rect key="frame" x="198" y="11" width="15" height="15"/>
+                <button toolTip="Preferences" alphaValue="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="Z27-D7-DH9" userLabel="Preferences Button" customClass="FadingButton">
+                    <rect key="frame" x="198" y="10" width="15" height="15"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="15" id="WJD-ms-LDS"/>
                         <constraint firstAttribute="height" constant="15" id="edn-zs-22w"/>
@@ -67,8 +67,8 @@
                         <outlet property="menu" destination="Mxa-91-wNV" id="j5q-6C-Wyh"/>
                     </connections>
                 </button>
-                <button toolTip="History Graphs" misplaced="YES" alphaValue="0.80000000000000004" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="YPt-Z5-WE6" userLabel="Graphs Button" customClass="FadingButton">
-                    <rect key="frame" x="178" y="11" width="15" height="15"/>
+                <button toolTip="History Graphs" alphaValue="0.80000000000000004" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="YPt-Z5-WE6" userLabel="Graphs Button" customClass="FadingButton">
+                    <rect key="frame" x="178" y="10" width="15" height="15"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="15" id="KpE-YK-6tR"/>
                         <constraint firstAttribute="width" constant="15" id="k48-cA-VOz"/>
@@ -100,15 +100,12 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="HWMonitor" systemMenu="apple" id="Mxa-91-wNV">
                         <items>
-                            <menuItem title="Attach to Menu Bar" keyEquivalent="a" id="UBQ-Qa-WRk">
+                            <menuItem title="About HWMonitor..." id="Jk1-6L-NhI">
                                 <attributedString key="attributedTitle"/>
-                                <connections>
-                                    <action selector="attachToMenubar:" target="-2" id="jXT-6Q-47d"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="8Pr-sf-t7V"/>
-                            <menuItem title="ACPIProbe Profile" id="sh3-yk-rHp" customClass="ProbeControllingMenuItem">
                                 <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="showAboutWindow:" target="-2" id="vCo-Cb-aG9"/>
+                                </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="Nj4-VZ-L2q"/>
                             <menuItem title="Preferences..." keyEquivalent="," id="LQm-5P-PLw">
@@ -117,11 +114,13 @@
                                     <action selector="showPreferencesWindow:" target="-2" id="LNi-1P-AL2"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="About HWMonitor..." id="Jk1-6L-NhI">
-                                <attributedString key="attributedTitle"/>
+                            <menuItem title="ACPIProbe Profile" id="sh3-yk-rHp" customClass="ProbeControllingMenuItem">
                                 <modifierMask key="keyEquivalentModifierMask"/>
+                            </menuItem>
+                            <menuItem title="Attach to Menu Bar" keyEquivalent="a" id="UBQ-Qa-WRk" userLabel="Detach from Menu Bar">
+                                <attributedString key="attributedTitle"/>
                                 <connections>
-                                    <action selector="showAboutWindow:" target="-2" id="vCo-Cb-aG9"/>
+                                    <action selector="attachToMenubar:" target="-2" id="jXT-6Q-47d"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="RC6-Ck-JN1"/>

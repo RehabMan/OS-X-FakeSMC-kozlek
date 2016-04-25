@@ -161,7 +161,9 @@
 #define CPUID_MODEL_HASWELL_MB      0x3F    /* Haswell MB */
 #define CPUID_MODEL_HASWELL_ULT     0x45    /* Haswell ULT */
 #define CPUID_MODEL_HASWELL_ULX     0x46    /* Haswell ULX */
+#define CPUID_MODEL_BROADWELL_DT    0x47
 #define CPUID_MODEL_BROADWELL_ULV   0x3D
+#define CPUID_MODEL_BROADWELL_MB    0x4f
 #define CPUID_MODEL_SKYLAKE         0x5E
 
 #ifndef CPUFAMILY_INTEL_SANDYBRIDGE
@@ -678,6 +680,8 @@ cpuid_set_cpufamily(i386_cpu_info_t *info_p)
                     case CPUID_MODEL_HASWELL_ULX:
                         cpufamily = CPUFAMILY_INTEL_HASWELL;
                         break;
+                    case CPUID_MODEL_BROADWELL_DT:
+                    case CPUID_MODEL_BROADWELL_MB:
                     case CPUID_MODEL_BROADWELL_ULV:
                         cpufamily = CPUFAMILY_INTEL_BROADWELL;
                         break;
