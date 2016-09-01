@@ -29,8 +29,6 @@
 	</dict>
 	<key>CFBundleVersion</key>
 	<string>HWSENSORS_REVISION</string>
-	<key>OSBundleRequired</key>
-	<string>Root</string>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleSignature</key>

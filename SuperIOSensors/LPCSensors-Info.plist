@@ -4988,7 +4988,5 @@
 		<key>com.apple.kpi.unsupported</key>
 		<string>10.6</string>
 	</dict>
-	<key>OSBundleRequired</key>
-	<string>Root</string>
 </dict>
 </plist>
