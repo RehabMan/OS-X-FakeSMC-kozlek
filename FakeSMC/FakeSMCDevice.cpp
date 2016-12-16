@@ -272,7 +272,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
             return false;
         }
 
-        OSSafeRelease(matching);
+        OSSafeReleaseNULL(matching);
     }
     else {
         HWSensorsFatalLog("failed to create matching dictionary (FakeSMCKeyStore)");
@@ -329,7 +329,7 @@ bool FakeSMCDevice::initAndStart(IOService *platform, IOService *provider)
     
 	if(OSArray *array = IODeviceMemory::arrayFromList(rangeList, 1)) {
 		this->setDeviceMemory(array);
-		OSSafeRelease(array);
+		OSSafeReleaseNULL(array);
 	}
 	else
 	{

@@ -280,13 +280,13 @@ UInt32 FakeSMCKeyStore::addKeysFromDictionary(OSDictionary* dictionary)
                             keysAdded++;
                         }
 
-                        OSSafeRelease(aiterator);
+                        OSSafeReleaseNULL(aiterator);
                     }
                 }
                 key = 0;
             }
             
-            OSSafeRelease(iterator);
+            OSSafeReleaseNULL(iterator);
         }
     }
 
@@ -304,7 +304,7 @@ UInt32 FakeSMCKeyStore::addWellKnownTypesFromDictionary(OSDictionary* dictionary
                 typesCount++;
             }
         }
-        OSSafeRelease(iterator);
+        OSSafeReleaseNULL(iterator);
     }
 
     return typesCount;
@@ -460,21 +460,21 @@ UInt32 FakeSMCKeyStore::loadKeysFromNVRAM()
                             }
                         }
                         
-                        OSSafeRelease(iterator);
+                        OSSafeReleaseNULL(iterator);
                     }
                     
-                    OSSafeRelease(props);
+                    OSSafeReleaseNULL(props);
                 }
             }
             
-            OSSafeRelease(s);
-            OSSafeRelease(nvram);
+            OSSafeReleaseNULL(s);
+            OSSafeReleaseNULL(nvram);
         }
         else {
             HWSensorsWarningLog("NVRAM is unavailable");
         }
 
-        OSSafeRelease(matching);
+        OSSafeReleaseNULL(matching);
     }
     
     return count;
@@ -675,7 +675,7 @@ IOReturn FakeSMCKeyStore::callPlatformFunction(const OSSymbol *functionName, boo
                         key->setHandler(NULL);
                 }
                 result = kIOReturnSuccess;
-                OSSafeRelease(iterator);
+                OSSafeReleaseNULL(iterator);
             }
         }
     }
@@ -841,5 +841,4 @@ IOReturn FakeSMCKeyStore::callPlatformFunction(const OSSymbol *functionName, boo
     }
     
 	return result;
-}
-*/
+}*/
