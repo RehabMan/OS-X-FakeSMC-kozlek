@@ -832,6 +832,7 @@ bool CPUSensors::start(IOService *provider)
                     case CPUID_MODEL_JAKETOWN:
                     case CPUID_MODEL_IVYBRIDGE_EP:
                     case CPUID_MODEL_HASWELL_MB:
+                    case CPUID_MODEL_BROADWELL_MB:
                         // Do not add uncore sensor
                         break;
 
