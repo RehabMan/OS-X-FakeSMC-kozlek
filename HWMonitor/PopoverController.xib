@@ -92,14 +92,6 @@
                                     <action selector="detach:" target="-2" id="GnK-Jh-qtw"/>
                                 </connections>
                             </menuItem>
-                            <menuItem isSeparatorItem="YES" id="ZnW-Ch-yz8"/>
-                            <menuItem title="Check for Updates..." id="g3K-XR-P1p">
-                                <attributedString key="attributedTitle"/>
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="checkForUpdates:" target="-1" id="VKf-do-ezD"/>
-                                </connections>
-                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="n9N-Ce-ZAi"/>
                             <menuItem title="Quit HWMonitor" keyEquivalent="q" id="jjp-Xo-DKq">
                                 <attributedString key="attributedTitle"/>

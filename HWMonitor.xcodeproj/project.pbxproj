@@ -50,8 +50,6 @@
 		7E48BC5A18EE8FAE00A6CA19 /* HWMonitorHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E48BC5918EE8FAE00A6CA19 /* HWMonitorHelper.m */; };
 		7E48BC6518EE977500A6CA19 /* SmcHelper+HWMonitorHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E48BC6418EE977500A6CA19 /* SmcHelper+HWMonitorHelper.m */; };
 		7E4959F218A640F200E05CF7 /* PopupFanController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E4959F118A640F200E05CF7 /* PopupFanController.m */; };
-		7E4A3C281E07038300A01B02 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E2FE40F18DCBA5400EAD6DB /* Sparkle.framework */; };
-		7E4A3C291E07038300A01B02 /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7E2FE40F18DCBA5400EAD6DB /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7E4C76AE18A559BA0050BEFD /* PopupAtaSmartReportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E4C76AC18A559BA0050BEFD /* PopupAtaSmartReportController.m */; };
 		7E4C76AF18A559BA0050BEFD /* PopupAtaSmartReportController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7E4C76AD18A559BA0050BEFD /* PopupAtaSmartReportController.xib */; };
 		7E4C76BA18A61C190050BEFD /* NSTableHeaderCell+PopupThemedHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E4C76B918A61C190050BEFD /* NSTableHeaderCell+PopupThemedHeader.m */; };
@@ -157,13 +155,6 @@
 			remoteGlobalIDString = 5D06E8D00FD68C7C005AE3F6;
 			remoteInfo = BinaryDelta;
 		};
-		7E2FE41618DCBA5400EAD6DB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 55C14BB7136EEF1500649790;
-			remoteInfo = "Sparkle Updater";
-		};
 		7E4A3C261E0702D600A01B02 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
@@ -178,26 +169,33 @@
 			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
 			remoteInfo = Sparkle;
 		};
-		7EC27DC01E0700E6000503C9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 726B2B5D1C645FC900388755;
-			remoteInfo = "UI Tests";
-		};
-		7EC27DC21E0700E6000503C9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 722954B41D04ADAF00ECF9CA;
-			remoteInfo = fileop;
-		};
 		7EEC9F4718B8D0FB00BDB9D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7EA248E016D8E93A002231B2 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7E3299CC18B8D0490022FB53;
 			remoteInfo = org.hwsensors.HWMonitorHelper;
+		};
+		EDF983CC1E2EEC9F0014F41B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 55C14BB7136EEF1500649790;
+			remoteInfo = Autoupdate;
+		};
+		EDF983CE1E2EEC9F0014F41B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 726B2B5D1C645FC900388755;
+			remoteInfo = "UI Tests";
+		};
+		EDF983D01E2EEC9F0014F41B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 722954B41D04ADAF00ECF9CA;
+			remoteInfo = fileop;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -219,7 +217,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				7E2789811876FB6E00B443BD /* Growl.framework in Copy Frameworks */,
-				7E4A3C291E07038300A01B02 /* Sparkle.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -788,9 +785,12 @@
 			isa = PBXGroup;
 			children = (
 				7E2FE40F18DCBA5400EAD6DB /* Sparkle.framework */,
+				EDF983CD1E2EEC9F0014F41B /* Autoupdate.app */,
 				7E2FE41118DCBA5400EAD6DB /* Sparkle Test App.app */,
 				7E2FE41318DCBA5400EAD6DB /* Sparkle Unit Tests.xctest */,
 				7E2FE41518DCBA5400EAD6DB /* BinaryDelta */,
+				EDF983CF1E2EEC9F0014F41B /* UI Tests.xctest */,
+				EDF983D11E2EEC9F0014F41B /* fileop */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1270,25 +1270,25 @@
 			remoteRef = 7E2FE41418DCBA5400EAD6DB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		7E2FE41718DCBA5400EAD6DB /* HWMonitor Updater.app */ = {
+		EDF983CD1E2EEC9F0014F41B /* Autoupdate.app */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.application;
-			path = "HWMonitor Updater.app";
-			remoteRef = 7E2FE41618DCBA5400EAD6DB /* PBXContainerItemProxy */;
+			path = Autoupdate.app;
+			remoteRef = EDF983CC1E2EEC9F0014F41B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		7EC27DC11E0700E6000503C9 /* UI Tests.xctest */ = {
+		EDF983CF1E2EEC9F0014F41B /* UI Tests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = "UI Tests.xctest";
-			remoteRef = 7EC27DC01E0700E6000503C9 /* PBXContainerItemProxy */;
+			remoteRef = EDF983CE1E2EEC9F0014F41B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		7EC27DC31E0700E6000503C9 /* fileop */ = {
+		EDF983D11E2EEC9F0014F41B /* fileop */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";
 			path = fileop;
-			remoteRef = 7EC27DC21E0700E6000503C9 /* PBXContainerItemProxy */;
+			remoteRef = EDF983D01E2EEC9F0014F41B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
