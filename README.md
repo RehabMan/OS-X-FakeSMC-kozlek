@@ -11,7 +11,7 @@ FakeSMC is an open source SMC device driver/emulator developed by [netkas](http:
 Note: This version forked from kozlek's branch at: https://www.assembla.com/code/fakesmc/git/nodes 
 
 Download link for RehabMan builds:
-https://bitbucket.org/RehabMan/os-x-fakesmc-kozlek/downloads
+https://bitbucket.org/RehabMan/os-x-fakesmc-kozlek/downloads/
 
 Older builds are archived here:
 https://code.google.com/p/os-x-fake-smc-kozlek/downloads/list
