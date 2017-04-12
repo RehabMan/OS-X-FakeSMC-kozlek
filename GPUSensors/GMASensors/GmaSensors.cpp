@@ -8,7 +8,7 @@
  */
 
 #include "GmaSensors.h"
-#include "FakeSMCDefinitions.h"
+#include "smc.h"
 
 /*#define kGenericPCIDevice "IOPCIDevice"
  #define kTimeoutMSecs 1000
@@ -103,10 +103,10 @@ bool GmaSensors::managedStart(IOService *provider)
     
     snprintf(key, 5, KEY_FORMAT_GPU_PROXIMITY_TEMPERATURE, gpuIndex);
     
-    if (!addSensorForKey(key, TYPE_SP78, 2, kFakeSMCTemperatureSensor, 0)) {
+    if (!addSensorForKey(key, SMC_TYPE_SP78, 2, kFakeSMCTemperatureSensor, 0)) {
         HWSensorsFatalLog("failed to register temperature sensor");
         releaseGPUIndex(gpuIndex);
-        gpuIndex = -1;
+        gpuIndex = UINT8_MAX;
         return false;
     }
     
@@ -117,7 +117,7 @@ bool GmaSensors::managedStart(IOService *provider)
 
 void GmaSensors::stop(IOService* provider)
 {
-    if (gpuIndex >= 0)
+    if (gpuIndex < UINT8_MAX)
         releaseGPUIndex(gpuIndex);
     
     super::stop(provider);

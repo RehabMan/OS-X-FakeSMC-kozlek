@@ -38,7 +38,8 @@ class EXPORT FakeSMCKeyStore : public IOService
     OSDeclareDefaultStructors(FakeSMCKeyStore)
 
 private:
-    IORecursiveLock     *keysLock;
+    IORecursiveLock     *accessLock;
+    
     OSArray             *keys;
     OSDictionary        *types;
 
@@ -56,6 +57,9 @@ private:
 #if NVRAMKEYS_EXCEPTION
     OSDictionary        *exceptionKeys;
 #endif
+
+    void                lockAccess(void);
+    void                unlockAccess(void);
 
 public:
     FakeSMCKey          *addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value);
@@ -75,10 +79,10 @@ public:
     UInt32              loadKeysFromNVRAM();
 #endif
 
-    SInt8               takeVacantGPUIndex();
+    UInt8               takeVacantGPUIndex();
     bool                takeGPUIndex(UInt8 index);
     void                releaseGPUIndex(UInt8 index);
-    SInt8               takeVacantFanIndex(void);
+    UInt8               takeVacantFanIndex(void);
     void                releaseFanIndex(UInt8 index);
 
     virtual bool		initAndStart(IOService *provider, OSDictionary *properties = 0);

@@ -63,7 +63,7 @@ struct nouveau_device {
 	const char *cname;
     
 	nouveau_card_type card_type;
-    s8 card_index;
+    u8 card_index;
     
 	u32 chipset;
 	u32 crystal;
@@ -92,6 +92,7 @@ struct nouveau_device {
 	int (*core_temp_get)(struct nouveau_device *);
     int (*board_temp_get)(struct nouveau_device *);
     //int (*fan_sense)(struct nouveau_device *);
+    int (*fan_init)(struct nouveau_device *);
     int (*fan_pwm_get)(struct nouveau_device *);
     int (*fan_rpm_get)(struct nouveau_device *);
 };

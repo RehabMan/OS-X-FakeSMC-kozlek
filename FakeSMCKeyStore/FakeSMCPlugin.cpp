@@ -28,431 +28,129 @@
 #include "FakeSMCKey.h"
 #include "FakeSMCKeyStore.h"
 
+#include "smc.h"
+
 #include <IOKit/IOLib.h>
-
-#pragma mark FakeSMCPSensor
-
-static UInt8 fakeSMCPluginGetIndexFromChar(char c)
-{
-	return c > 96 && c < 103 ? c - 87 : c > 47 && c < 58 ? c - 48 : 0;
-}
-
-/**
- *  Encode floating point value to SMC float format
- *
- *  @param value     Floating point value to be encoded
- *  @param type      Floating point SMC type name ("fp2e", "fpe2", "sp78" are correct float SMC types)
- *  @param size      Buffer size for encoded bytes, for every floating SMC type should be 2 bytes
- *  @param outBuffer Buffer where encoded bytes will be copied to, should be already allocated with correct size
- *
- *  @return True on success False otherwise
- */
-bool EXPORT fakeSMCPluginEncodeFloatValue(float value, const char *type, const UInt8 size, void *outBuffer)
-{
-    if (type && outBuffer) {
-
-        size_t typeLength = strnlen(type, 4);
-
-        if (typeLength >= 3 && (type[0] == 'f' || type[0] == 's') && type[1] == 'p') {
-            bool minus = value < 0;
-            bool signd = type[0] == 's';
-            UInt8 i = fakeSMCPluginGetIndexFromChar(type[2]);
-            UInt8 f = fakeSMCPluginGetIndexFromChar(type[3]);
-
-            if (i + f == (signd ? 15 : 16)) {
-                if (minus) value = -value;
-                UInt16 encoded = value * (float)BIT(f);
-                if (signd) bit_write(minus, encoded, BIT(15));
-                OSWriteBigInt16(outBuffer, 0, encoded);
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
- *  Encode integer value to SMC integer format
- *
- *  @param value     Integer value to be encoded
- *  @param type      Integer SMC type ("ui8 ", "ui16", "ui32", "si8 ")
- *  @param size      Buffer size for encoded bytes, one byte for ui8, 2 bytes for ui16 etc.
- *  @param outBuffer Buffer where encoded bytes will be copied to, should be already allocated with correct size
- *
- *  @return True on success False otherwise
- */
-bool EXPORT fakeSMCPluginEncodeIntValue(int value, const char *type, const UInt8 size, void *outBuffer)
-{
-    if (type && outBuffer) {
-
-        size_t typeLength = strnlen(type, 4);
-
-        if (typeLength >= 3 && (type[0] == 'u' || type[0] == 's') && type[1] == 'i') {
-
-            bool minus = value < 0;
-            bool signd = type[0] == 's';
-
-            if (minus) value = -value;
-
-            switch (type[2]) {
-                case '8':
-                    if (type[3] == '\0' && size == 1) {
-                        UInt8 encoded = (UInt8)value;
-                        if (signd) bit_write(signd && minus, encoded, BIT(7));
-                        bcopy(&encoded, outBuffer, 1);
-                        return true;
-                    }
-                    break;
-
-                case '1':
-                    if (type[3] == '6' && size == 2) {
-                        UInt16 encoded = (UInt16)value;
-                        if (signd) bit_write(signd && minus, encoded, BIT(15));
-                        OSWriteBigInt16(outBuffer, 0, encoded);
-                        return true;
-                    }
-                    break;
-
-                case '3':
-                    if (type[3] == '2' && size == 4) {
-                        UInt32 encoded = (UInt32)value;
-                        if (signd) bit_write(signd && minus, encoded, BIT(31));
-                        OSWriteBigInt32(outBuffer, 0, encoded);
-                        return true;
-                    }
-                    break;
-            }
-        }
-    }
-    return false;
-}
-
-/**
- *  Cheks if a type name is correct integer SMC type name
- *
- *  @param type Type name to check
- *
- *  @return True is returned when the type name is correct False otherwise
- */
-bool EXPORT fakeSMCPluginIsValidIntegerType(const char *type)
-{
-    if (type) {
-        size_t typeLength = strnlen(type, 4);
-
-        if (typeLength >= 3) {
-            if ((type[0] == 'u' || type[0] == 's') && type[1] == 'i') {
-
-                switch (type[2]) {
-                    case '8':
-                        return true;
-                    case '1':
-                        return type[3] == '6' ? true : false;
-                    case '3':
-                        return type[3] == '2'? true : false;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
- *  Cheks if a type name is a correct floating point SMC type name
- *
- *  @param type Type name to check
- *
- *  @return True is returned when the type name is correct False otherwise
- */
-bool EXPORT fakeSMCPluginIsValidFloatingType(const char *type)
-{
-    if (type) {
-
-        size_t typeLength = strnlen(type, 4);
-
-        if (typeLength >= 3) {
-            if ((type[0] == 'f' || type[0] == 's') && type[1] == 'p') {
-                UInt8 i = fakeSMCPluginGetIndexFromChar(type[2]);
-                UInt8 f = fakeSMCPluginGetIndexFromChar(type[3]);
-
-                if (i + f == (type[0] == 's' ? 15 : 16))
-                    return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
- *  Decode buffer considering it's a floating point encoded value of an SMC key
- *
- *  @param type     SMC type name will be used to determine decoding rules
- *  @param size     Encoded value buffer size
- *  @param data     Pointer to a encoded value buffer
- *  @param outValue Decoded float value will be returned
- *
- *  @return True on success False otherwise
- */
-bool EXPORT fakeSMCPluginDecodeFloatValue(const char *type, const UInt8 size, const void *data, float *outValue)
-{
-    if (type && data && outValue) {
-
-        size_t typeLength = strnlen(type, 4);
-
-        if (typeLength >= 3 && (type[0] == 'f' || type[0] == 's') && type[1] == 'p' && size == 2) {
-            UInt16 encoded = 0;
-
-            bcopy(data, &encoded, 2);
-
-            UInt8 i = fakeSMCPluginGetIndexFromChar(type[2]);
-            UInt8 f = fakeSMCPluginGetIndexFromChar(type[3]);
-
-            if (i + f != (type[0] == 's' ? 15 : 16) )
-                return false;
-
-            UInt16 swapped = OSSwapBigToHostInt16(encoded);
-
-            bool signd = type[0] == 's';
-            bool minus = bit_get(swapped, BIT(15));
-
-            if (signd && minus) bit_clear(swapped, BIT(15));
-
-            *outValue = ((float)swapped / (float)BIT(f)) * (signd && minus ? -1 : 1);
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- *  Decode buffer considering it's an integer encoded value of an SMC key
- *
- *  @param type     SMC type name will be used to determine decoding rules
- *  @param size     Size of encoded value buffer
- *  @param data     Pointer to encoded value buffer
- *  @param outValue Decoded integer value will be returned
- *
- *  @return True on success False otherwise
- */
-bool EXPORT fakeSMCPluginDecodeIntValue(const char *type, const UInt8 size, const void *data, int *outValue)
-{
-    if (type && data && outValue) {
-
-        size_t typeLength = strnlen(type, 4);
-
-        if (typeLength >= 3 && (type[0] == 'u' || type[0] == 's') && type[1] == 'i') {
-
-            bool signd = type[0] == 's';
-
-            switch (type[2]) {
-                case '8':
-                    if (size == 1) {
-                        UInt8 encoded = 0;
-
-                        bcopy(data, &encoded, 1);
-
-                        if (signd && bit_get(encoded, BIT(7))) {
-                            bit_clear(encoded, BIT(7));
-                            *outValue = -encoded;
-                        }
-
-                        *outValue = encoded;
-
-                        return true;
-                    }
-                    break;
-
-                case '1':
-                    if (type[3] == '6' && size == 2) {
-                        UInt16 encoded = 0;
-
-                        bcopy(data, &encoded, 2);
-
-                        encoded = OSSwapBigToHostInt16(encoded);
-
-                        if (signd && bit_get(encoded, BIT(15))) {
-                            bit_clear(encoded, BIT(15));
-                            *outValue = -encoded;
-                        }
-
-                        *outValue = encoded;
-
-                        return true;
-                    }
-                    break;
-
-                case '3':
-                    if (type[3] == '2' && size == 4) {
-                        UInt32 encoded = 0;
-
-                        bcopy(data, &encoded, 4);
-
-                        encoded = OSSwapBigToHostInt32(encoded);
-
-                        if (signd && bit_get(encoded, BIT(31))) {
-                            bit_clear(encoded, BIT(31));
-                            *outValue = -encoded;
-                        }
-
-                        *outValue = encoded;
-
-                        return true;
-                    }
-                    break;
-            }
-        }
-    }
-
-    return false;
-}
-
-OSDefineMetaClassAndStructors(FakeSMCSensor, OSObject)
-
-/**
- *  Parse modifiers from configuration node
- *
- *  @param node      Configuration node to parse modifiers from
- *  @param reference Parsed 'reference' modifier will be returned
- *  @param gain      Parsed 'gain' modifier will be returned
- *  @param offset    Parsed 'offset' modifier will be returned
- *
- *  @return True on success False otherwise
- */
-bool FakeSMCSensor::parseModifiers(OSDictionary *node, float *reference, float *gain, float *offset)
-{
-    if (OSDynamicCast(OSDictionary, node)) {
-
-        if (OSNumber *number = OSDynamicCast(OSNumber, node->getObject("reference")))
-            if (reference)
-                *reference = (float)number->unsigned64BitValue() / 1000.0f;
-
-        if (OSNumber *number = OSDynamicCast(OSNumber, node->getObject("gain")))
-            if (gain)
-                *gain = (float)number->unsigned64BitValue() / 1000.0f;
-
-        if (OSNumber *number = OSDynamicCast(OSNumber, node->getObject("offset")))
-            if (offset)
-                *offset = (float)number->unsigned64BitValue() / 1000.0f;
-
-        return true;
-    }
-
-    return false;
-}
-
-/**
- *  Create new FakeSMCSensor object
- *
- *  @param aOwner     Handler of a sensor
- *  @param aKey       SMC key name
- *  @param aType      SMC type name
- *  @param aSize      SMC value size
- *  @param aGroup     <#aGroup description#>
- *  @param aIndex     <#aIndex description#>
- *  @param aReference <#aReference description#>
- *  @param aGain      <#aGain description#>
- *  @param aOffset    <#aOffset description#>
- *
- *  @return <#return value description#>
- */
-FakeSMCSensor *FakeSMCSensor::withOwner(FakeSMCPlugin *aOwner, const char *aKey, const char *aType, UInt8 aSize, UInt32 aGroup, UInt32 aIndex, float aReference, float aGain, float aOffset)
-{
-	FakeSMCSensor *me = new FakeSMCSensor;
-
-    if (me && !me->initWithOwner(aOwner, aKey, aType, aSize, aGroup, aIndex, aReference, aGain, aOffset))
-        OSSafeReleaseNULL(me);
-
-    return me;
-}
-
-
-/**
- *  For internal use
- */
-bool FakeSMCSensor::initWithOwner(FakeSMCPlugin *aOwner, const char *aKey, const char *aType, UInt8 aSize, UInt32 aGroup, UInt32 aIndex, float aReference, float aGain, float aOffset)
-{
-	if (!OSObject::init())
-		return false;
-
-	if (!(owner = aOwner))
-		return false;
-
-	bzero(key, 5);
-    bcopy(aKey, key, 4);
-
-    bzero(type, 5);
-	bcopy(aType, type, 4);
-
-	size = aSize;
-	group = aGroup;
-	index = aIndex;
-
-    reference = aReference;
-    gain = aGain;
-    offset = aOffset;
-
-	return true;
-}
-
-const char *FakeSMCSensor::getKey()
-{
-	return key;
-}
-
-const char *FakeSMCSensor::getType()
-{
-	return type;
-}
-
-UInt8 FakeSMCSensor::getSize()
-{
-	return size;
-}
-
-UInt32 FakeSMCSensor::getGroup()
-{
-	return group;
-}
-
-UInt32 FakeSMCSensor::getIndex()
-{
-	return index;
-}
-
-float FakeSMCSensor::getReference()
-{
-    return reference;
-}
-
-float FakeSMCSensor::getGain()
-{
-    return gain;
-}
-
-float FakeSMCSensor::getOffset()
-{
-    return offset;
-}
-
-void FakeSMCSensor::encodeNumericValue(float value, void *outBuffer)
-{
-    if (!fakeSMCPluginEncodeFloatValue(value, type, size, outBuffer)) {
-        fakeSMCPluginEncodeIntValue(value, type, size, outBuffer);
-    }
-}
 
 #pragma mark
 #pragma mark FakeSMCPlugin
 
+const struct FakeSMCSensorDefinitionEntry gDefaultSensorDefinitions[] =
+{
+    {"Ambient",                 "TA0P", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0},
+    {"CPU Die",                 "TC%XD", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0xF},
+    {"CPU Package",             "TC%XC", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0xA, 0x6},
+    //{"CPU Core",                "TC%XC", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0xF},
+    {"CPU GFX",                 "TC%XG", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0xF},
+    {"CPU Heatsink",            "TC%XH", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"CPU Proximity",           "TC%XP", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"Northbridge Die",         "TN%XD", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"Northbridge Proximity",   "TN%XP", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"MCH Die",                 "TN%XC", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"MCH Heatsink",            "TN%XH", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"PCH Die",                 "TP%XD", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"PCH Proximity",           "TP%XP", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"Memory Module",           "TM%XS", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0xF},
+    {"Memory Proximity",        "TM%XP", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0xF},
+    {"LCD",                     "TL0P", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0},
+    {"Airport",                 "TW0P", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0},
+    {"Battery",                 "TB%XP", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+    {"Mainboard",               "Tm0P", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0},
+    /*{"GPU Die",                 "TG%XD", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+     {"GPU Heatsink",            "TG%XH", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+     {"GPU Proximity",           "TG%Xp", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},
+     {"GPU Memory",              "TG%XM", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 4},*/
+    {"Thermal Zone",            "TZ%XC", SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCCategoryTemperature, 0, 0xF},
+    
+    // Multipliers
+    {"CPU Core",                "MlC%X", SMC_TYPE_FP88, SMC_TYPE_FPXX_SIZE, kFakeSMCCategoryMultiplier, 0, 0xF},
+    {"CPU Package",             "MlCP", SMC_TYPE_FP88, SMC_TYPE_FPXX_SIZE, kFakeSMCCategoryMultiplier, 0, 0},
+    
+    // Clocks
+    {"CPU Core",                "CC%XC", SMC_TYPE_UI32, SMC_TYPE_UI32_SIZE, kFakeSMCCategoryFrequency, 0, 0xF},
+    {"CPU Package",             "CCPC", SMC_TYPE_UI32, SMC_TYPE_UI32_SIZE, kFakeSMCCategoryFrequency, 0, 0},
+    /*{"GPU Core",                "CG%XC", SMC_TYPE_UI32, SMC_TYPE_UI32_SIZE, kFakeSMCCategoryFrequency, 0, 4},
+     {"GPU Memory",              "CG%XM", SMC_TYPE_UI32, SMC_TYPE_UI32_SIZE, kFakeSMCCategoryFrequency, 0, 4},
+     {"GPU Shaders",             "CG%XS", SMC_TYPE_UI32, SMC_TYPE_UI32_SIZE, kFakeSMCCategoryFrequency, 0, 4},
+     {"GPU ROPs",                "CG%XR", SMC_TYPE_UI32, SMC_TYPE_UI32_SIZE, kFakeSMCCategoryFrequency, 0, 4},*/
+    
+    // Voltages
+    {"CPU Core",                "VC0C", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"CPU GFX",                 "VC%XG", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0xF},
+    {"CPU VTT",                 "VV1R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"PCH",                     "VN1R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Memory",                  "VM0R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"MCH",                     "VN0C", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Main 3V",                 "VV2S", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Main 5V",                 "VV1S", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Main 12V",                "VV9S", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Auxiliary 3V",            "VV7S", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Standby 3V",              "VV3S", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Standby 5V",              "VV8S", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"PCIe 12V",                "VeES", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"+12V Rail",               "VP0R", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"12V Vcc",                 "Vp0C", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Power Supply",            "Vp%XC", "fp4c", 2, kFakeSMCCategoryVoltage, 1, 0xE},
+    {"Mainboard S0 Rail",       "VD0R", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Mainboard S5 Rail",       "VD5R", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"CMOS Battery",            "Vb0R", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"Battery",                 "VBAT", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0},
+    {"CPU VRM",                 "VS%XC", "fp4c", 2, kFakeSMCCategoryVoltage, 0, 0xF},
+    
+    /*{"GPU Core",                "VC%XG", "fp2e", 2, kFakeSMCCategoryVoltage, 0, 4},*/
+    
+    // Currents
+    {"CPU Core",                "IC0C", "sp78", 2, kFakeSMCCategoryCurrent, 0, 0},
+    {"CPU VccIO",               "IC1C", "sp5a", 2, kFakeSMCCategoryCurrent, 0, 0},
+    {"CPU VccSA",               "IC2C", "sp5a", 2, kFakeSMCCategoryCurrent, 0, 0},
+    {"CPU DRAM",                "IC5R", "sp4b", 2, kFakeSMCCategoryCurrent, 0, 0},
+    {"CPU PLL",                 "IC8R", "sp5a", 2, kFakeSMCCategoryCurrent, 0, 0},
+    {"CPU",                     "IC%XC", "sp78", 2, kFakeSMCCategoryCurrent, 0, 0xF},
+    {"CPU GFX",                 "IC0G", "sp5a", 2, kFakeSMCCategoryCurrent, 0, 0},
+    {"Memory Bank",             "IM%XS", "sp5a", 2, kFakeSMCCategoryCurrent, 0, 0xF},
+    {"MCH",                     "IN0C", "sp87", 2, kFakeSMCCategoryCurrent, 0, 0},
+    
+    /*{"GPU",                     "IG%XC", "sp78", 2, kFakeSMCCategoryCurrent, 0, 4},*/
+    
+    //    [NSArray arrayWithObjects:@"IM0R",       @"Memory Rail", nil],
+    //    [NSArray arrayWithObjects:@"IW0E",       @"Airport Rail", nil],
+    //    [NSArray arrayWithObjects:@"IB0R",       @"Battery Rail", nil],
+    //    [NSArray arrayWithObjects:@"Ie:081S",    @"PCIe Slot %X", nil],
+    //    [NSArray arrayWithObjects:@"IM:A4AS",    @"PCIe Booster %X", nil],
+    //    [NSArray arrayWithObjects:@"ID0R",       @"Mainboard S0 Rail", nil],
+    //    [NSArray arrayWithObjects:@"ID5R",       @"Mainboard S5 Rail", nil],
+    
+    // Powers
+    {"CPU Core",                "PC%XC", "sp96", 2, kFakeSMCCategoryPower, 0, 0x8},
+    {"CPU",                     "PC%XC", "sp96", 2, kFakeSMCCategoryPower, 0xA, 6},
+    {"CPU GFX",                 "PC%XG", "sp96", 2, kFakeSMCCategoryPower, 0, 0x4},
+    {"CPU Package Cores",       "PCPC", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
+    {"CPU Package Graphics",    "PCPG", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
+    {"CPU Package Total",       "PCTR", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
+    {"CPU Package DRAM",        "PCPD", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
+    //    [NSArray arrayWithObjects:@"PC1R",       @"CPU Rail", nil],
+    //    [NSArray arrayWithObjects:@"PC5R",       @"CPU 1.5V S0 Rail", nil],
+    //    [NSArray arrayWithObjects:@"PM0R",       @"Memory Rail", nil],
+    //    [NSArray arrayWithObjects:@"PM:A4AS",    @"Memory Bank %X", nil],
+    //    [NSArray arrayWithObjects:@"Pe:041S",    @"PCIe Slot %X", nil],
+    //    [NSArray arrayWithObjects:@"Pe:A4AS",    @"PCIe Booster %X", nil],
+    
+    /*{"GPU",                     "PG%XC", "sp96", 2, kFakeSMCCategoryPower, 0, 4},*/
+    
+    //    [NSArray arrayWithObjects:@"PG0R",       @"GPU Rail", nil],
+    //    [NSArray arrayWithObjects:@"PG:132R",    @"GPU %X Rail", nil],
+    //    [NSArray arrayWithObjects:@"PD0R",       @"Mainboard S0 Rail", nil],
+    //    [NSArray arrayWithObjects:@"PD5R",       @"Mainboard S5 Rail", nil],
+    //    [NSArray arrayWithObjects:@"Pp0C",       @"Power Supply 12V", nil],
+    {"System Total",            "PDTR", "sp96", 2, kFakeSMCCategoryPower, 0, 0},
+    //    [NSArray arrayWithObjects:@"PZ:041G",    @"Zone %X Average", nil],
+    
+    {NULL, NULL, NULL, 0, kFakeSMCCategoryNone, 0, 0}
+};
+
 #include "OEMInfo.h"
 
-static IORecursiveLock *gFakeSMCPluginLock = 0;
-#define LOCK    IORecursiveLockLock(gFakeSMCPluginLock)
-#define UNLOCK    IORecursiveLockUnlock(gFakeSMCPluginLock)
+static IORecursiveLock *gPluginLock = 0;
 
 #define super FakeSMCKeyHandler
 OSDefineMetaClassAndStructors(FakeSMCPlugin, FakeSMCKeyHandler)
@@ -483,17 +181,17 @@ OSString *FakeSMCPlugin::getPlatformProduct(void)
 /**
  *  Engage global FakeSMCPlugin access lock
  */
-void FakeSMCPlugin::lockAccessForOtherPlugins(void)
+void FakeSMCPlugin::lockAccessForPlugins(void)
 {
-    IORecursiveLockLock(gFakeSMCPluginLock);
+    IORecursiveLockLock(gPluginLock);
 }
 
 /**
  *  Disengage global FakeSMCPlugin access lock
  */
-void FakeSMCPlugin::unlockAccessForOtherPlugins(void)
+void FakeSMCPlugin::unlockAccessForPlugins(void)
 {
-    IORecursiveLockUnlock(gFakeSMCPluginLock);
+    IORecursiveLockUnlock(gPluginLock);
 }
 
 /**
@@ -505,11 +203,11 @@ void FakeSMCPlugin::unlockAccessForOtherPlugins(void)
  */
 bool FakeSMCPlugin::isKeyExists(const char *key)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     bool keyExists = keyStore->getKey(key);
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return keyExists;
 }
@@ -523,14 +221,14 @@ bool FakeSMCPlugin::isKeyExists(const char *key)
  */
 bool FakeSMCPlugin::isKeyHandled(const char *key)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     bool keyHandled = false;
 
     if (FakeSMCKey *smcKey = keyStore->getKey(key))
         keyHandled = smcKey->getHandler();
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return keyHandled;
 }
@@ -547,11 +245,11 @@ bool FakeSMCPlugin::isKeyHandled(const char *key)
  */
 bool FakeSMCPlugin::setKeyValue(const char *key, const char *type, UInt8 size, void *value)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     bool added = keyStore->addKeyWithValue(key, type, size, value);
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return added;
 }
@@ -566,7 +264,7 @@ bool FakeSMCPlugin::setKeyValue(const char *key, const char *type, UInt8 size, v
  */
 bool FakeSMCPlugin::getKeyValue(const char *key, void *value)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     FakeSMCKey *smcKey = keyStore->getKey(key);
 
@@ -574,7 +272,7 @@ bool FakeSMCPlugin::getKeyValue(const char *key, void *value)
         memcpy(value, smcKey->getValue(), smcKey->getSize());
     }
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return smcKey != NULL;
 }
@@ -595,17 +293,17 @@ bool FakeSMCPlugin::getKeyValue(const char *key, void *value)
  */
 FakeSMCSensor *FakeSMCPlugin::addSensorForKey(const char *key, const char *type, UInt8 size, UInt32 group, UInt32 index, float reference, float gain, float offset)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     if (FakeSMCSensor *sensor = FakeSMCSensor::withOwner(this, key, type, size, group, index, reference, gain, offset)) {
         if (addSensor(sensor)) {
-            UNLOCK;
+            unlockAccessForPlugins();
             return sensor;
         }
         else OSSafeReleaseNULL(sensor);
     }
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
 	return NULL;
 }
@@ -625,14 +323,14 @@ FakeSMCSensor *FakeSMCPlugin::addSensorForKey(const char *key, const char *type,
  */
 FakeSMCSensor *FakeSMCPlugin::addSensorUsingAbbreviation(const char *abbreviation, FakeSMCSensorCategory category, UInt32 group, UInt32 index, float reference, float gain, float offset)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     FakeSMCSensor *sensor = NULL;
 
     if (abbreviation && strlen(abbreviation) >= 3) {
-        for (int i = 0; FakeSMCSensorDefinitions[i].name; i++) {
+        for (int i = 0; gDefaultSensorDefinitions[i].name; i++) {
 
-            FakeSMCSensorDefinitionEntry entry = FakeSMCSensorDefinitions[i];
+            FakeSMCSensorDefinitionEntry entry = gDefaultSensorDefinitions[i];
 
             if (entry.category == category && 0 == strcasecmp(entry.name, abbreviation)) {
                 if (entry.count) {
@@ -654,7 +352,7 @@ FakeSMCSensor *FakeSMCPlugin::addSensorUsingAbbreviation(const char *abbreviatio
         }
     }
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return sensor;
 }
@@ -671,7 +369,7 @@ FakeSMCSensor *FakeSMCPlugin::addSensorUsingAbbreviation(const char *abbreviatio
  */
 FakeSMCSensor *FakeSMCPlugin::addSensorFromNode(OSObject *node, FakeSMCSensorCategory category, UInt32 group, UInt32 index)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     FakeSMCSensor *sensor = NULL;
 
@@ -691,7 +389,8 @@ FakeSMCSensor *FakeSMCPlugin::addSensorFromNode(OSObject *node, FakeSMCSensorCat
             sensor = addSensorUsingAbbreviation(abbreviation->getCStringNoCopy(), category, group, index, reference, gain, offset);
     }
 
-    UNLOCK;
+    unlockAccessForPlugins();
+    
     return sensor;
 }
 
@@ -704,7 +403,7 @@ FakeSMCSensor *FakeSMCPlugin::addSensorFromNode(OSObject *node, FakeSMCSensorCat
  */
 bool FakeSMCPlugin::addSensor(FakeSMCSensor *sensor)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     bool added = keyStore->addKeyWithHandler(sensor->getKey(), sensor->getType(), sensor->getSize(), this);
 
@@ -712,7 +411,7 @@ bool FakeSMCPlugin::addSensor(FakeSMCSensor *sensor)
         sensors->setObject(sensor->getKey(), sensor);
     }
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return added;
 }
@@ -729,17 +428,17 @@ bool FakeSMCPlugin::addSensor(FakeSMCSensor *sensor)
  *
  *  @return new FakeSMCSensor object or NULL otherwise
  */
-FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char *name, FanType type, UInt8 zone, FanLocationType location, SInt8 *fanIndex)
+FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char *name, FanType type, UInt8 zone, FanLocationType location, UInt8 *fanIndex)
 {
-    LOCK;
+    lockAccessForPlugins();
 
-    SInt8 vacantFanIndex = keyStore->takeVacantFanIndex();
+    UInt8 vacantFanIndex = keyStore->takeVacantFanIndex();
 
-    if (vacantFanIndex >= 0) {
+    if (vacantFanIndex < UINT8_MAX) {
         char key[5];
         snprintf(key, 5, KEY_FORMAT_FAN_SPEED, vacantFanIndex);
 
-        if (FakeSMCSensor *sensor = addSensorForKey(key, TYPE_FPE2, TYPE_FPXX_SIZE, kFakeSMCTachometerSensor, index)) {
+        if (FakeSMCSensor *sensor = addSensorForKey(key, SMC_TYPE_FPE2, SMC_TYPE_FPXX_SIZE, kFakeSMCTachometerSensor, index)) {
             FanTypeDescStruct fds;
 
             bzero(&fds, sizeof(fds));
@@ -755,12 +454,12 @@ FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char *name, FanT
 
             snprintf(key, 5, KEY_FORMAT_FAN_ID, vacantFanIndex);
 
-            if (!setKeyValue(key, TYPE_FDS, sizeof(fds), &fds))
+            if (!setKeyValue(key, SMC_TYPE_FDS, sizeof(fds), &fds))
                 HWSensorsWarningLog("failed to add tachometer name for key %s", key);
 
             if (fanIndex) *fanIndex = vacantFanIndex;
 
-            UNLOCK;
+            unlockAccessForPlugins();
 
             return sensor;
         }
@@ -768,7 +467,7 @@ FakeSMCSensor *FakeSMCPlugin::addTachometer(UInt32 index, const char *name, FanT
     }
     else HWSensorsErrorLog("failed to take vacant Fan index");
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
 	return 0;
 }
@@ -814,15 +513,15 @@ bool FakeSMCPlugin::didWriteSensorValue(FakeSMCSensor *sensor, float value)
 /**
  *  Synchronized method that tries to take vacant GPU index available from internal list
  *
- *  @return Index taken (starting from 0) or -1 on failure
+ *  @return Index taken (starting from 0) or UINT8_MAX on failure
  */
-SInt8 FakeSMCPlugin::takeVacantGPUIndex(void)
+UInt8 FakeSMCPlugin::takeVacantGPUIndex(void)
 {
-    LOCK;
+    lockAccessForPlugins();
 
-    SInt8 index = keyStore->takeVacantGPUIndex();
+    UInt8 index = keyStore->takeVacantGPUIndex();
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return index;
 }
@@ -836,11 +535,11 @@ SInt8 FakeSMCPlugin::takeVacantGPUIndex(void)
  */
 bool FakeSMCPlugin::takeGPUIndex(UInt8 index)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     bool taken = keyStore->takeGPUIndex(index);
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return taken;
 }
@@ -852,25 +551,25 @@ bool FakeSMCPlugin::takeGPUIndex(UInt8 index)
  */
 void FakeSMCPlugin::releaseGPUIndex(UInt8 index)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     keyStore->releaseGPUIndex(index);
 
-    UNLOCK;
+    unlockAccessForPlugins();
 }
 
 /**
  *  Synchronized method that takes vacant Fan index available from internal list. Will update fan counter key on success
  *
- *  @return Index taken (starting from 0) or -1 on failure
+ *  @return Index taken (starting from 0) or UINT8_MAX on failure
  */
-SInt8 FakeSMCPlugin::takeVacantFanIndex(void)
+UInt8 FakeSMCPlugin::takeVacantFanIndex(void)
 {
-    LOCK;
+    lockAccessForPlugins();
 
-    SInt8 index = keyStore->takeVacantFanIndex();
+    UInt8 index = keyStore->takeVacantFanIndex();
 
-    UNLOCK;
+    unlockAccessForPlugins();
 
     return index;
 }
@@ -882,11 +581,11 @@ SInt8 FakeSMCPlugin::takeVacantFanIndex(void)
  */
 void FakeSMCPlugin::releaseFanIndex(UInt8 index)
 {
-    LOCK;
+    lockAccessForPlugins();
 
     keyStore->releaseFanIndex(index);
 
-    UNLOCK;
+    unlockAccessForPlugins();
 }
 
 /**
@@ -903,14 +602,14 @@ bool FakeSMCPlugin::decodeFloatValueForKey(const char *name, float *outValue)
         return false;
 
     if (FakeSMCKey *key = keyStore->getKey(name)) {
-        if (fakeSMCPluginDecodeFloatValue(key->getType(), key->getSize(), key->getValue(), outValue)) {
+        if (FakeSMCKey::decodeFloatValue(key->getType(), key->getSize(), key->getValue(), outValue)) {
             return true;
         }
         else {
 
             int intValue = 0;
 
-            if (fakeSMCPluginDecodeIntValue(key->getType(), key->getSize(), key->getValue(), &intValue)) {
+            if (FakeSMCKey::decodeIntValue(key->getType(), key->getSize(), key->getValue(), &intValue)) {
                 *outValue = (float)intValue;
                 return true;
             }
@@ -934,14 +633,14 @@ bool FakeSMCPlugin::decodeIntValueForKey(const char *name, int *outValue)
         return false;
 
     if (FakeSMCKey *key = keyStore->getKey(name)) {
-        if (fakeSMCPluginDecodeIntValue(key->getType(), key->getSize(), key->getValue(), outValue)) {
+        if (FakeSMCKey::decodeIntValue(key->getType(), key->getSize(), key->getValue(), outValue)) {
             return true;
         }
         else {
 
             float floatValue = 0;
 
-            if (fakeSMCPluginDecodeFloatValue(key->getType(), key->getSize(), key->getValue(), &floatValue)) {
+            if (FakeSMCKey::decodeFloatValue(key->getType(), key->getSize(), key->getValue(), &floatValue)) {
                 *outValue = (int)floatValue;
                 return true;
             }
@@ -1008,13 +707,29 @@ OSDictionary *FakeSMCPlugin::getConfigurationNode(OSString *model)
 }
 
 /**
+ Get called when the system is going to sleep. Base implementation do nothing
+ */
+void FakeSMCPlugin::willPowerOff()
+{
+    // Override
+}
+
+/**
+ Get called when the system is powered on. Base implementation do nothing
+ */
+void FakeSMCPlugin::hasPoweredOn()
+{
+    // Override
+}
+
+/**
  *  For internal use, do not override
  *
  */
 bool FakeSMCPlugin::init(OSDictionary *properties)
 {
-    if (!gFakeSMCPluginLock)
-        gFakeSMCPluginLock = IORecursiveLockAlloc();
+    if (!gPluginLock)
+        gPluginLock = IORecursiveLockAlloc();
 
     if (!super::init(properties))
         return false;
@@ -1027,6 +742,26 @@ bool FakeSMCPlugin::init(OSDictionary *properties)
 	return true;
 }
 
+IOReturn FakeSMCPlugin::setPowerState(unsigned long powerState, IOService *device)
+{
+    switch (powerState) {
+            // Power Off
+        case 0:
+            willPowerOff();
+            break;
+            
+            // Power On
+        case 1:
+            hasPoweredOn();
+            
+            break;
+            
+        default:
+            break;
+    }
+    
+    return(IOPMAckImplied);
+}
 /**
  *  For internal use, do not override
  *
@@ -1060,8 +795,12 @@ inline UInt8 index_of_hex_char(char c)
 void FakeSMCPlugin::stop(IOService* provider)
 {
     HWSensorsDebugLog("removing handler");
+    
+    lockAccessForPlugins();
+    
+    OSArray * keyStoreKeys = keyStore->getKeys();
 
-    if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keyStore->getKeys())) {
+    if (OSCollectionIterator *iterator = OSCollectionIterator::withCollection(keyStoreKeys)) {
         while (FakeSMCKey *key = OSDynamicCast(FakeSMCKey, iterator->getNextObject())) {
             if (key->getHandler() == this) {
                 if (FakeSMCSensor *sensor = getSensor(key->getKey())) {
@@ -1077,12 +816,16 @@ void FakeSMCPlugin::stop(IOService* provider)
         }
         OSSafeReleaseNULL(iterator);
     }
+    
+    OSSafeReleaseNULL(keyStoreKeys);
 
     HWSensorsDebugLog("releasing sensors collection");
 
     sensors->flushCollection();
-
+    
 	super::stop(provider);
+    
+    unlockAccessForPlugins();
 }
 
 /**
@@ -1133,10 +876,10 @@ IOReturn FakeSMCPlugin::writeKeyCallback(const char *key, const char *type, cons
                 float floatValue = 0;
                 int intValue = 0;
 
-                if (fakeSMCPluginDecodeFloatValue(type, size, buffer, &floatValue)) {
+                if (FakeSMCKey::decodeFloatValue(type, size, buffer, &floatValue)) {
                     didWriteSensorValue(sensor, floatValue);
                 }
-                else if (fakeSMCPluginDecodeIntValue(type, size, buffer, &intValue)) {
+                else if (FakeSMCKey::decodeIntValue(type, size, buffer, &intValue)) {
                     didWriteSensorValue(sensor, intValue);
                 }
                 

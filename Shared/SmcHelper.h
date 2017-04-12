@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-
 #import "smc.h"
 
 @interface SmcHelper : NSObject

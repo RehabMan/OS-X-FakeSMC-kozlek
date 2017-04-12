@@ -185,6 +185,15 @@ bool SuperIODevice::detectWinbondFamilyChip()
                                 vendor = "Nuvoton";
                                 break;
                         } break;
+                        
+                    case 0xD1:
+                        switch (id & 0xff) {
+                            case 0x21:
+                                model = NCT6793D;
+                                ldn = kWinbondHardwareMonitorLDN;
+                                vendor = "Nuvoton";
+                                break;
+                        } break;
 
                 } break;
         }
@@ -251,10 +260,12 @@ bool SuperIODevice::detectITEFamilyChip()
         case IT8726F:
         case IT8620E:
         case IT8628E:
+        case IT8686E:
         case IT8728F:
         case IT8752F:
         case IT8771E:
         case IT8772E:
+        case IT8792E:
             model = id;
             ldn = kFintekITEHardwareMonitorLDN;
             vendor = "ITE";

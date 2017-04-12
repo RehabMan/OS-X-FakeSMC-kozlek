@@ -9,7 +9,6 @@
  */
 
 #include "RadeonSensors.h"
-#include "FakeSMCDefinitions.h"
 
 #include "radeon_chipinfo_gen.h"
 #include "radeon_definitions.h"
@@ -19,6 +18,8 @@
 #include "si.h"
 #include "cik.h"
 #include "evergreen.h"
+
+#include "smc.h"
 
 #define super GPUSensors
 OSDefineMetaClassAndStructors(RadeonSensors, GPUSensors)
@@ -75,7 +76,7 @@ bool RadeonSensors::managedStart(IOService *provider)
         return false;
     }
     
-    if ((card.card_index = takeVacantGPUIndex()) < 0) {
+    if ((card.card_index = takeVacantGPUIndex()) == UINT8_MAX) {
         radeon_info(&card, "failed to take GPU index\n");
         return false;
     }
@@ -325,7 +326,7 @@ bool RadeonSensors::managedStart(IOService *provider)
             default:
                 radeon_fatal(&card, "card 0x%04x is unsupported\n", card.chip_id & 0xffff);
                 releaseGPUIndex(card.card_index);
-                card.card_index = -1;
+                card.card_index = UINT8_MAX;
                 return false;
         }
     }
@@ -335,11 +336,11 @@ bool RadeonSensors::managedStart(IOService *provider)
     if (card.get_core_temp) {
         char key[5];
         snprintf(key, 5, KEY_FORMAT_GPU_DIODE_TEMPERATURE, card.card_index);
-        if (!addSensorForKey(key, TYPE_SP78, 2, kFakeSMCTemperatureSensor, 0)) {
+        if (!addSensorForKey(key, SMC_TYPE_SP78, 2, kFakeSMCTemperatureSensor, 0)) {
             //radeon_error(&card, "failed to register temperature sensor for key %s\n", key);
             radeon_fatal(&card, "failed to register temperature sensor for key %s\n", key);
             releaseGPUIndex(card.card_index);
-            card.card_index = -1;
+            card.card_index = UINT8_MAX;
             return false;
         }
     }
@@ -361,7 +362,7 @@ void RadeonSensors::stop(IOService *provider)
         card.bios = 0;
     }
     
-    if (card.card_index >= 0)
+    if (card.card_index < UINT8_MAX)
         releaseGPUIndex(card.card_index);
     
     super::stop(provider);

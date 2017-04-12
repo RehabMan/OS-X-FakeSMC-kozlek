@@ -72,6 +72,9 @@
 #define MSR_IA32_MPERF                      0x0E7
 #endif
 
+//#define MSR_IA32_APERF                      0x0E8
+//#define MSR_IA32_MPERF                      0x0E7
+
 #define MSR_IA32_TIME_STAMP_COUNTER         0x10
 
 #define kCPUSensorsMaxCpus                  32

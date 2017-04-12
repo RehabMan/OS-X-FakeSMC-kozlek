@@ -26,11 +26,11 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#include "FakeSMCDefinitions.h"
 #include "LPCSensors.h"
 #include "SuperIODevice.h"
-//#include "OEMInfo.h"
+
 #include "timer.h"
+#include "smc.h"
 
 #include <IOKit/IOTimerEventSource.h>
 
@@ -131,7 +131,7 @@ bool LPCSensors::addTemperatureSensors(OSDictionary *configuration)
 
                     snprintf(key, 5, KEY_FORMAT_GPU_DIODE_TEMPERATURE, gpuIndex);
 
-                    if (!addSensorFromConfigurationNode(node, key, TYPE_SP78, TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, i)) {
+                    if (!addSensorFromConfigurationNode(node, key, SMC_TYPE_SP78, SMC_TYPE_SPXX_SIZE, kFakeSMCTemperatureSensor, i)) {
                         releaseGPUIndex(gpuIndex);
                         gpuIndex = -1;
                     }
@@ -165,7 +165,7 @@ bool LPCSensors::addVoltageSensors(OSDictionary *configuration)
 
                     snprintf(key, 5, KEY_FORMAT_GPU_VOLTAGE, gpuIndex);
 
-                    if (!addSensorFromConfigurationNode(node, key, TYPE_FP2E, TYPE_FPXX_SIZE, kFakeSMCVoltageSensor, i)) {
+                    if (!addSensorFromConfigurationNode(node, key, SMC_TYPE_FP2E, SMC_TYPE_FPXX_SIZE, kFakeSMCVoltageSensor, i)) {
                         releaseGPUIndex(gpuIndex);
                         gpuIndex = -1;
                     }
@@ -185,19 +185,20 @@ bool LPCSensors::addTachometerSensors(OSDictionary *configuration)
     UInt16 value = 0;
 
     // FAN manual control key
-    addSensorForKey(KEY_FAN_MANUAL, TYPE_UI16, TYPE_UI16_SIZE, kLPCSensorsFanManualSwitch, 0);
+    addSensorForKey(KEY_FAN_MANUAL, SMC_TYPE_UI16, SMC_TYPE_UI16_SIZE, kLPCSensorsFanManualSwitch, 0);
 
     int location = LEFT_LOWER_FRONT;
 
     for (int i = 0; i < tachometerSensorsLimit(); i++) {
-        SInt8 fanIndex;
+        
+        UInt8 fanIndex;
 
         snprintf(key, 7, "FANIN%X", i);
 
         if (OSString* name = OSDynamicCast(OSString, configuration->getObject(key))){
             if (addTachometer(i, name->getLength() > 0 ? name->getCStringNoCopy() : 0, FAN_RPM, 0, (FanLocationType)location++, &fanIndex)){
 
-                if (isTachometerControlable(i) && fanIndex > -1) {
+                if (isTachometerControlable(i) && fanIndex < UINT8_MAX) {
 
                     tachometerControls[i].number = fanIndex;
                     tachometerControls[i].target = -1;
@@ -205,16 +206,16 @@ bool LPCSensors::addTachometerSensors(OSDictionary *configuration)
 
                     // Minimum RPM and fan control sensor
                     snprintf(key, 5, KEY_FORMAT_FAN_MIN, fanIndex);
-                    addSensorForKey(key, TYPE_FPE2, TYPE_FPXX_SIZE, kLPCSensorsFanMinController, i);
+                    addSensorForKey(key, SMC_TYPE_FPE2, SMC_TYPE_FPXX_SIZE, kLPCSensorsFanMinController, i);
 
                     // Maximum RPM
                     snprintf(key, 5, KEY_FORMAT_FAN_MAX, fanIndex);
-                    fakeSMCPluginEncodeFloatValue(kLPCSensorsMaxRPM, TYPE_FPE2, TYPE_FPXX_SIZE, &value);
-                    setKeyValue(key, TYPE_FPE2, TYPE_FPXX_SIZE, &value);
+                    FakeSMCKey::encodeFloatValue(kLPCSensorsMaxRPM, SMC_TYPE_FPE2, SMC_TYPE_FPXX_SIZE, &value);
+                    setKeyValue(key, SMC_TYPE_FPE2, SMC_TYPE_FPXX_SIZE, &value);
 
                     // Target RPM and fan control sensor
                     snprintf(key, 5, KEY_FORMAT_FAN_TARGET, fanIndex);
-                    addSensorForKey(key, TYPE_FPE2, TYPE_FPXX_SIZE, kLPCSensorsFanTargetController, i);
+                    addSensorForKey(key, SMC_TYPE_FPE2, SMC_TYPE_FPXX_SIZE, kLPCSensorsFanTargetController, i);
                 }
             }
             else HWSensorsWarningLog("failed to add tachometer sensor %d", i);
@@ -354,14 +355,16 @@ bool LPCSensors::didWriteSensorValue(FakeSMCSensor *sensor, float value)
     return false;
 }
 
-void LPCSensors::willPowerOff()
-{
-    //
-}
-
 void LPCSensors::hasPoweredOn()
 {
-    //
+    // Restore fan speed after wake from sleep if it was set before
+    for (int index = 0; index < tachometerSensorsLimit(); index ++) {
+        if (tachometerControls[index].target >= 0) {
+            tachometerControlInit(index, tachometerControls[index].target);
+        }
+    }
+    
+    // Override, but call super
 }
 
 #pragma mark
@@ -474,7 +477,7 @@ bool LPCSensors::init(OSDictionary *properties)
     modelName = "unknown";
     vendorName = "unknown";
 
-    gpuIndex = -1;
+    gpuIndex = UINT8_MAX;
 
 	return true;
 }
@@ -567,34 +570,6 @@ bool LPCSensors::start(IOService *provider)
     HWSensorsInfoLog("started");
 
 	return true;
-}
-
-IOReturn LPCSensors::setPowerState(unsigned long powerState, IOService *device)
-{
-    switch (powerState) {
-        // Power Off
-        case 0:
-            willPowerOff();
-            break;
-
-        // Power On
-        case 1:
-            // Restore fan speed after wake from sleep if it was set before
-            for (int index = 0; index < tachometerSensorsLimit(); index ++) {
-                if (tachometerControls[index].target >= 0) {
-                    tachometerControlInit(index, tachometerControls[index].target);
-                }
-            }
-
-            hasPoweredOn();
-
-            break;
-
-        default:
-            break;
-    }
-    
-	return(IOPMAckImplied);
 }
 
 void LPCSensors::stop(IOService *provider)

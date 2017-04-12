@@ -30,7 +30,11 @@
 
 @interface HWMTimer ()
 
-@property (assign) dispatch_source_t dispatchSource;
+#if OS_OBJECT_USE_OBJC
+@property (nonatomic, strong) dispatch_source_t dispatchSource;
+#else
+@property (nonatomic, assign) dispatch_source_t dispatchSource;
+#endif
 @property (assign) BOOL active;
 
 @end
@@ -105,8 +109,12 @@
 -(void)dealloc
 {
     if (_dispatchSource) {
-        dispatch_release(_dispatchSource);
+#if OS_OBJECT_USE_OBJC
         _dispatchSource = 0;
+#else
+        dispatch_release(_dispatchSource);
+#endif
+        
     }
 }
 
