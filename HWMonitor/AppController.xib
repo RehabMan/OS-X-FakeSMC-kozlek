@@ -208,21 +208,6 @@
                         <constraint firstAttribute="width" priority="730" constant="498" id="18e-eb-M5L"/>
                         <constraint firstAttribute="height" constant="14" id="wPu-W7-zeK"/>
                     </constraints>
-                    <buttonCell key="cell" type="check" title="Check for updates" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="ZMn-Zm-T3E">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="checkForUpdates:" target="-2" id="uaC-Bd-1zJ"/>
-                        <binding destination="263" name="value" keyPath="values.SUEnableAutomaticChecks" id="OrE-Kp-hbk">
-                            <dictionary key="options">
-                                <integer key="NSMultipleValuesPlaceholder" value="1"/>
-                                <integer key="NSNoSelectionPlaceholder" value="1"/>
-                                <integer key="NSNotApplicablePlaceholder" value="1"/>
-                                <integer key="NSNullPlaceholder" value="1"/>
-                            </dictionary>
-                        </binding>
-                    </connections>
                 </button>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dIQ-rm-6cs">
                     <rect key="frame" x="160" y="304" width="37" height="17"/>

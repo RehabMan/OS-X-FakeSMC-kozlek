@@ -32,13 +32,6 @@
                                     <action selector="showAboutPanel:" target="-2" id="225"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Check for Updates" id="680">
-                                <attributedString key="attributedTitle"/>
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="checkForUpdates:" target="-1" id="I1d-rY-GYT"/>
-                                </connections>
-                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="bAc-fH-Wzu"/>
                             <menuItem title="Attach to Menu Bar" keyEquivalent="a" id="1447">
                                 <attributedString key="attributedTitle"/>

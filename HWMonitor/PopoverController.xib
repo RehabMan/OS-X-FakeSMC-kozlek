@@ -77,13 +77,6 @@
                                     <action selector="showAboutWindow:" target="-2" id="dYp-EF-nOD"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Check for Updates" id="g3K-XR-P1p">
-                                <attributedString key="attributedTitle"/>
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="checkForUpdates:" target="-1" id="VKf-do-ezD"/>
-                                </connections>
-                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="ZY7-jU-v1J"/>
                             <menuItem title="Detach from Menu Bar" keyEquivalent="d" id="f02-0v-27t">
                                 <attributedString key="attributedTitle"/>

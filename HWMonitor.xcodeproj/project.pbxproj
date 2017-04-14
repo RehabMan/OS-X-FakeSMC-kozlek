@@ -50,8 +50,6 @@
 		7E48BC5A18EE8FAE00A6CA19 /* HWMonitorHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E48BC5918EE8FAE00A6CA19 /* HWMonitorHelper.m */; };
 		7E48BC6518EE977500A6CA19 /* SmcHelper+HWMonitorHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E48BC6418EE977500A6CA19 /* SmcHelper+HWMonitorHelper.m */; };
 		7E4959F218A640F200E05CF7 /* PopupFanController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E4959F118A640F200E05CF7 /* PopupFanController.m */; };
-		7E4A3C281E07038300A01B02 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E2FE40F18DCBA5400EAD6DB /* Sparkle.framework */; };
-		7E4A3C291E07038300A01B02 /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7E2FE40F18DCBA5400EAD6DB /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7E4C678A1E994D2200CFAB2A /* SMCHelperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E4C67891E994D2200CFAB2A /* SMCHelperTests.m */; };
 		7E4C76AE18A559BA0050BEFD /* PopupAtaSmartReportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E4C76AC18A559BA0050BEFD /* PopupAtaSmartReportController.m */; };
 		7E4C76AF18A559BA0050BEFD /* PopupAtaSmartReportController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7E4C76AD18A559BA0050BEFD /* PopupAtaSmartReportController.xib */; };
@@ -167,20 +165,6 @@
 			remoteGlobalIDString = 55C14BB7136EEF1500649790;
 			remoteInfo = "Sparkle Updater";
 		};
-		7E4A3C261E0702D600A01B02 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
-			remoteInfo = Sparkle;
-		};
-		7E4A3C2A1E07038300A01B02 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7E2FE40518DCB69600EAD6DB /* Sparkle.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
-			remoteInfo = Sparkle;
-		};
 		7E4C678C1E994D2200CFAB2A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7EA248E016D8E93A002231B2 /* Project object */;
@@ -229,7 +213,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				7E2789811876FB6E00B443BD /* Growl.framework in Copy Frameworks */,
-				7E4A3C291E07038300A01B02 /* Sparkle.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -519,7 +502,6 @@
 				7E5134E6185C919F0069AD93 /* CoreData.framework in Frameworks */,
 				7ED40C29184A6D0F0068EBC9 /* WebKit.framework in Frameworks */,
 				7E2789801876FB6300B443BD /* Growl.framework in Frameworks */,
-				7E4A3C281E07038300A01B02 /* Sparkle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1232,8 +1214,6 @@
 			);
 			dependencies = (
 				7EEC9F4818B8D0FB00BDB9D7 /* PBXTargetDependency */,
-				7E4A3C271E0702D600A01B02 /* PBXTargetDependency */,
-				7E4A3C2B1E07038300A01B02 /* PBXTargetDependency */,
 			);
 			name = HWMonitor;
 			productName = HWMonitor;
@@ -1525,16 +1505,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		7E4A3C271E0702D600A01B02 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Sparkle;
-			targetProxy = 7E4A3C261E0702D600A01B02 /* PBXContainerItemProxy */;
-		};
-		7E4A3C2B1E07038300A01B02 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Sparkle;
-			targetProxy = 7E4A3C2A1E07038300A01B02 /* PBXContainerItemProxy */;
-		};
 		7E4C678D1E994D2200CFAB2A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7EA248E716D8E93A002231B2 /* HWMonitor */;
@@ -1743,7 +1713,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "";
-				CONFIGURATION_BUILD_DIR = Build/Producs/Debug;
+				CONFIGURATION_BUILD_DIR = Build/Products/Debug;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
