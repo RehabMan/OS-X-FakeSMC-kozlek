@@ -32,6 +32,7 @@ clean:
 	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Release
 	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Debug
 	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Release
+	rm revision.txt
 
 .PHONY: install
 install:
