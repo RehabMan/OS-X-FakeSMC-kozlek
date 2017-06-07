@@ -151,6 +151,31 @@
 						<string>si8</string>
 						<data>BQ==</data>
 					</array>
+					<key>RMde</key>
+					<array>
+						<string>char</string>
+						<data>QQ==</data>
+					</array>
+					<key>ALV0</key>
+					<array>
+						<string>{alv</string>
+						<data>ARAGdQEgALYO4A==</data>
+					</array>
+					<key>ALRV</key>
+					<array>
+						<string>ui16</string>
+						<data>AAE=</data>
+					</array>
+					<key>ALI0</key>
+					<array>
+						<string>{ali</string>
+						<data>BwECAA==</data>
+					</array>
+					<key>MSLD</key>
+					<array>
+						<string>ui8 </string>
+						<data>AA==</data>
+					</array>
 				</dict>
 				<key>Types</key>
 				<dict>
