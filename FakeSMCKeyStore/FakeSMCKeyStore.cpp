@@ -45,12 +45,12 @@ OSDefineMetaClassAndStructors(FakeSMCKeyStore, IOService)
 
 void FakeSMCKeyStore::lockAccess()
 {
-    IORecursiveLockLock(accessLock);
+    //IORecursiveLockLock(accessLock); 
 }
 
 void FakeSMCKeyStore::unlockAccess()
 {
-    IORecursiveLockUnlock(accessLock);
+    //IORecursiveLockUnlock(accessLock);
 }
 
 UInt32 FakeSMCKeyStore::getCount()

@@ -25,8 +25,6 @@
  *
  */
 
-//REVIEW: #import "../Sparkle/Sparkle/SUUpdater.h"
-
 #import "StatusItemView.h"
 #import "OBMenuBarWindow.h"
 

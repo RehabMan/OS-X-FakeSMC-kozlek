@@ -19,19 +19,17 @@ endif
 
 .PHONY: all
 all:
-	xcodebuild build $(OPTIONS) -project Sparkle/Sparkle.xcodeproj -target "Sparkle" -configuration Release
 	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Debug
 	xcodebuild build $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Release
-	xcodebuild build -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Debug
-	xcodebuild build -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Release
+	xcodebuild build -project HWMonitor.xcodeproj -configuration Debug
+	xcodebuild build -project HWMonitor.xcodeproj -configuration Release
 
 .PHONY: clean
 clean:
-	xcodebuild clean $(OPTIONS) -project Sparkle/Sparkle.xcodeproj -target "Sparkle" -configuration Release
 	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Debug
 	xcodebuild clean $(OPTIONS) -workspace HWSensors.xcworkspace -scheme "Build Kexts" -configuration Release
-	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Debug
-	xcodebuild clean -workspace HWSensors.xcworkspace -scheme "Build Apps" -configuration Release
+	xcodebuild clean -project HWMonitor.xcodeproj -configuration Debug
+	xcodebuild clean -project HWMonitor.xcodeproj -configuration Release
 	rm revision.txt
 
 .PHONY: install

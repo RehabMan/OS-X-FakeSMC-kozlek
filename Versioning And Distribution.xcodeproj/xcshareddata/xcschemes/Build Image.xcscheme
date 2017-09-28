@@ -7,16 +7,16 @@
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "NO"
+            buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7E72E36A181B94F5002165DD"
-               BuildableName = "Sign Kexts"
-               BlueprintName = "Sign Kexts"
+               BlueprintIdentifier = "7EE1EBBE1F517A51004108A6"
+               BuildableName = "Build Image"
+               BlueprintName = "Build Image"
                ReferencedContainer = "container:Versioning And Distribution.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,18 +26,10 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      language = ""
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E72E36A181B94F5002165DD"
-            BuildableName = "Sign Kexts"
-            BlueprintName = "Sign Kexts"
-            ReferencedContainer = "container:Versioning And Distribution.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -45,6 +37,7 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      language = ""
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -54,9 +47,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E72E36A181B94F5002165DD"
-            BuildableName = "Sign Kexts"
-            BlueprintName = "Sign Kexts"
+            BlueprintIdentifier = "7EE1EBBE1F517A51004108A6"
+            BuildableName = "Build Image"
+            BlueprintName = "Build Image"
             ReferencedContainer = "container:Versioning And Distribution.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -72,9 +65,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E72E36A181B94F5002165DD"
-            BuildableName = "Sign Kexts"
-            BlueprintName = "Sign Kexts"
+            BlueprintIdentifier = "7EE1EBBE1F517A51004108A6"
+            BuildableName = "Build Image"
+            BlueprintName = "Build Image"
             ReferencedContainer = "container:Versioning And Distribution.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
