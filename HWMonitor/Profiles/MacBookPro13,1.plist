@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<string>TC1C|CPU Core 1</string>
+	<string>TA0V|Ambient</string>
+	<string>Ts0P|Heatpipe Incoming Air</string>
+	<string>TC2C|CPU Core 2</string>
+	<string>TC0P|CPU Proximity</string>
+	<string>TC0E|CPU 1</string>
+	<string>TC0F|CPU 2</string>
+	<string>TCHP|Heatsink</string>
+	<string>TCSC|PECI SA</string>
+	<string>TCXC|PECI CPU</string>
+	<string>TCSA|PECI SA</string>
+	<string>TCGC|PECI GPU</string>
+	<string>TPCD|PCH Die</string>
+	<string>TM0P|Memory</string>
+	<string>Ts0S|System Proximity</string>
+	<string>Th0N|SSD</string>
+	<string>TB0T|Battery TS Max</string>
+	<string>TB1T|Battery 1</string>
+	<string>TBXT|Battery</string>
+	<string>TB2T|Battery 2</string>
+	<string>Th1H|Heatpipe</string>
+	<string>Th2H|Fan inlet Left</string>
+	<string>Ts0P|Touchpad</string>
+	<string>Th1H|Fan inlet Right</string>
+	<string>Ts1P|Palm</string>
+	<string>VCFR|CPU FIVR</string>
+	<string>VD0R|Power Supply</string>
+	<string>VCAC|CPU</string>
+	<string>VCGC|Graphic</string>
+	<string>VP0R|VSDC</string>
+	<string>IBLR|LCD BL</string>
+	<string>ICAM|CPU IMON</string>
+	<string>IO5R|5V</string>
+	<string>IO3R|3V</string>
+	<string>ICAC|CPU Fixed</string>
+	<string>IC0R|Computing High Side</string>
+	<string>ITAR|TrackPad</string>
+	<string>ICMC|Camera</string>
+	<string>ICGC|CPU Graphic</string>
+	<string>IHCC|PICCOLO</string>
+	<string>IHNC|NAND</string>
+	<string>IIDC|T151</string>
+	<string>ICEC|EDRAM</string>
+	<string>ID0R|DC in</string>
+	<string>IO0R|Other High Side</string>
+	<string>IBKC|KB backlite</string>
+	<string>ISCC|PCH</string>
+	<string>IULC|Thunderbolt Left</string>
+	<string>PSDC|SSD</string>
+	<string>PAPC|Airport</string>
+	<string>PM0C|Memory </string>
+	<string>PC1C|CPU 1.05V</string>
+	<string>PD0R|Power Supply</string>
+	<string>PC0R|CPU Rail</string>
+	<string>PCAC|CPU Process</string>
+	<string>P03R|3V</string>
+	<string>P05R|5V</string>
+	<string>PCPC|CPU Package Cores</string>
+	<string>PCGM|CPU Memory Controller</string>
+	<string>PCGC|CPU Graphic</string>
+	<string>PCPG|CPU Package Graphics</string>
+	<string>PCPT|CPU Package Total</string>
+	<string>PM0C|Memory Rail</string>
+	<string>PN0C|PCH Core</string>
+	<string>PC0R|Mainboard S0 Rail</string>
+	<string>PDTR|DC in Total</string>
+	<string>PSTR|System Total</string>
+	<string>PCS0|CPU 1.8V</string>
+</array>
+</plist>
