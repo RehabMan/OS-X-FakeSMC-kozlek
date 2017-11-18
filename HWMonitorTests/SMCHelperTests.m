@@ -45,6 +45,7 @@
 
 - (void)testIntTypeCheckInvalidity
 {
+    XCTAssertFalse([SmcHelper isValidIntegerSmcType:@SMC_TYPE_FLT]);
     XCTAssertFalse([SmcHelper isValidIntegerSmcType:@SMC_TYPE_FP2E]);
     XCTAssertFalse([SmcHelper isValidIntegerSmcType:@SMC_TYPE_FP4C]);
     XCTAssertFalse([SmcHelper isValidIntegerSmcType:@SMC_TYPE_FP5B]);
