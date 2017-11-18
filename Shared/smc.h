@@ -54,6 +54,7 @@
 #define SMC_TYPE_SI32   "si32"
 #define SMC_TYPE_FLAG   "flag"
 #define SMC_TYPE_FDS    "{fds"
+#define SMC_TYPE_FLT    "flt"
 
 #define SMC_TYPE_FPXX_SIZE  2
 #define SMC_TYPE_SPXX_SIZE  2
