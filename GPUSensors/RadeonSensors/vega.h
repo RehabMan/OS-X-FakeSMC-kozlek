@@ -1,8 +1,8 @@
 //
-//  cik.h
+//  vega.h
 //  HWSensors
 //
-//  Created by Kozlek on 07.12.13.
+//  Created by Tobias Punke on 02.02.2018.
 //
 //
 
@@ -34,47 +34,16 @@
  *          Jerome Glisse
  */
 
-#ifndef HWSensors_cik_h
-#define HWSensors_cik_h
+#ifndef HWSensors_vega_h
+#define HWSensors_vega_h
 
 #include "radeon.h"
 
-#define     RREG32_SMC(reg)             tn_smc_rreg(rdev, (reg))
-#define     RREG32_IND(reg)             mm_smc_rreg(rdev, (reg))
-#define     TN_SMC_IND_INDEX_0          0x200
-#define     TN_SMC_IND_DATA_0           0x204
-#define     MM_SMC_IND_INDEX_11          (0x1AC * 4)
-#define     MM_SMC_IND_DATA_11           (0x1AD * 4)
+//#define     RREG32_SMC(reg)             tn_smc_rreg(rdev, (reg))
+//#define     TN_SMC_IND_INDEX_0          0x200
+//#define     TN_SMC_IND_DATA_0           0x204
 
-static inline u32 tn_smc_rreg(struct radeon_device *rdev, u32 reg)
-{
-	//unsigned long flags;
-	u32 r;
-    
-	//spin_lock_irqsave(&rdev->smc_idx_lock, flags);
-	WREG32(TN_SMC_IND_INDEX_0, (reg));
-	r = RREG32(TN_SMC_IND_DATA_0);
-    
-	//spin_unlock_irqrestore(&rdev->smc_idx_lock, flags);
-	return r;
-}
-
-static inline u32 mm_smc_rreg(struct radeon_device *rdev, u32 reg)
-{
-	//unsigned long flags;
-	u32 r;
-
-	//spin_lock_irqsave(&rdev->smc_idx_lock, flags);
-	WREG32(MM_SMC_IND_INDEX_11, (reg));
-	r = RREG32(MM_SMC_IND_DATA_11);
-
-	//spin_unlock_irqrestore(&rdev->smc_idx_lock, flags);
-	return r;
-}
-
-
-int ci_get_temp(struct radeon_device *rdev);
-int pl_get_temp(struct radeon_device *rdev);
-int kv_get_temp(struct radeon_device *rdev);
+int vega_get_temp(struct radeon_device *rdev);
 
 #endif
+

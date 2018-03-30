@@ -700,4 +700,7 @@ static RADEONCardInfo RADEONCards[] = {
     { 0x67B9, CHIP_FAMILY_HAWAII, 0, 0, 0, 0, 0 },
     { 0x67BA, CHIP_FAMILY_HAWAII, 0, 0, 0, 0, 0 },
     { 0x67BE, CHIP_FAMILY_HAWAII, 0, 0, 0, 0, 0 },
+    { 0x67EF, CHIP_FAMILY_POLARIS, 0, 0, 0, 0, 0 },
+    { 0x67DF, CHIP_FAMILY_POLARIS, 0, 0, 0, 0, 0 },
+    { 0x67FF, CHIP_FAMILY_POLARIS, 0, 0, 0, 0, 0 },
 };

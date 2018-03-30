@@ -84,7 +84,9 @@ enum SuperIOModel
     NCT6779D    = 0xC560,
     NCT6791D    = 0xC803,
     NCT6792D    = 0xC911,
-    NCT6793D    = 0xD121
+    NCT6793D    = 0xD121,
+    NCT6795D    = 0xD352,
+    NCT6796D    = 0xD423,
 };
 
 inline UInt8 superio_listen_port_byte(i386_ioport_t port, UInt8 reg)
@@ -186,6 +188,8 @@ inline const char* superio_get_model_name(UInt16 model)
         case NCT6791D:      return "NCT6791D";
         case NCT6792D:      return "NCT6792D";
         case NCT6793D:      return "NCT6793D";
+        case NCT6795D:      return "NCT6795D";
+        case NCT6796D:      return "NCT6796D";
     }
     
     return "unknown";
