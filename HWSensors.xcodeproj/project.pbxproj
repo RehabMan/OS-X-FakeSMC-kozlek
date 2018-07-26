@@ -70,6 +70,7 @@
 		7EBEB1DB17B1754D00C114B5 /* GPUSensors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EBEB1D917B1754D00C114B5 /* GPUSensors.cpp */; };
 		7ECCB63E18537A7000D95FB4 /* cik.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7ECCB63D18537A7000D95FB4 /* cik.cpp */; };
 		7EDFC7581E05A9F3005A6F96 /* gp100.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EDFC7561E05A9F3005A6F96 /* gp100.cpp */; };
+		D452B91921075817008456D6 /* SMMSensors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D452B91821075817008456D6 /* SMMSensors.cpp */; };
 		F6D276032023D87B00D392E1 /* vega.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6D276022023D87B00D392E1 /* vega.cpp */; };
 /* End PBXBuildFile section */
 
@@ -231,6 +232,12 @@
 		7EFF9518182AD44700C637C8 /* FakeSMCKeyStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FakeSMCKeyStore.h; path = FakeSMCKeyStore/FakeSMCKeyStore.h; sourceTree = SOURCE_ROOT; };
 		7EFF9519182AD44700C637C8 /* FakeSMCKeyStoreUserClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FakeSMCKeyStoreUserClient.cpp; path = FakeSMCKeyStore/FakeSMCKeyStoreUserClient.cpp; sourceTree = SOURCE_ROOT; };
 		7EFF951A182AD44700C637C8 /* FakeSMCKeyStoreUserClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FakeSMCKeyStoreUserClient.h; path = FakeSMCKeyStore/FakeSMCKeyStoreUserClient.h; sourceTree = SOURCE_ROOT; };
+		D424E591210829DF00ACCF15 /* smm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = smm.h; sourceTree = "<group>"; };
+		D452B91621075817008456D6 /* SMMSensors.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SMMSensors.kext; sourceTree = BUILT_PRODUCTS_DIR; };
+		D452B91821075817008456D6 /* SMMSensors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SMMSensors.cpp; sourceTree = "<group>"; };
+		D452B91F21075882008456D6 /* SMMSensors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SMMSensors.h; sourceTree = "<group>"; };
+		D452B92121075CEA008456D6 /* SMMSensors-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SMMSensors-Info.plist"; sourceTree = "<group>"; };
+		D49D43552107728A00CDC565 /* SMMSensors-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SMMSensors-Prefix.pch"; sourceTree = "<group>"; };
 		F6D276012023D76700D392E1 /* vega.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vega.h; sourceTree = "<group>"; };
 		F6D276022023D87B00D392E1 /* vega.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vega.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -271,6 +278,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D452B91221075817008456D6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -284,6 +298,7 @@
 				7E79B81B15BA99350079AAE8 /* CPUSensors */,
 				7EADE20815E5602F00FD117C /* GPUSensors */,
 				6A4E473A152178A00038C5DE /* LPCSensors */,
+				D452B91721075817008456D6 /* SMMSensors */,
 				1D05ABE613ED0DAD00EADBF6 /* Frameworks */,
 				1D05ABE513ED0DAD00EADBF6 /* Products */,
 			);
@@ -297,6 +312,7 @@
 				6A4E4739152178A00038C5DE /* LPCSensors.kext */,
 				7E79B81A15BA99350079AAE8 /* CPUSensors.kext */,
 				7EADE20715E5602E00FD117C /* GPUSensors.kext */,
+				D452B91621075817008456D6 /* SMMSensors.kext */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -722,6 +738,26 @@
 			name = Kernel;
 			sourceTree = "<group>";
 		};
+		D452B91721075817008456D6 /* SMMSensors */ = {
+			isa = PBXGroup;
+			children = (
+				D424E591210829DF00ACCF15 /* smm.h */,
+				D452B91821075817008456D6 /* SMMSensors.cpp */,
+				D452B91F21075882008456D6 /* SMMSensors.h */,
+				D452B91E21075847008456D6 /* Supporting Files */,
+			);
+			path = SMMSensors;
+			sourceTree = "<group>";
+		};
+		D452B91E21075847008456D6 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D452B92121075CEA008456D6 /* SMMSensors-Info.plist */,
+				D49D43552107728A00CDC565 /* SMMSensors-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -810,6 +846,23 @@
 			productReference = 7EADE20715E5602E00FD117C /* GPUSensors.kext */;
 			productType = "com.apple.product-type.kernel-extension";
 		};
+		D452B91521075817008456D6 /* SMMSensors */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D452B91B21075817008456D6 /* Build configuration list for PBXNativeTarget "SMMSensors" */;
+			buildPhases = (
+				D452B91121075817008456D6 /* Sources */,
+				D452B91221075817008456D6 /* Frameworks */,
+				D452B91421075817008456D6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SMMSensors;
+			productName = SMMSensors;
+			productReference = D452B91621075817008456D6 /* SMMSensors.kext */;
+			productType = "com.apple.product-type.kernel-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -840,6 +893,7 @@
 				7E79B81915BA99350079AAE8 /* CPUSensors */,
 				7EADE20615E5602E00FD117C /* GPUSensors */,
 				6A4E4738152178A00038C5DE /* LPCSensors */,
+				D452B91521075817008456D6 /* SMMSensors */,
 			);
 		};
 /* End PBXProject section */
@@ -874,6 +928,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		7EADE20415E5602E00FD117C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D452B91421075817008456D6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -979,6 +1040,14 @@
 				7E17E171169C532100E40FC7 /* si.cpp in Sources */,
 				7E148DDA16F7B5E800A3F28E /* nv84.cpp in Sources */,
 				7EBEB1DB17B1754D00C114B5 /* GPUSensors.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D452B91121075817008456D6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D452B91921075817008456D6 /* SMMSensors.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1297,6 +1366,52 @@
 			};
 			name = Release;
 		};
+		D452B91C21075817008456D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SMMSensors/SMMSensors-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "SMMSensors/SMMSensors-Info.plist";
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
+				MODULE_NAME = org.hwsensors.SMMSensors;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGET_DIR = SMMSensors;
+				WRAPPER_EXTENSION = kext;
+			};
+			name = Debug;
+		};
+		D452B91D21075817008456D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SMMSensors/SMMSensors-Prefix.pch";
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "SMMSensors/SMMSensors-Info.plist";
+				INFOPLIST_PREFIX_HEADER = Shared/HWSensorsVersion.pch;
+				INFOPLIST_PREPROCESS = YES;
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions/FakeSMC.kext/Contents/PlugIns";
+				MODULE_NAME = org.hwsensors.SMMSensors;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGET_DIR = SMMSensors;
+				WRAPPER_EXTENSION = kext;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1350,6 +1465,15 @@
 			buildConfigurations = (
 				7EADE21215E5602F00FD117C /* Debug */,
 				7EADE21315E5602F00FD117C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D452B91B21075817008456D6 /* Build configuration list for PBXNativeTarget "SMMSensors" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D452B91C21075817008456D6 /* Debug */,
+				D452B91D21075817008456D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

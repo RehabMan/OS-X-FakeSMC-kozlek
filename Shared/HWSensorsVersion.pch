@@ -23,6 +23,7 @@
 #define CPUSENSORS_BUNDLE                   org.hwsensors.driver.CPUSensors
 #define LPCSENSORS_BUNDLE                   org.hwsensors.driver.LPCSensors
 #define GPUSENSORS_BUNDLE                   org.hwsensors.driver.GPUSensors
+#define SMMSENSORS_BUNDLE                   org.hwsensors.driver.SMMSensors
 
 #define FAKESMCKEYSTORE_COMPATIBLE          1429
 #define LPCSENSORS_COMPATIBLE               1429

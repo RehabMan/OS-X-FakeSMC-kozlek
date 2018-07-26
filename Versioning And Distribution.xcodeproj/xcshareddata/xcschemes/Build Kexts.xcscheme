@@ -84,6 +84,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D452B91521075817008456D6"
+               BuildableName = "SMMSensors.kext"
+               BlueprintName = "SMMSensors"
+               ReferencedContainer = "container:HWSensors.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "1D05ABE313ED0DAD00EADBF6"
                BuildableName = "FakeSMC.kext"
                BlueprintName = "FakeSMC"

@@ -56,6 +56,7 @@ install_all:
 	sudo cp -R Build/Products/Release/ACPISensors.kext $(INSTDIR)/FakeSMC_ACPISensors.kext
 	sudo cp -R Build/Products/Release/LPCSensors.kext $(INSTDIR)/FakeSMC_LPCSensors.kext
 	sudo cp -R Build/Products/Release/GPUSensors.kext $(INSTDIR)/FakeSMC_GPUSensors.kext
+	sudo cp -R Build/Products/Release/SMMSensors.kext $(INSTDIR)/FakeSMC_SMMSensors.kext
 	if [ "`which tag`" != "" ]; then sudo tag -a Blue $(INSTDIR)/FakeSMC*.kext; fi
 	sudo touch /System/Library/Extensions
 	sudo kextcache -update-volume /
@@ -68,6 +69,7 @@ install_debug_all:
 	sudo cp -R Build/Products/Debug/ACPISensors.kext $(INSTDIR)/FakeSMC_ACPISensors.kext
 	sudo cp -R Build/Products/Debug/LPCSensors.kext $(INSTDIR)/FakeSMC_LPCSensors.kext
 	sudo cp -R Build/Products/Debug/GPUSensors.kext $(INSTDIR)/FakeSMC_GPUSensors.kext
+	sudo cp -R Build/Products/Debug/SMMSensors.kext $(INSTDIR)/FakeSMC_SMMSensors.kext
 	if [ "`which tag`" != "" ]; then sudo tag -a Purple $(INSTDIR)/FakeSMC*.kext; fi
 	sudo touch /System/Library/Extensions
 	sudo kextcache -update-volume /
@@ -81,6 +83,7 @@ distribute:
 	cp -R ./Build/Products/Release/ACPISensors.kext ./Distribute/FakeSMC_ACPISensors.kext
 	cp -R ./Build/Products/Release/LPCSensors.kext ./Distribute/FakeSMC_LPCSensors.kext
 	cp -R ./Build/Products/Release/GPUSensors.kext ./Distribute/FakeSMC_GPUSensors.kext
+	cp -R ./Build/Products/Release/SMMSensors.kext ./Distribute/FakeSMC_SMMSensors.kext
 	cp -R ./Build/Products/Release/HWMonitor.app ./Distribute
 	find ./Distribute -path *.DS_Store -delete
 	find ./Distribute -path *.dSYM -exec echo rm -r {} \; >/tmp/org.kozlek.rm.dsym.sh
