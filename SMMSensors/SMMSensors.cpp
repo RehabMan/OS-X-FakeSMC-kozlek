@@ -292,7 +292,7 @@ bool SMMSensors::start(IOService *provider)
         OSNumber* numberFanMultiplier = OSDynamicCast(OSNumber, configuration->getObject("FanMultiplier"));
         if (numberFanMultiplier) {
             fanMultiplier = numberFanMultiplier->unsigned32BitValue();
-            HWSensorsInfoLog("Tachometer fan multiplier \"%d\"", fanMultiplier);
+            HWSensorsDebugLog("Tachometer fan multiplier \"%d\"", fanMultiplier);
         }
 
         /* Add platform configured fans */
@@ -326,14 +326,9 @@ bool SMMSensors::start(IOService *provider)
 
                         if (sensor != NULL) {
                             registered_sensors++;
-                            HWSensorsInfoLog("Registered tachometer sensor \"%s\" for SMM fan index \"%d\", type \"%s\".", key->getCStringNoCopy(), tachometerIndex->unsigned32BitValue(), getFanTypeName(fanType));
-                            
-                            this->keyStore->updateFanCounterKey();
-                            UInt8* fanCount = (UInt8 *)this->keyStore->getKey(KEY_FAN_NUMBER)->getValue();
-                            
-                            HWSensorsInfoLog("Fancount: %d", *fanCount);
+                            HWSensorsDebugLog("Registered tachometer sensor \"%s\" for SMM fan index \"%d\", type \"%s\".", key->getCStringNoCopy(), tachometerIndex->unsigned32BitValue(), getFanTypeName(fanType));
                         } else {
-                            HWSensorsInfoLog("Failed to register tachometer sensor \"%s\" for SMM fan index \"%d\"", key->getCStringNoCopy(), tachometerIndex->unsigned32BitValue());
+                            HWSensorsWarningLog("Failed to register tachometer sensor \"%s\" for SMM fan index \"%d\"", key->getCStringNoCopy(), tachometerIndex->unsigned32BitValue());
                         }
                     } else {
                         HWSensorsErrorLog("Failed to validate sensor \"%s\" for SMM fan index \"%d\"", key->getCStringNoCopy(), tachometerIndex->unsigned32BitValue());
@@ -374,9 +369,9 @@ bool SMMSensors::start(IOService *provider)
                         
                         if (sensor != NULL) {
                             registered_sensors++;
-                            HWSensorsInfoLog("Registered temperature sensor \"%s\" for SMM temperature sensor index \"%d\", type \"%s\".", key->getCStringNoCopy(), temperatureIndex->unsigned32BitValue(), getTempTypeName(tempType));
+                            HWSensorsDebugLog("Registered temperature sensor \"%s\" for SMM temperature sensor index \"%d\", type \"%s\".", key->getCStringNoCopy(), temperatureIndex->unsigned32BitValue(), getTempTypeName(tempType));
                         } else {
-                            HWSensorsInfoLog("Failed to register tachometer sensor \"%s\" for SMM temperature sensor index \"%d\"", key->getCStringNoCopy(), temperatureIndex->unsigned32BitValue());
+                            HWSensorsWarningLog("Failed to register tachometer sensor \"%s\" for SMM temperature sensor index \"%d\"", key->getCStringNoCopy(), temperatureIndex->unsigned32BitValue());
                         }
                     } else {
                         HWSensorsErrorLog("Failed to validate sensor \"%s\" for SMM temperature sensor index \"%d\"", key->getCStringNoCopy(), temperatureIndex->unsigned32BitValue());
