@@ -90,7 +90,6 @@ void FakeSMCKeyStore::updateFanCounterKey()
 
 FakeSMCKey *FakeSMCKeyStore::addKeyWithValue(const char *name, const char *type, unsigned char size, const void *value)
 {
-
     lockAccess();
 
     FakeSMCKey* key = getKey(name);
@@ -155,7 +154,6 @@ FakeSMCKey *FakeSMCKeyStore::addKeyWithValue(const char *name, const char *type,
         HWSensorsDebugLog("value updated for key %s, type: %s, size: %d", key->getKey(), key->getType(), key->getSize());
     }
     else {
-
         HWSensorsDebugLog("adding key %s with value, type: %s, size: %d", name, type, size);
 
         OSString *wellKnownType = 0;
@@ -275,6 +273,12 @@ UInt32 FakeSMCKeyStore::addKeysFromDictionary(OSDictionary* dictionary)
     if (dictionary) {
         if (OSIterator *iterator = OSCollectionIterator::withCollection(dictionary)) {
             while (const OSSymbol *key = (const OSSymbol *)iterator->getNextObject()) {
+              
+                if (key->isEqualTo(KEY_FAN_NUMBER) || key->isEqualTo(KEY_COUNTER)) {
+                    HWSensorsWarningLog("blocked while trying to set protected key \"%s\".", key->getCStringNoCopy());
+                    continue;
+                }
+
                 if (OSArray *array = OSDynamicCast(OSArray, dictionary->getObject(key))) {
                     if (OSIterator *aiterator = OSCollectionIterator::withCollection(array)) {
 
@@ -282,8 +286,9 @@ UInt32 FakeSMCKeyStore::addKeysFromDictionary(OSDictionary* dictionary)
                         OSData *value = OSDynamicCast(OSData, aiterator->getNextObject());
 
                         if (type && value) {
-                            addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy());
-                            keysAdded++;
+                            if (addKeyWithValue(key->getCStringNoCopy(), type->getCStringNoCopy(), value->getLength(), value->getBytesNoCopy())) {
+                                keysAdded++;
+                            }
                         }
 
                         OSSafeReleaseNULL(aiterator);
