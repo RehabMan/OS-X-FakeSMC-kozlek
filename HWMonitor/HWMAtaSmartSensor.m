@@ -59,6 +59,7 @@
 #import "HWMEngine.h"
 #import "HWMSensorsGroup.h"
 #import "HWMATASmartInterfaceWrapper.h"
+#import "HWMNVMeSmartInterfaceWrapper.h"
 
 #import "HWMonitorDefinitions.h"
 #import "Localizer.h"
@@ -68,6 +69,7 @@
 
 #import "NSString+returnCodeDescription.h"
 
+#import "nvme.h"
 
 #pragma mark
 #pragma mark HWMAtaSmartSensor
@@ -405,18 +407,39 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
     if (self.hidden.boolValue)
         return nil;
 
-    HWMATASmartInterfaceWrapper *wrapper = [HWMATASmartInterfaceWrapper getWrapperForBsdName:self.bsdName];
-
-    if (!wrapper) {
-
-        wrapper = [HWMATASmartInterfaceWrapper wrapperWithService:(io_service_t)self.service.unsignedLongLongValue
-                                                         productName:self.productName
-                                                            firmware:self.revision
-                                                             bsdName:self.bsdName
-                                                        isRotational:self.rotational.boolValue];
+    CFStringRef className = IOObjectCopyClass((io_service_t)self.service.unsignedLongLongValue);
+    
+    if (CFEqual(className, CFSTR(kIONVMeBlockStorageDevice))) {
+        // NVMe
+        HWMNVMeSmartInterfaceWrapper *wrapper = [HWMNVMeSmartInterfaceWrapper getWrapperForBsdName:self.bsdName];
+        
+        if (!wrapper) {
+            
+            wrapper = [HWMNVMeSmartInterfaceWrapper wrapperWithService:(io_service_t)self.service.unsignedLongLongValue
+                                                          productName:self.productName
+                                                             firmware:self.revision
+                                                              bsdName:self.bsdName
+                                                         isRotational:self.rotational.boolValue];
+        }
+        
+        _attributes = wrapper ? [wrapper.attributes copy] : nil;
+    } else {
+        // ATA
+        HWMATASmartInterfaceWrapper *wrapper = [HWMATASmartInterfaceWrapper getWrapperForBsdName:self.bsdName];
+        
+        if (!wrapper) {
+            
+            wrapper = [HWMATASmartInterfaceWrapper wrapperWithService:(io_service_t)self.service.unsignedLongLongValue
+                                                          productName:self.productName
+                                                             firmware:self.revision
+                                                              bsdName:self.bsdName
+                                                         isRotational:self.rotational.boolValue];
+        }
+        
+        _attributes = wrapper ? [wrapper.attributes copy] : nil;
     }
-
-    _attributes = wrapper ? [wrapper.attributes copy] : nil;
+    
+    CFRelease(className);
 
     switch (self.selector.unsignedIntegerValue) {
         case kHWMGroupTemperature:
@@ -425,7 +448,6 @@ static io_iterator_t gHWMAtaSmartDeviceIterator = 0;
 
         case kHWMGroupSmartRemainingLife:
             return [self getRemainingLife];
-
     }
 
     return @0;
@@ -542,8 +564,9 @@ static void block_device_appeared(void *engine, io_iterator_t iterator)
                 NSDictionary *properties = CFBridgingRelease(propertiesRef);
 
                 NSNumber *capable = properties[@kIOPropertySMARTCapableKey];
+                NSNumber *nvmeCapable = properties[@kIOPropertyNVMeSMARTCapableKey];
 
-                if (capable && capable.boolValue) {
+                if ((capable && capable.boolValue) || (nvmeCapable && nvmeCapable.boolValue)) {
 
                     NSDictionary * characteristics = properties[@"Device Characteristics"];
 

@@ -128,6 +128,7 @@
 		7EFE61B4183581090009BD0D /* HWMSmcSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EFE61B3183581090009BD0D /* HWMSmcSensor.m */; };
 		7EFE61B7183581090009BD0D /* HWMSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EFE61B6183581090009BD0D /* HWMSensor.m */; };
 		7EFF4395183649B20094860C /* HWMEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EFF4394183649B20094860C /* HWMEngine.m */; };
+		D4327F26210B868400CC5925 /* HWMNVMeSmartInterfaceWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = D4327F25210B868400CC5925 /* HWMNVMeSmartInterfaceWrapper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -417,6 +418,9 @@
 		7EFF4393183649B20094860C /* HWMEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HWMEngine.h; sourceTree = "<group>"; };
 		7EFF4394183649B20094860C /* HWMEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HWMEngine.m; sourceTree = "<group>"; };
 		A32FB4F217676DF300F27ADB /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D41E4F7C210B52FD00C9C541 /* nvme.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = nvme.h; path = Shared/nvme.h; sourceTree = "<group>"; };
+		D4327F25210B868400CC5925 /* HWMNVMeSmartInterfaceWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HWMNVMeSmartInterfaceWrapper.m; sourceTree = "<group>"; };
+		D4327F27210B869300CC5925 /* HWMNVMeSmartInterfaceWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HWMNVMeSmartInterfaceWrapper.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -612,6 +616,8 @@
 				7E56D2FA183FD96600D53B97 /* HWMSmcFanSensor.m */,
 				7E0E9F6F1EA31AF100667B92 /* HWMATASmartInterfaceWrapper.h */,
 				7E0E9F701EA31AF100667B92 /* HWMATASmartInterfaceWrapper.m */,
+				D4327F27210B869300CC5925 /* HWMNVMeSmartInterfaceWrapper.h */,
+				D4327F25210B868400CC5925 /* HWMNVMeSmartInterfaceWrapper.m */,
 				7EFE61AF183581090009BD0D /* HWMAtaSmartSensor.h */,
 				7EFE61B0183581090009BD0D /* HWMAtaSmartSensor.m */,
 				7EFE61AC183581090009BD0D /* HWMBatterySensor.h */,
@@ -721,6 +727,7 @@
 				7E3D41CC18B2B67A002F6559 /* ACPIProbeArgument.h */,
 				7E2678B7182523FE00B405DE /* smc.h */,
 				7EF393C1185C8D990033F1AB /* smc.c */,
+				D41E4F7C210B52FD00C9C541 /* nvme.h */,
 			);
 			name = Kernel;
 			sourceTree = "<group>";
@@ -1319,6 +1326,7 @@
 				7E6AEF6E18C9A4E800AD0CBC /* PopupAtaStateCell.m in Sources */,
 				7EFE61B4183581090009BD0D /* HWMSmcSensor.m in Sources */,
 				7E2EFB3F1B4F25C8004ABDC2 /* NSWindow+ULIZoomEffect.m in Sources */,
+				D4327F26210B868400CC5925 /* HWMNVMeSmartInterfaceWrapper.m in Sources */,
 				7EFF4395183649B20094860C /* HWMEngine.m in Sources */,
 				7EDA1A6D16D901100012A0DC /* PopupController.m in Sources */,
 				7EF393C2185C8D990033F1AB /* smc.c in Sources */,
