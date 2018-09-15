@@ -38,6 +38,11 @@
 + (BOOL)isValidFloatingSmcType:(NSString *)type
 {
     if (type && [type length] >= 3) {
+	    
+	   if ([type characterAtIndex:0] == 'f' && [type characterAtIndex:1] == 'l'&& [type characterAtIndex:2] == 't' )
+            return TRUE;   
+	    
+	    
         if (([type characterAtIndex:0] == 'f' || [type characterAtIndex:0] == 's') && [type characterAtIndex:1] == 'p') {
             UInt8 i = [SmcHelper getIndexFromHexChar:[type characterAtIndex:2]];
             UInt8 f = [SmcHelper getIndexFromHexChar:[type characterAtIndex:3]];
@@ -133,6 +138,16 @@
                 if (signd && minus) bit_clear(swapped, BIT(15));
                 
                 return [NSNumber numberWithFloat:((float)swapped / (float)BIT(f)) * (signd && minus ? -1 : 1)];
+            }else if (type[0] == 'f' && type[1] == 'l' && type[2] == 't' && length == 4){
+                
+                float encoded = 0;
+                
+                bcopy(data, &encoded, 4);
+                
+    
+                    
+                    
+                    return [NSNumber numberWithFloat:(encoded )];
             }
         }
     }
