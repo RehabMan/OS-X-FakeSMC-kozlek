@@ -28,6 +28,11 @@
 #include <IOKit/IOTimerEventSource.h>
 #include <IOKit/IOLib.h>
 
+#ifndef INT_MIN
+// from 10.13 SDK limits.h
+#define    INT_MIN        (-2147483647-1)    /* min value for an int */
+#endif
+
 class EXPORT SMMSensors : public FakeSMCPlugin
 {
     OSDeclareDefaultStructors(SMMSensors)
