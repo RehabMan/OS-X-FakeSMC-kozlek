@@ -1799,6 +1799,29 @@ NSString * const HWMEngineSensorValuesHasBeenUpdatedNotification = @"HWMEngineSe
                     }
                 }
             }
+        }else  {
+            key = [[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i];
+            if (kIOReturnSuccess == SMCReadKey(connection, [key cStringUsingEncoding:NSASCIIStringEncoding], &info)) {
+                NSString *type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
+                if ([type isEqualToString:@SMC_TYPE_FLT]){
+                    NSString * caption = [[NSString alloc] initWithBytes:info.bytes length:info.dataSize encoding:NSUTF8StringEncoding];
+                    
+                    if ([caption length] == 0)
+                        caption = [[NSString alloc] initWithFormat:@"Fan %X", i + 1];
+                    
+                    if (![caption hasPrefix:@"GPU "]) {
+                        
+                        key = [[NSString alloc] initWithFormat:@KEY_FORMAT_FAN_SPEED,i];
+                        
+                        if (kIOReturnSuccess == SMCReadKey(connection, [key cStringUsingEncoding:NSASCIIStringEncoding], &info)) {
+                            
+                            type = [NSString stringWithCString:info.dataType encoding:NSASCIIStringEncoding];
+                            
+                            [self insertSmcFanWithConnection:connection descriptor:caption name:key type:type title:GetLocalizedString(caption) selector:group.selector.unsignedIntegerValue group:group];
+                        }
+                    }
+                }
+            }
         }
     }
 
